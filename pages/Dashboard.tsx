@@ -211,9 +211,31 @@ const THEME_OPTIONS: { id: DashboardTheme, color: string }[] = [
 ];
 
 export default function Dashboard() {
-  const { user, updateDashboardWidgets, updateDashboardTheme, pendingSignups } = useApp();
+  const { user, updateDashboardWidgets, updateDashboardTheme, updateUser, pendingSignups } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const showTour = user?.setupComplete && !user?.tutorialCompleted;
+
+  const tourSteps = [
+    { title: 'Welcome to NEXA', description: 'This is your operational command centre. Here you can monitor all your farm operations in real time.', icon: <Zap size={24} className="text-emerald-500" /> },
+    { title: 'Your Dashboard Widgets', description: 'Each card shows key data — finances, stock levels, recent activity, and quick actions. You can customise which widgets appear.', icon: <BarChart3 size={24} className="text-blue-500" /> },
+    { title: 'Customise Your Hub', description: 'Click "Customize Hub" to rearrange, add, or remove widgets. Make this dashboard truly yours.', icon: <Settings size={24} className="text-purple-500" /> },
+    { title: 'Navigation', description: 'Use the sidebar to access Farms, Inventory, Finance, Staff, Documents, Communications, and more.', icon: <Globe size={24} className="text-amber-500" /> },
+    { title: 'You\'re All Set!', description: 'Start managing your agricultural enterprise. You can replay this tour anytime from Settings.', icon: <CheckCircle2 size={24} className="text-emerald-500" /> },
+  ];
+
+  const handleTourNext = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(tourStep + 1);
+    } else {
+      updateUser({ tutorialCompleted: true });
+    }
+  };
+
+  const handleTourSkip = () => {
+    updateUser({ tutorialCompleted: true });
+  };
   
   const defaultWidgets: DashboardWidget[] = [
     { id: 'w1', type: 'FINANCIAL_STATS', title: 'Financials' },
@@ -335,6 +357,34 @@ export default function Dashboard() {
               </div>
           ))}
       </div>
+
+      {/* First-time Tour Overlay */}
+      {showTour && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-500">
+          <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 max-w-md w-full shadow-2xl border border-white/10 text-center space-y-6 animate-in zoom-in duration-300">
+            <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mx-auto shadow-inner">
+              {tourSteps[tourStep].icon}
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{tourSteps[tourStep].title}</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{tourSteps[tourStep].description}</p>
+            </div>
+            <div className="flex items-center justify-center space-x-2 py-2">
+              {tourSteps.map((_, i) => (
+                <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === tourStep ? 'w-8 bg-emerald-500' : i < tourStep ? 'w-3 bg-emerald-300' : 'w-3 bg-slate-200 dark:bg-slate-700'}`} />
+              ))}
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <button onClick={handleTourSkip} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">
+                Skip Tour
+              </button>
+              <button onClick={handleTourNext} className="px-8 py-3.5 bg-slate-900 dark:bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                {tourStep < tourSteps.length - 1 ? 'Next' : 'Get Started'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

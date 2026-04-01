@@ -2,17 +2,132 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { AppDocument } from '../types';
-import { FileText, UploadCloud, Search, Trash2, Download, Filter, FileStack, FileCheck, FileArchive, X, Plus, AlertCircle, CheckCircle2, DollarSign, RefreshCw, Eye, MoreVertical } from 'lucide-react';
+import { FileText, UploadCloud, Search, Trash2, Download, Filter, FileStack, FileCheck, FileArchive, X, Plus, AlertCircle, CheckCircle2, DollarSign, RefreshCw, Eye, MoreVertical, Wand2, Package, Users, TrendingUp } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 export default function Vault() {
-  const { documents, addDocument, deleteDocument, user } = useApp();
+  const { documents, addDocument, deleteDocument, user, transactions, inventory, staff, farms, crops, harvests, formatCurrency } = useApp();
   const [activeTab, setActiveTab] = useState<'ALL' | 'CONTRACT' | 'INVOICE' | 'RECEIPT' | 'REPORT' | 'DOWNLOAD'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<AppDocument | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const [newDoc, setNewDoc] = useState<Partial<AppDocument>>({ type: 'CONTRACT', category: 'General' });
   const [isUploading, setIsUploading] = useState(false);
+
+  const generateReport = (reportType: string) => {
+    setIsGenerating(true);
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const now = new Date();
+
+    // Header
+    doc.setFillColor(10, 10, 26);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(0, 194, 255);
+    doc.setFontSize(24);
+    doc.text('NEXA AGRI', 15, 25);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text(now.toLocaleDateString(), pageWidth - 15, 25, { align: 'right' });
+
+    let reportTitle = '';
+    let y = 55;
+
+    if (reportType === 'financial') {
+      reportTitle = 'Financial Summary Report';
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(16);
+      doc.text(reportTitle, 15, y);
+      y += 15;
+      const income = transactions.filter(t => t.type === 'INCOME').reduce((a, b) => a + b.amount, 0);
+      const expense = transactions.filter(t => t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+      doc.setFontSize(11);
+      doc.text(`Total Income: ${formatCurrency(income)}`, 15, y); y += 8;
+      doc.text(`Total Expenses: ${formatCurrency(expense)}`, 15, y); y += 8;
+      doc.text(`Net Balance: ${formatCurrency(income - expense)}`, 15, y); y += 8;
+      doc.text(`Transaction Count: ${transactions.length}`, 15, y); y += 15;
+      transactions.slice(0, 30).forEach(tx => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setFontSize(9);
+        doc.text(`${new Date(tx.date).toLocaleDateString()} - ${tx.description.substring(0, 40)} - ${tx.type === 'INCOME' ? '+' : '-'}${formatCurrency(tx.amount)}`, 15, y);
+        y += 6;
+      });
+    } else if (reportType === 'inventory') {
+      reportTitle = 'Inventory Stock Report';
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(16);
+      doc.text(reportTitle, 15, y);
+      y += 15;
+      doc.setFontSize(11);
+      doc.text(`Total Items: ${inventory.length}`, 15, y); y += 8;
+      doc.text(`Total Value: ${formatCurrency(inventory.reduce((a, b) => a + b.quantity * b.unitPrice, 0))}`, 15, y); y += 15;
+      inventory.forEach(item => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setFontSize(9);
+        doc.text(`${item.productName} - ${item.quantity} ${item.unit} @ ${formatCurrency(item.unitPrice)} = ${formatCurrency(item.quantity * item.unitPrice)}`, 15, y);
+        y += 6;
+      });
+    } else if (reportType === 'staff') {
+      reportTitle = 'Staff Directory Report';
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(16);
+      doc.text(reportTitle, 15, y);
+      y += 15;
+      doc.setFontSize(11);
+      doc.text(`Total Staff: ${staff.length}`, 15, y); y += 15;
+      staff.forEach(s => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setFontSize(9);
+        doc.text(`${s.name} - ${s.role} - ${s.location} - ${s.status}`, 15, y);
+        y += 6;
+      });
+    } else if (reportType === 'farm') {
+      reportTitle = 'Farm Operations Report';
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(16);
+      doc.text(reportTitle, 15, y);
+      y += 15;
+      doc.setFontSize(11);
+      doc.text(`Farms: ${farms.length}`, 15, y); y += 8;
+      doc.text(`Crops: ${crops.length}`, 15, y); y += 8;
+      doc.text(`Harvests: ${harvests.length}`, 15, y); y += 15;
+      farms.forEach(f => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${f.name} - ${f.location} (${f.size} ${f.unit})`, 15, y);
+        doc.setFont('helvetica', 'normal');
+        y += 7;
+      });
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Generated by NEXA AGRI on ${now.toLocaleString()}`, 15, 290);
+    
+    const fileName = `NexaAgri_${reportType}_${Date.now()}`;
+    doc.save(`${fileName}.pdf`);
+
+    // Save to vault
+    addDocument({
+      id: crypto.randomUUID(),
+      name: reportTitle,
+      type: 'REPORT',
+      category: reportType.charAt(0).toUpperCase() + reportType.slice(1),
+      size: '~1MB',
+      date: now.toISOString(),
+      url: '#',
+      uploadedBy: user?.name || 'System'
+    } as AppDocument);
+
+    setTimeout(() => {
+      setIsGenerating(false);
+      setShowGenerateModal(false);
+    }, 800);
+  };
 
   const filteredDocs = documents.filter(doc => {
       const matchTab = activeTab === 'ALL' || doc.type === activeTab;
@@ -59,13 +174,22 @@ export default function Vault() {
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Corporate Vault</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium mt-3">High-integrity repository for legal, financial, and operational assets.</p>
         </div>
-        <button 
-            onClick={() => setShowUploadModal(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center"
-        >
-            <UploadCloud size={18} className="mr-2" />
-            Launch Ingestion Manager
-        </button>
+        <div className="flex space-x-3">
+            <button 
+                onClick={() => setShowGenerateModal(true)}
+                className="bg-slate-900 dark:bg-white text-white dark:text-black px-8 py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center"
+            >
+                <Wand2 size={18} className="mr-2" />
+                Generate Report
+            </button>
+            <button 
+                onClick={() => setShowUploadModal(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center"
+            >
+                <UploadCloud size={18} className="mr-2" />
+                Upload Document
+            </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-slate-900 p-2 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row items-center gap-4">
@@ -230,6 +354,51 @@ export default function Vault() {
                   </div>
               </div>
           </div>
+      )}
+
+      {/* GENERATE REPORT MODAL */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in zoom-in duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-[3.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10">
+            <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Generate Report</h3>
+                <p className="text-slate-500 mt-2 font-medium text-sm">Create a PDF report from your data</p>
+              </div>
+              <button onClick={() => setShowGenerateModal(false)} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+            </div>
+            <div className="p-8 space-y-4">
+              {[
+                { id: 'financial', title: 'Financial Summary', desc: 'Income, expenses, and transaction history', icon: <DollarSign size={20} className="text-emerald-500" />, count: `${transactions.length} transactions` },
+                { id: 'inventory', title: 'Inventory Report', desc: 'Stock levels, valuations, and item list', icon: <Package size={20} className="text-blue-500" />, count: `${inventory.length} items` },
+                { id: 'staff', title: 'Staff Directory', desc: 'Team members, roles, and assignments', icon: <Users size={20} className="text-purple-500" />, count: `${staff.length} members` },
+                { id: 'farm', title: 'Farm Operations', desc: 'Farms, crops, and harvest data', icon: <TrendingUp size={20} className="text-amber-500" />, count: `${farms.length} farms` },
+              ].map(report => (
+                <button
+                  key={report.id}
+                  onClick={() => generateReport(report.id)}
+                  disabled={isGenerating}
+                  className="w-full flex items-center space-x-5 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left group disabled:opacity-50"
+                >
+                  <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    {report.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm text-slate-900 dark:text-white">{report.title}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{report.desc}</p>
+                  </div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">{report.count}</span>
+                </button>
+              ))}
+              {isGenerating && (
+                <div className="flex items-center justify-center py-4 text-emerald-600">
+                  <RefreshCw className="animate-spin mr-2" size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Generating PDF...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

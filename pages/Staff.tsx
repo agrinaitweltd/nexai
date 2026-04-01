@@ -280,6 +280,10 @@ export default function Staff() {
                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Work Email (Login ID)</label>
                                     <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="samuel@nexa.ug" onChange={e => setNewStaff({...newStaff, email: e.target.value})} />
                                 </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Phone Number</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="+256 700 123456" onChange={e => setNewStaff({...newStaff, phone: e.target.value})} />
+                                </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

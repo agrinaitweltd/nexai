@@ -3,7 +3,7 @@ import {
   User, Farm, InventoryItem, Transaction, Requisition, ExportOrder, Notification, Harvest, Crop, Animal,
   StaffMember, StaffPayment, Client, StaffTask, DashboardWidget, Theme, DashboardTheme, Permission,
   SubscriptionPlanId, CropStatus, AppDocument, Message, Announcement, PurchaseOrder, PendingSignup,
-  ActivationStatus, Department
+  ActivationStatus, Department, FinanceAccount
 } from '../types';
 import { supabase } from '../supabaseClient';
 
@@ -137,6 +137,9 @@ function rowToDepartment(r: any): Department {
 function rowToPendingSignup(r: any): PendingSignup {
   return { id: r.id, userId: r.user_id, userName: r.user_name, userEmail: r.user_email, transactionId: r.transaction_id, paymentPhone: r.payment_phone, paymentMethod: r.payment_method, bankName: r.bank_name, accountName: r.account_name, date: r.date };
 }
+function rowToFinanceAccount(r: any): FinanceAccount {
+  return { id: r.id, name: r.name, provider: r.provider, type: r.type, currency: r.currency, balance: Number(r.balance), country: r.country, lastUpdated: r.last_updated };
+}
 
 // ── Context type ──────────────────────────────────────────────
 
@@ -226,6 +229,11 @@ interface AppContextType {
   updateDepartment: (dept: Department) => Promise<void>;
   deleteDepartment: (id: string) => Promise<void>;
 
+  financeAccounts: FinanceAccount[];
+  addFinanceAccount: (acct: FinanceAccount) => Promise<void>;
+  updateFinanceAccount: (acct: FinanceAccount) => Promise<void>;
+  deleteFinanceAccount: (id: string) => Promise<void>;
+
   balance: number;
   formatCurrency: (amount: number) => string;
   getAllUsers: () => Promise<User[]>;
@@ -259,6 +267,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [pendingSignups, setPendingSignups] = useState<PendingSignup[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [financeAccounts, setFinanceAccounts] = useState<FinanceAccount[]>([]);
 
   // ── Load all data for a user ─────────────────────────────────
 
@@ -267,12 +276,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const [
       farmsRes, cropsRes, harvestsRes, invRes, animalsRes, txRes, exportsRes,
-      clientsRes, staffRes, spRes, reqRes, poRes, notifRes, docRes, msgRes, annRes, deptRes
+      clientsRes, staffRes, spRes, reqRes, poRes, notifRes, docRes, msgRes, annRes, deptRes, faRes
     ] = await Promise.all([
       q('farms'), q('crops'), q('harvests'), q('inventory'), q('animals'),
       q('transactions'), q('export_orders'), q('clients'), q('staff_members'),
       q('staff_payments'), q('requisitions'), q('purchase_orders'), q('notifications'),
-      q('documents'), q('messages'), q('announcements'), q('departments')
+      q('documents'), q('messages'), q('announcements'), q('departments'), q('finance_accounts')
     ]);
 
     setFarms((farmsRes.data ?? []).map(rowToFarm));
@@ -292,6 +301,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMessages((msgRes.data ?? []).map(rowToMessage));
     setAnnouncements((annRes.data ?? []).map(rowToAnnouncement));
     setDepartments((deptRes.data ?? []).map(rowToDepartment));
+    setFinanceAccounts((faRes.data ?? []).map(rowToFinanceAccount));
   }, []);
 
   // ── Load pending signups (super admin only) ──────────────────
@@ -930,6 +940,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDepartments(prev => prev.filter(d => d.id !== id));
   };
 
+  // ── Finance Accounts ─────────────────────────────────────────
+
+  const addFinanceAccount = async (acct: FinanceAccount) => {
+    if (!user) return;
+    const row = { id: acct.id, user_id: user.id, name: acct.name, provider: acct.provider, type: acct.type, currency: acct.currency, balance: acct.balance, country: acct.country, last_updated: acct.lastUpdated };
+    await supabase.from('finance_accounts').insert(row);
+    setFinanceAccounts(prev => [...prev, acct]);
+  };
+
+  const updateFinanceAccount = async (acct: FinanceAccount) => {
+    await supabase.from('finance_accounts').update({ name: acct.name, provider: acct.provider, type: acct.type, currency: acct.currency, balance: acct.balance, country: acct.country, last_updated: acct.lastUpdated }).eq('id', acct.id);
+    setFinanceAccounts(prev => prev.map(a => a.id === acct.id ? acct : a));
+  };
+
+  const deleteFinanceAccount = async (id: string) => {
+    await supabase.from('finance_accounts').delete().eq('id', id);
+    setFinanceAccounts(prev => prev.filter(a => a.id !== id));
+  };
+
   // ── Dashboard & Misc ─────────────────────────────────────────
 
   const replayTutorial = () => setUser(prev => prev ? { ...prev, tutorialCompleted: false } : null);
@@ -966,6 +995,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       selectSubscription,
       addDocument, deleteDocument, sendMessage, markMessageRead, addAnnouncement, bulkUpdateInventory, deleteInventoryItems, deductInventory, approvePurchaseOrder, addPurchaseOrder, updatePurchaseOrderStatus, payPurchaseOrder,
       addDepartment, updateDepartment, deleteDepartment,
+      financeAccounts, addFinanceAccount, updateFinanceAccount, deleteFinanceAccount,
       balance, formatCurrency, getAllUsers
     }}>
       {children}

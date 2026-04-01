@@ -21,7 +21,6 @@ import Landing from './pages/Landing';
 import Vault from './pages/Vault';
 import Communication from './pages/Communication';
 import AdminPortal from './pages/AdminPortal';
-import SubscriptionModal from './components/SubscriptionModal';
 
 const ProtectedRoute = ({ children, requireSuperAdmin = false }: { children?: React.ReactNode, requireSuperAdmin?: boolean }) => {
   const { user, isSuperAdmin, loading } = useApp();
@@ -44,12 +43,7 @@ const ProtectedRoute = ({ children, requireSuperAdmin = false }: { children?: Re
   // Normal user onboarding
   if (!user.setupComplete && !isSuperAdmin) return <Onboarding />; 
   
-  return (
-    <>
-      {user.setupComplete && !user.subscriptionPlan && user.role === 'ADMIN' && !isSuperAdmin && <SubscriptionModal />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 export default function App() {

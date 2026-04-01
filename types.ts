@@ -333,3 +333,14 @@ export interface Notification {
   type: 'INFO' | 'ALERT' | 'SUCCESS';
   link?: string;
 }
+
+export interface FinanceAccount {
+  id: string;
+  name: string;
+  provider: string;
+  type: 'MOBILE_MONEY' | 'BANK' | 'CASH' | 'WALLET';
+  currency: string;
+  balance: number;
+  country: string;
+  lastUpdated: string;
+}

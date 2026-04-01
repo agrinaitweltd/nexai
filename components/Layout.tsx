@@ -93,8 +93,8 @@ export default function Layout() {
         }`}
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center text-white">
-            <NexaLogo className="h-10" light />
+          <div className="flex items-center text-slate-900 dark:text-white">
+            <NexaLogo className="h-10" />
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 dark:text-slate-400 p-1 hover:bg-slate-50 rounded-lg">
             <X size={24} />

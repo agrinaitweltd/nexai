@@ -1,16 +1,104 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Requisition, Transaction } from '../types';
-import { DollarSign, Check, X, Download, TrendingUp, TrendingDown, Wallet, Building, Calendar, Plus, AlertCircle, FileCheck, Sprout, User, ArrowRight, Hash, Filter, FileText } from 'lucide-react';
+import { Requisition, Transaction, FinanceAccount } from '../types';
+import { DollarSign, Check, X, Download, TrendingUp, TrendingDown, Wallet, Building, Calendar, Plus, AlertCircle, FileCheck, Sprout, User, ArrowRight, Hash, Filter, FileText, Smartphone, Landmark, CreditCard, Trash2, Pencil } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
+const COUNTRY_PROVIDERS: Record<string, { name: string; type: string; icon: string }[]> = {
+  Uganda: [
+    { name: 'MTN Mobile Money', type: 'mobile_money', icon: '📱' },
+    { name: 'Airtel Money', type: 'mobile_money', icon: '📱' },
+    { name: 'Stanbic Bank', type: 'bank', icon: '🏦' },
+    { name: 'Centenary Bank', type: 'bank', icon: '🏦' },
+    { name: 'DFCU Bank', type: 'bank', icon: '🏦' },
+    { name: 'Equity Bank Uganda', type: 'bank', icon: '🏦' },
+    { name: 'Bank of Africa', type: 'bank', icon: '🏦' },
+  ],
+  Kenya: [
+    { name: 'M-Pesa', type: 'mobile_money', icon: '📱' },
+    { name: 'Airtel Money', type: 'mobile_money', icon: '📱' },
+    { name: 'Equity Bank', type: 'bank', icon: '🏦' },
+    { name: 'KCB Bank', type: 'bank', icon: '🏦' },
+    { name: 'Co-operative Bank', type: 'bank', icon: '🏦' },
+  ],
+  Tanzania: [
+    { name: 'Vodacom M-Pesa', type: 'mobile_money', icon: '📱' },
+    { name: 'Tigo Pesa', type: 'mobile_money', icon: '📱' },
+    { name: 'CRDB Bank', type: 'bank', icon: '🏦' },
+    { name: 'NMB Bank', type: 'bank', icon: '🏦' },
+  ],
+  Nigeria: [
+    { name: 'OPay', type: 'mobile_money', icon: '📱' },
+    { name: 'PalmPay', type: 'mobile_money', icon: '📱' },
+    { name: 'GTBank', type: 'bank', icon: '🏦' },
+    { name: 'Access Bank', type: 'bank', icon: '🏦' },
+    { name: 'First Bank', type: 'bank', icon: '🏦' },
+    { name: 'UBA', type: 'bank', icon: '🏦' },
+  ],
+  Ghana: [
+    { name: 'MTN Mobile Money', type: 'mobile_money', icon: '📱' },
+    { name: 'Vodafone Cash', type: 'mobile_money', icon: '📱' },
+    { name: 'GCB Bank', type: 'bank', icon: '🏦' },
+    { name: 'Ecobank', type: 'bank', icon: '🏦' },
+  ],
+  'United Kingdom': [
+    { name: 'Lloyds Bank', type: 'bank', icon: '🏦' },
+    { name: 'Barclays', type: 'bank', icon: '🏦' },
+    { name: 'HSBC', type: 'bank', icon: '🏦' },
+    { name: 'NatWest', type: 'bank', icon: '🏦' },
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Monzo', type: 'digital_wallet', icon: '💳' },
+  ],
+  'United States': [
+    { name: 'Chase', type: 'bank', icon: '🏦' },
+    { name: 'Bank of America', type: 'bank', icon: '🏦' },
+    { name: 'Wells Fargo', type: 'bank', icon: '🏦' },
+    { name: 'Venmo', type: 'digital_wallet', icon: '💳' },
+    { name: 'Cash App', type: 'digital_wallet', icon: '💳' },
+  ],
+};
+
 export default function Finance() {
-  const { transactions, balance, requisitions, updateRequisitionStatus, user, addRequisition, addTransaction, purchaseOrders, approvePurchaseOrder, exports, farms, formatCurrency } = useApp();
+  const { transactions, balance, requisitions, updateRequisitionStatus, user, addRequisition, addTransaction, purchaseOrders, approvePurchaseOrder, exports, farms, formatCurrency, financeAccounts, addFinanceAccount, updateFinanceAccount, deleteFinanceAccount } = useApp();
   const [showReqModal, setShowReqModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<FinanceAccount | null>(null);
   const [newReq, setNewReq] = useState<Partial<Requisition>>({ category: 'OTHER', priority: 'STANDARD' });
   const [newTx, setNewTx] = useState<Partial<Transaction>>({ type: 'INCOME', paymentMethod: 'CASH' });
   const [reportFilter, setReportFilter] = useState<'ALL' | 'TODAY' | 'MONTH' | 'YEAR'>('ALL');
+
+  const userCountry = user?.location || '';
+  const countryProviders = COUNTRY_PROVIDERS[userCountry] || [];
+  const allProviderNames = countryProviders.map(p => p.name);
+  // Allow custom entry for countries not in preset list
+  const showCustomProvider = countryProviders.length === 0;
+
+  const handleAccountSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const provider = fd.get('provider') as string;
+    const name = fd.get('name') as string || provider;
+    const bal = parseFloat(fd.get('balance') as string) || 0;
+    const providerMeta = countryProviders.find(p => p.name === provider);
+    const acct: FinanceAccount = {
+      id: editingAccount?.id || crypto.randomUUID(),
+      name,
+      provider,
+      type: providerMeta?.type || (fd.get('type') as string) || 'bank',
+      currency: user?.preferredCurrency || 'USD',
+      balance: bal,
+      country: userCountry,
+      lastUpdated: new Date().toISOString(),
+    };
+    if (editingAccount) {
+      updateFinanceAccount(acct);
+    } else {
+      addFinanceAccount(acct);
+    }
+    setShowAccountModal(false);
+    setEditingAccount(null);
+  };
 
   const filteredTransactions = transactions.filter(tx => {
     const d = new Date(tx.date);
@@ -135,6 +223,47 @@ export default function Finance() {
              <h1 className="text-5xl font-black tracking-tighter">{formatCurrency(exports.reduce((a,b)=>a+b.totalValue, 0))}</h1>
              <div className="absolute right-4 bottom-4 opacity-10 group-hover:-rotate-12 transition-transform"><TrendingUp size={120} /></div>
          </div>
+      </div>
+
+      {/* Finance Accounts */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center">
+            <Landmark size={14} className="mr-2 text-blue-500" /> Financial Accounts {userCountry && <span className="ml-2 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[8px]">{userCountry}</span>}
+          </h3>
+          <button onClick={() => { setEditingAccount(null); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
+            <Plus size={14} /> <span>Add Account</span>
+          </button>
+        </div>
+        {financeAccounts.length === 0 ? (
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 text-center border border-dashed border-slate-200 dark:border-slate-800">
+            <Wallet size={40} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+            <p className="text-sm font-bold text-slate-400 dark:text-slate-500 mb-1">No accounts linked yet</p>
+            <p className="text-[10px] text-slate-300 dark:text-slate-600">Add your bank, mobile money, or digital wallet accounts to track balances</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {financeAccounts.map(acct => (
+              <div key={acct.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm group relative overflow-hidden hover:shadow-md transition-shadow">
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                  <button onClick={() => { setEditingAccount(acct); setShowAccountModal(true); }} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
+                  <button onClick={() => deleteFinanceAccount(acct.id)} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                </div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${acct.type === 'mobile_money' ? 'bg-yellow-50 dark:bg-yellow-900/20' : acct.type === 'digital_wallet' ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                    {acct.type === 'mobile_money' ? <Smartphone size={18} className="text-yellow-600" /> : acct.type === 'digital_wallet' ? <CreditCard size={18} className="text-purple-600" /> : <Landmark size={18} className="text-blue-600" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{acct.provider}</p>
+                    {acct.name !== acct.provider && <p className="text-[9px] text-slate-400 truncate">{acct.name}</p>}
+                  </div>
+                </div>
+                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{formatCurrency(acct.balance)}</p>
+                <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-2">Updated {new Date(acct.lastUpdated).toLocaleDateString()}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {user?.role === 'ADMIN' && requisitions.filter(r => r.status === 'PENDING').length > 0 && (
@@ -303,6 +432,58 @@ export default function Finance() {
                   </div>
               </div>
           </div>
+      )}
+
+      {/* Finance Account Modal */}
+      {showAccountModal && (
+        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in zoom-in duration-300">
+          <form onSubmit={handleAccountSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-[3.5rem] w-full max-w-lg shadow-2xl border border-white/10">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
+              <button type="button" onClick={() => { setShowAccountModal(false); setEditingAccount(null); }} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={20}/></button>
+            </div>
+            <div className="space-y-6">
+              {showCustomProvider ? (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Provider / Institution</label>
+                    <input name="provider" defaultValue={editingAccount?.provider || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" placeholder="e.g. Chase, M-Pesa" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Account Type</label>
+                    <select name="type" defaultValue={editingAccount?.type || 'bank'} className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm">
+                      <option value="bank">Bank</option>
+                      <option value="mobile_money">Mobile Money</option>
+                      <option value="digital_wallet">Digital Wallet</option>
+                    </select>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Financial Provider</label>
+                  <select name="provider" defaultValue={editingAccount?.provider || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm">
+                    <option value="">Select a provider...</option>
+                    {countryProviders.map(p => (
+                      <option key={p.name} value={p.name}>{p.icon} {p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Account Label (optional)</label>
+                <input name="name" defaultValue={editingAccount?.name || ''} className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" placeholder="e.g. Savings, Operations" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Current Balance ({user?.preferredCurrency || 'USD'})</label>
+                <input name="balance" type="number" step="0.01" defaultValue={editingAccount?.balance || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-5 rounded-[1.5rem] font-black text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" placeholder="0.00" />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4 mt-10">
+              <button type="button" onClick={() => { setShowAccountModal(false); setEditingAccount(null); }} className="px-8 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancel</button>
+              <button type="submit" className="px-10 py-4 bg-slate-900 dark:bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl text-xs active:scale-95 transition-all">{editingAccount ? 'Update' : 'Add Account'}</button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
