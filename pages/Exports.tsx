@@ -277,39 +277,39 @@ export default function Exports() {
 
       {/* TYPE SELECTOR MODAL */}
       {showTypeSelector && (
-          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[120] p-6 backdrop-blur-xl animate-in fade-in duration-300">
-              <div className="w-full max-w-4xl space-y-10">
-                  <div className="text-center space-y-4">
-                      <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter">Mission Scoping</h2>
-                      <p className="text-slate-400 text-lg font-medium">Do you want to create an Export Plan or a Local Supply Plan?</p>
+          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[120] p-4 md:p-6 backdrop-blur-xl animate-in fade-in duration-300">
+              <div className="w-full max-w-3xl space-y-6 md:space-y-8">
+                  <div className="text-center space-y-2 md:space-y-3">
+                      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tighter">Mission Scoping</h2>
+                      <p className="text-slate-400 text-sm md:text-base font-medium">Create an Export Plan or a Local Supply Plan?</p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <button 
                         onClick={() => handleTypeSelect('EXPORT')}
-                        className="group bg-slate-900 border border-white/10 p-12 rounded-[4rem] text-left hover:border-nexa-blue hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-2xl relative overflow-hidden"
+                        className="group bg-slate-900 border border-white/10 p-6 md:p-8 rounded-2xl md:rounded-3xl text-left hover:border-nexa-blue hover:bg-slate-800 transition-all hover:scale-[1.02] active:scale-95 shadow-2xl relative overflow-hidden"
                       >
-                          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Globe size={160}/></div>
-                          <div className="w-16 h-16 bg-nexa-blue rounded-3xl flex items-center justify-center text-white mb-8 shadow-xl"><Ship size={32}/></div>
-                          <h3 className="text-3xl font-black text-white mb-4">Export Plan</h3>
-                          <p className="text-slate-400 font-medium mb-8 leading-relaxed">International trade manifest with maritime logistics, customs parameters, and SWIFT settlement logic.</p>
-                          <div className="flex items-center text-nexa-blue font-black uppercase text-[10px] tracking-widest">Initialize Global Chain <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" /></div>
+                          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Globe size={100}/></div>
+                          <div className="w-12 h-12 bg-nexa-blue rounded-xl flex items-center justify-center text-white mb-4 shadow-xl"><Ship size={24}/></div>
+                          <h3 className="text-xl md:text-2xl font-black text-white mb-2">Export Plan</h3>
+                          <p className="text-slate-400 font-medium text-sm mb-4 leading-relaxed">International trade with maritime logistics and customs parameters.</p>
+                          <div className="flex items-center text-nexa-blue font-black uppercase text-[10px] tracking-widest">Initialize <ArrowRight size={14} className="ml-2 group-hover:translate-x-2 transition-transform" /></div>
                       </button>
 
                       <button 
                         onClick={() => handleTypeSelect('LOCAL')}
-                        className="group bg-slate-900 border border-white/10 p-12 rounded-[4rem] text-left hover:border-nexa-green hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-2xl relative overflow-hidden"
+                        className="group bg-slate-900 border border-white/10 p-6 md:p-8 rounded-2xl md:rounded-3xl text-left hover:border-nexa-green hover:bg-slate-800 transition-all hover:scale-[1.02] active:scale-95 shadow-2xl relative overflow-hidden"
                       >
-                          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Truck size={160}/></div>
-                          <div className="w-16 h-16 bg-nexa-green rounded-3xl flex items-center justify-center text-white mb-8 shadow-xl"><Box size={32}/></div>
-                          <h3 className="text-3xl font-black text-white mb-4">Local Supply Plan</h3>
-                          <p className="text-slate-400 font-medium mb-8 leading-relaxed">Domestic fulfillment for regional clients, optimized for ground transport and standard invoice settlement.</p>
-                          <div className="flex items-center text-nexa-green font-black uppercase text-[10px] tracking-widest">Initialize Domestic Chain <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" /></div>
+                          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Truck size={100}/></div>
+                          <div className="w-12 h-12 bg-nexa-green rounded-xl flex items-center justify-center text-white mb-4 shadow-xl"><Box size={24}/></div>
+                          <h3 className="text-xl md:text-2xl font-black text-white mb-2">Local Supply Plan</h3>
+                          <p className="text-slate-400 font-medium text-sm mb-4 leading-relaxed">Domestic fulfillment for regional clients with ground transport.</p>
+                          <div className="flex items-center text-nexa-green font-black uppercase text-[10px] tracking-widest">Initialize <ArrowRight size={14} className="ml-2 group-hover:translate-x-2 transition-transform" /></div>
                       </button>
                   </div>
 
-                  <div className="text-center pt-8">
-                      <button onClick={() => setShowTypeSelector(false)} className="text-slate-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors">Discard Planning Phase</button>
+                  <div className="text-center pt-4">
+                      <button onClick={() => setShowTypeSelector(false)} className="text-slate-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors">Cancel</button>
                   </div>
               </div>
           </div>
@@ -317,60 +317,60 @@ export default function Exports() {
 
       {/* CREATE MISSION MODAL */}
       {showModal && (
-          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[110] p-4 md:p-8 backdrop-blur-md overflow-y-auto">
-              <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-6xl shadow-2xl transition-all border border-white/5 my-auto flex flex-col max-h-[95vh]">
-                  <div className="p-8 md:p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[110] p-3 md:p-6 backdrop-blur-md overflow-y-auto">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2rem] w-full max-w-4xl shadow-2xl transition-all border border-white/5 my-auto flex flex-col max-h-[95vh]">
+                  <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
                       <div>
-                          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{missionType === 'EXPORT' ? 'Export' : 'Supply'} Mission Builder</h2>
-                          <p className="text-slate-500 dark:text-slate-400 font-medium">Define logistical routing and stock allocation for this trade manifest.</p>
+                          <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{missionType === 'EXPORT' ? 'Export' : 'Supply'} Mission Builder</h2>
+                          <p className="text-slate-500 dark:text-slate-400 font-medium text-xs md:text-sm mt-1">Define routing and stock allocation.</p>
                       </div>
-                      <button onClick={() => {setShowModal(false); setMissionType(null);}} className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+                      <button onClick={() => {setShowModal(false); setMissionType(null);}} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                   </div>
                   
-                  <div className="p-8 md:p-10 space-y-12 overflow-y-auto scrollbar-thin">
+                  <div className="p-5 md:p-8 space-y-6 md:space-y-8 overflow-y-auto scrollbar-thin">
                       {error && (
-                          <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-6 rounded-[1.5rem] flex items-center space-x-4 text-sm font-bold animate-in slide-in-from-top-4 duration-300 border border-red-100 dark:border-red-900/50">
-                              <AlertCircle size={24} />
+                          <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center space-x-3 text-sm font-bold animate-in slide-in-from-top-4 duration-300 border border-red-100 dark:border-red-900/50">
+                              <AlertCircle size={20} />
                               <span>{error}</span>
                           </div>
                       )}
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                          <div className="space-y-10">
-                              <section className="space-y-6">
-                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center border-b dark:border-slate-800 pb-3">
-                                      <Box size={14} className="mr-2 text-primary-500" /> Core Asset Allocation
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                          <div className="space-y-6">
+                              <section className="space-y-4">
+                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center border-b dark:border-slate-800 pb-2">
+                                      <Box size={13} className="mr-2 text-primary-500" /> Stock Allocation
                                   </h3>
-                                  <div className="space-y-4">
-                                      <div className="space-y-2">
-                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Warehouse Lot Allocation</label>
+                                  <div className="space-y-3">
+                                      <div className="space-y-1.5">
+                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Warehouse Lot</label>
                                           <select 
-                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary-500/20 font-black dark:text-white shadow-inner text-sm uppercase tracking-widest"
+                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner text-sm"
                                               onChange={e => setSelectedStockId(e.target.value)}
                                               value={selectedStockId}
                                           >
                                               <option value="">-- Choose Stock Lot --</option>
                                               {inventory.map(item => (
-                                                  <option key={item.id} value={item.id}>{item.productName} ({item.grade}) • {item.quantity} {item.unit} available</option>
+                                                  <option key={item.id} value={item.id}>{item.productName} ({item.grade}) - {item.quantity} {item.unit}</option>
                                               ))}
                                           </select>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Shipment Quantity</label>
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Quantity</label>
                                               <input 
                                                   type="number"
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary-500/20 font-black dark:text-white shadow-inner"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="0.00"
                                                   value={newOrder.quantity || ''}
                                                   onChange={e => setNewOrder({...newOrder, quantity: parseFloat(e.target.value)})}
                                               />
                                           </div>
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Rate Per Unit ({user?.preferredCurrency || '$'})</label>
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Rate/Unit ({user?.preferredCurrency || '$'})</label>
                                               <input 
                                                   type="number"
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary-500/20 font-black dark:text-white shadow-inner"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="0.00"
                                                   value={newOrder.pricePerUnit || ''}
                                                   onChange={e => setNewOrder({...newOrder, pricePerUnit: parseFloat(e.target.value)})}
@@ -380,34 +380,34 @@ export default function Exports() {
                                   </div>
                               </section>
 
-                              <section className="space-y-6">
-                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center border-b dark:border-slate-800 pb-3">
-                                      <User size={14} className="mr-2 text-primary-500" /> Buyer Identity
+                              <section className="space-y-4">
+                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center border-b dark:border-slate-800 pb-2">
+                                      <User size={13} className="mr-2 text-primary-500" /> Buyer Details
                                   </h3>
-                                  <div className="space-y-4">
-                                      <div className="space-y-2">
-                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Recipient Entity Name</label>
+                                  <div className="space-y-3">
+                                      <div className="space-y-1.5">
+                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Buyer Name</label>
                                           <input 
-                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
+                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
                                               placeholder="e.g. Global Exports Ltd"
                                               value={newOrder.buyerName || ''}
                                               onChange={e => setNewOrder({...newOrder, buyerName: e.target.value})}
                                           />
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Contact Email</label>
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Email</label>
                                               <input 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="logistics@buyer.com"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
+                                                  placeholder="buyer@email.com"
                                                   value={newOrder.buyerEmail || ''}
                                                   onChange={e => setNewOrder({...newOrder, buyerEmail: e.target.value})}
                                               />
                                           </div>
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Phone (Optional)</label>
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Phone</label>
                                               <input 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="+256..."
                                                   value={newOrder.buyerPhone || ''}
                                                   onChange={e => setNewOrder({...newOrder, buyerPhone: e.target.value})}
@@ -418,66 +418,66 @@ export default function Exports() {
                               </section>
                           </div>
 
-                          <div className="space-y-10">
-                              <section className="space-y-6">
-                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center border-b dark:border-slate-800 pb-3">
-                                      <Navigation size={14} className="mr-2 text-blue-500" /> Logistical Route & Manifest
+                          <div className="space-y-6">
+                              <section className="space-y-4">
+                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center border-b dark:border-slate-800 pb-2">
+                                      <Navigation size={13} className="mr-2 text-blue-500" /> Route & Logistics
                                   </h3>
-                                  <div className="space-y-4">
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Origin Hub / Location</label>
+                                  <div className="space-y-3">
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Origin</label>
                                               <input 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="e.g. Masaka Hub"
                                                   value={newOrder.originLocation || ''}
                                                   onChange={e => setNewOrder({...newOrder, originLocation: e.target.value, originWarehouse: e.target.value})}
                                               />
                                           </div>
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Port of Exit</label>
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Port of Exit</label>
                                               <input 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="e.g. Mombasa Port"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                                  placeholder="e.g. Mombasa"
                                                   value={newOrder.portOfExit || ''}
                                                   onChange={e => setNewOrder({...newOrder, portOfExit: e.target.value})}
                                               />
                                           </div>
                                       </div>
-                                      <div className="space-y-2">
-                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Transit Ports / Hubs</label>
+                                      <div className="space-y-1.5">
+                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Transit Ports</label>
                                           <input 
-                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                               placeholder="e.g. Dubai, Rotterdam"
                                               value={newOrder.transitPorts || ''}
                                               onChange={e => setNewOrder({...newOrder, transitPorts: e.target.value})}
                                           />
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Destination Port</label>
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Destination Port</label>
                                               <input 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="e.g. Antwerp Port"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                                  placeholder="e.g. Antwerp"
                                                   value={newOrder.destinationPort || ''}
                                                   onChange={e => setNewOrder({...newOrder, destinationPort: e.target.value})}
                                               />
                                           </div>
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Destination Country</label>
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Destination Country</label>
                                               <input 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="e.g. Belgium"
                                                   value={newOrder.destinationCountry || ''}
                                                   onChange={e => setNewOrder({...newOrder, destinationCountry: e.target.value, buyerCountry: e.target.value})}
                                               />
                                           </div>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-4">
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Transport Mode</label>
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Transport Mode</label>
                                               <select 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-black dark:text-white shadow-inner uppercase tracking-widest text-xs"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner uppercase tracking-widest text-xs"
                                                   value={newOrder.transportMethod}
                                                   onChange={e => setNewOrder({...newOrder, transportMethod: e.target.value as any})}
                                               >
@@ -487,11 +487,11 @@ export default function Exports() {
                                                   <option value="RAIL">Ground (Rail)</option>
                                               </select>
                                           </div>
-                                          <div className="space-y-2">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Est. Logistics Cost ({user?.preferredCurrency || '$'})</label>
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Logistics Cost ({user?.preferredCurrency || '$'})</label>
                                               <input 
                                                   type="number"
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="0.00"
                                                   value={newOrder.shippingCost || ''}
                                                   onChange={e => setNewOrder({...newOrder, shippingCost: parseFloat(e.target.value)})}
@@ -503,40 +503,39 @@ export default function Exports() {
                           </div>
                       </div>
 
-                      <div className="bg-slate-900 p-12 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
-                          <div className="absolute top-0 right-0 p-12 opacity-10"><DollarSign size={200} /></div>
-                          <div className="relative z-10 flex flex-col md:flex-row gap-12 items-center justify-between">
+                      <div className="bg-slate-900 p-5 md:p-8 rounded-2xl text-white shadow-xl relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-6 opacity-10"><DollarSign size={120} /></div>
+                          <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center justify-between">
                               <div>
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-4 flex items-center"><Wallet size={14} className="mr-2"/> Financial Audit Summary</p>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2 flex items-center"><Wallet size={13} className="mr-2"/> Financial Summary</p>
                                   <div className="space-y-1">
-                                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Aggregate Mission Value</p>
-                                      <p className="text-6xl font-black tracking-tighter leading-none">{formatCurrency(calculateTotal(newOrder.quantity || 0, newOrder.pricePerUnit || 0, newOrder.shippingCost || 0))}</p>
+                                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Value</p>
+                                      <p className="text-3xl md:text-4xl font-black tracking-tighter leading-none">{formatCurrency(calculateTotal(newOrder.quantity || 0, newOrder.pricePerUnit || 0, newOrder.shippingCost || 0))}</p>
                                   </div>
                               </div>
-                              <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/10 w-full md:w-auto">
-                                  <label className="text-[10px] font-black text-primary-500 uppercase tracking-widest block mb-4">Immediate Advance Settlement</label>
-                                  <div className="flex items-center bg-white/10 rounded-2xl px-6 py-4 shadow-inner">
-                                      <span className="text-xl font-black text-white/40 mr-4">{user?.preferredCurrency || '$'}</span>
+                              <div className="bg-white/5 backdrop-blur-xl p-5 md:p-6 rounded-2xl border border-white/10 w-full md:w-auto">
+                                  <label className="text-[10px] font-black text-primary-500 uppercase tracking-widest block mb-2">Initial Payment</label>
+                                  <div className="flex items-center bg-white/10 rounded-xl px-4 py-3 shadow-inner">
+                                      <span className="text-lg font-black text-white/40 mr-3">{user?.preferredCurrency || '$'}</span>
                                       <input 
                                           type="number" 
-                                          className="w-full md:w-48 bg-transparent border-none font-black text-white text-3xl outline-none" 
+                                          className="w-full md:w-40 bg-transparent border-none font-black text-white text-2xl outline-none" 
                                           value={initialPayment} 
                                           onChange={e => setInitialPayment(parseFloat(e.target.value))} 
                                       />
                                   </div>
-                                  <p className="text-[9px] font-bold text-slate-400 mt-4 uppercase tracking-wider italic">Reflected in organization ledger immediately.</p>
                               </div>
                           </div>
                       </div>
                   </div>
 
-                  <div className="p-8 md:p-10 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-6 shrink-0">
-                      <button onClick={() => {setShowModal(false); setMissionType(null);}} className="px-10 py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 rounded-3xl transition-all">Discard Plan</button>
+                  <div className="p-5 md:p-8 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3 md:space-x-4 shrink-0">
+                      <button onClick={() => {setShowModal(false); setMissionType(null);}} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl md:rounded-2xl transition-all text-[10px]">Discard</button>
                       <button 
                         onClick={handleCreate} 
-                        className="px-14 py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all"
+                        className="px-8 md:px-10 py-3 md:py-4 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black uppercase text-[10px] tracking-[0.15em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 active:scale-95 transition-all"
                       >
-                          Deploy Mission Manifest
+                          Deploy Mission
                       </button>
                   </div>
               </div>
@@ -545,52 +544,52 @@ export default function Exports() {
       
       {/* RECORD PAYMENT MODAL */}
       {showPayModal && selectedExport && (
-          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in zoom-in duration-300">
-              <div className="bg-white dark:bg-slate-900 p-12 rounded-[4rem] w-full max-w-2xl shadow-2xl border border-white/10">
-                   <div className="flex justify-between items-center mb-10">
+          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-3 md:p-4 backdrop-blur-xl animate-in zoom-in duration-300">
+              <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] w-full max-w-lg md:max-w-xl shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto">
+                   <div className="flex justify-between items-center mb-6 md:mb-8">
                     <div>
-                        <h3 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-none">Record Settlement</h3>
-                        <p className="text-slate-500 mt-2 font-medium">Update financial progress for mission {selectedExport.shipmentNumber}.</p>
+                        <h3 className="text-xl md:text-2xl font-black tracking-tight text-slate-900 dark:text-white leading-none">Record Settlement</h3>
+                        <p className="text-slate-500 mt-1 font-medium text-xs md:text-sm">Mission {selectedExport.shipmentNumber}</p>
                     </div>
-                    <button onClick={() => setShowPayModal(false)} className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+                    <button onClick={() => setShowPayModal(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                   </div>
                   
-                  <div className="space-y-10">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border shadow-inner">
+                  <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border shadow-inner">
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Value</p>
-                                <p className="text-xl font-black text-slate-900 dark:text-white">{formatCurrency(selectedExport.totalValue)}</p>
+                                <p className="text-lg font-black text-slate-900 dark:text-white">{formatCurrency(selectedExport.totalValue)}</p>
                             </div>
-                            <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-800/50 shadow-inner">
-                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Total Received</p>
-                                <p className="text-xl font-black text-emerald-600">{formatCurrency(selectedExport.amountPaid)}</p>
+                            <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/50 shadow-inner">
+                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Received</p>
+                                <p className="text-lg font-black text-emerald-600">{formatCurrency(selectedExport.amountPaid)}</p>
                             </div>
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] px-4 block">Installment Amount ({user?.preferredCurrency || '$'})</label>
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] px-2 block">Amount ({user?.preferredCurrency || '$'})</label>
                                 <input 
                                     type="number" 
-                                    className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-7 rounded-[2rem] font-black text-4xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" 
+                                    className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 md:p-5 rounded-xl md:rounded-2xl font-black text-2xl md:text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" 
                                     value={paymentAmount} 
                                     onChange={e => setPaymentAmount(parseFloat(e.target.value))} 
                                 />
-                                <div className="flex justify-between px-4">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max Remittance: {formatCurrency(selectedExport.totalValue - selectedExport.amountPaid)}</span>
+                                <div className="flex justify-between px-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max: {formatCurrency(selectedExport.totalValue - selectedExport.amountPaid)}</span>
                                     <button 
                                         onClick={() => setPaymentAmount(selectedExport.totalValue - selectedExport.amountPaid)}
                                         className="text-[10px] font-black text-primary-600 uppercase tracking-widest hover:underline"
                                     >
-                                        Settle Remaining
+                                        Settle All
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] px-4 block">Settlement Channel</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] px-2 block">Payment Method</label>
                                 <select 
-                                    className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-6 rounded-[2rem] font-black uppercase outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm tracking-widest appearance-none" 
+                                    className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-xl md:rounded-2xl font-bold uppercase outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm tracking-widest appearance-none" 
                                     onChange={e => setPaymentMethod(e.target.value)}
                                     value={paymentMethod}
                                 >
@@ -603,13 +602,13 @@ export default function Exports() {
                         </div>
                   </div>
 
-                  <div className="flex justify-end gap-6 mt-12 pt-10 border-t border-slate-100 dark:border-slate-800">
-                      <button onClick={() => setShowPayModal(false)} className="px-10 py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 rounded-3xl transition-all">Cancel</button>
+                  <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <button onClick={() => setShowPayModal(false)} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl md:rounded-2xl transition-all text-[10px]">Cancel</button>
                       <button 
                         onClick={() => { updateExportPayment(selectedExport.id, paymentAmount, paymentMethod); setShowPayModal(false); }} 
-                        className="px-14 py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-700 active:scale-95 transition-all text-xs flex items-center"
+                        className="px-8 md:px-10 py-3 md:py-4 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl hover:bg-emerald-700 active:scale-95 transition-all text-[10px] flex items-center"
                       >
-                          Confirm Remittance <RefreshCw size={18} className="ml-3" />
+                          Confirm <RefreshCw size={16} className="ml-2" />
                       </button>
                   </div>
               </div>

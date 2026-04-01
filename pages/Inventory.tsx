@@ -108,11 +108,24 @@ export default function Inventory() {
     }
   };
 
+  const PRODUCT_CATALOG: Record<string, string[]> = {
+    'Fruits': ['Mangoes', 'Avocado', 'Bananas', 'Pineapples', 'Passion Fruit', 'Papaya', 'Oranges', 'Lemons', 'Limes', 'Watermelon', 'Grapes', 'Apples', 'Strawberries', 'Blueberries', 'Jackfruit', 'Guava', 'Dragon Fruit', 'Coconut', 'Pomegranate', 'Lychee'],
+    'Vegetables': ['Tomatoes', 'Onions', 'Cabbage', 'Carrots', 'Spinach', 'Kale', 'Broccoli', 'Green Peppers', 'Chili Peppers', 'Eggplant', 'Cucumber', 'Lettuce', 'Garlic', 'Ginger', 'Sweet Potatoes', 'Irish Potatoes', 'Cauliflower', 'Pumpkin', 'Okra', 'Beetroot'],
+    'Lentils & Pulses': ['Red Lentils', 'Green Lentils', 'Brown Lentils', 'Black Lentils', 'Chickpeas', 'Pigeon Peas', 'Cowpeas', 'Mung Beans', 'Black-eyed Peas', 'Split Peas'],
+    'Grains & Cereals': ['Maize', 'Rice', 'Wheat', 'Sorghum', 'Millet', 'Barley', 'Oats', 'Quinoa', 'Teff', 'Amaranth'],
+    'Coffee & Tea': ['Arabica Coffee', 'Robusta Coffee', 'Green Tea', 'Black Tea', 'White Tea', 'Herbal Tea'],
+    'Nuts & Seeds': ['Macadamia', 'Cashew Nuts', 'Groundnuts', 'Sesame Seeds', 'Sunflower Seeds', 'Chia Seeds', 'Flax Seeds', 'Shea Nuts', 'Almonds', 'Walnuts'],
+    'Spices & Herbs': ['Vanilla', 'Cardamom', 'Cinnamon', 'Turmeric', 'Cloves', 'Black Pepper', 'Coriander', 'Cumin', 'Rosemary', 'Basil'],
+    'Farm Inputs': ['Fertilizer (NPK)', 'Fertilizer (Urea)', 'Organic Compost', 'Pesticides', 'Herbicides', 'Seeds (Hybrid)', 'Seeds (Open Pollinated)', 'Animal Feed', 'Veterinary Drugs'],
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
   const getProductOptions = () => {
-    if (user?.sector === 'EXPORT') {
-        return ['Arabica Coffee', 'Robusta Coffee', 'Tea', 'Avocado', 'Mangoes', 'Macadamia'];
+    if (selectedCategory && PRODUCT_CATALOG[selectedCategory]) {
+      return PRODUCT_CATALOG[selectedCategory];
     }
-    return ['Maize', 'Beans', 'Fertilizer', 'Seeds', 'Pesticides'];
+    return Object.values(PRODUCT_CATALOG).flat();
   };
 
   return (
@@ -313,9 +326,21 @@ export default function Inventory() {
                 <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-thin">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Product Type</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Category</label>
                             <select 
                                 className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none"
+                                value={selectedCategory}
+                                onChange={e => { setSelectedCategory(e.target.value); setNewItem({...newItem, productName: ''}); }}
+                            >
+                                <option value="">All Categories</option>
+                                {Object.keys(PRODUCT_CATALOG).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Product</label>
+                            <select 
+                                className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none"
+                                value={newItem.productName || ''}
                                 onChange={e => setNewItem({...newItem, productName: e.target.value})}
                             >
                                 <option value="">Select Product</option>

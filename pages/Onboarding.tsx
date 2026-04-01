@@ -1,15 +1,27 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { User, InventoryItem, Farm } from '../types';
 // Fixed: Added missing ArrowRight icon import
-import { ChevronRight, Check, Package, Users, Building, Flag, Phone, Mail, Hash, Globe, Scale, Landmark, ShieldCheck, UserCheck, AlertCircle, FileText, X, ArrowRight } from 'lucide-react';
+import { ChevronRight, Check, Package, Users, Building, Flag, Phone, Mail, Hash, Globe, Scale, Landmark, ShieldCheck, UserCheck, AlertCircle, FileText, X, ArrowRight, Smartphone, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Onboarding() {
   const { user, completeOnboarding, addFarm, updateUser } = useApp();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
   const [stepError, setStepError] = useState('');
+  const [showQrCode, setShowQrCode] = useState(false);
+
+  const isDesktop = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth >= 768 && !('ontouchstart' in window);
+  }, []);
+
+  const mobileUrl = useMemo(() => {
+    const base = 'https://www.nexaagri.com';
+    return `${base}/#/onboarding?step=${step}`;
+  }, [step]);
 
   const [companyDetails, setCompanyDetails] = useState({
       name: user?.companyName || '',
@@ -287,7 +299,44 @@ export default function Onboarding() {
                 </div>
             )}
 
-            <div className="mt-16 pt-8 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center shrink-0 relative">
+            <div className="mt-16 pt-8 border-t border-slate-50 dark:border-slate-800 flex flex-col gap-6 shrink-0 relative">
+                {/* QR Code for Desktop Users */}
+                {isDesktop && step < 4 && (
+                  <div className="flex items-center justify-center">
+                    {!showQrCode ? (
+                      <button 
+                        onClick={() => setShowQrCode(true)}
+                        className="flex items-center space-x-3 px-6 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
+                      >
+                        <Smartphone size={16} className="text-emerald-500" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-700 dark:group-hover:text-slate-300">Continue on Mobile</span>
+                      </button>
+                    ) : (
+                      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-lg text-center animate-in zoom-in duration-300 max-w-xs w-full">
+                        <div className="flex justify-between items-center mb-4">
+                          <div className="flex items-center space-x-2">
+                            <QrCode size={14} className="text-emerald-500" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Scan to Continue on Mobile</span>
+                          </div>
+                          <button onClick={() => setShowQrCode(false)} className="text-slate-400 hover:text-slate-600"><X size={14} /></button>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl inline-block shadow-inner border">
+                          <QRCodeSVG 
+                            value={mobileUrl}
+                            size={140}
+                            level="M"
+                            bgColor="#ffffff"
+                            fgColor="#0a0a1a"
+                          />
+                        </div>
+                        <p className="text-[8px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Point your phone camera at this code</p>
+                        <p className="text-[8px] font-bold text-emerald-500 mt-1 break-all">{mobileUrl}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
                 {step > 1 ? (
                     <button onClick={() => setStep(step - 1)} className="px-10 py-4 text-slate-400 font-black uppercase tracking-widest hover:text-slate-900 transition-colors text-[10px]">
                         Prev Stage
@@ -310,6 +359,7 @@ export default function Onboarding() {
                         Inject Corporate Stack
                     </button>
                 )}
+                </div>
             </div>
         </div>
       </div>

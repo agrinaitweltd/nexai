@@ -10,7 +10,7 @@ import {
 import { User, PendingSignup, Sector } from '../types';
 
 export default function AdminPortal() {
-    const { user, logout, pendingSignups, approveSignup, rejectSignup, getAllUsers, deleteUser, changeUserStatus, register, transactions, farms, staff, inventory, exports: exportOrders, formatCurrency, balance } = useApp();
+    const { user, logout, pendingSignups, approveSignup, rejectSignup, getAllUsers, deleteUser, changeUserStatus, register, transactions, farms, staff, inventory, exports: exportOrders, formatCurrency, balance, messages, announcements } = useApp();
     const [activeView, setActiveView] = useState<'REQUESTS' | 'USERS' | 'ANALYTICS'>('REQUESTS');
     const [searchTerm, setSearchTerm] = useState('');
     const [users, setUsers] = useState<User[]>([]);
@@ -111,22 +111,8 @@ export default function AdminPortal() {
                     <StatCard label="Total Farms" value={farms.length} icon={BarChart3} color="bg-purple-500" />
                 </div>
 
-                {/* Secondary Stats (visible on larger screens, scroll on mobile) */}
+                {/* Secondary Stats */}
                 <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 scrollbar-thin -mx-4 px-4 md:mx-0 md:px-0">
-                    <div className="shrink-0 bg-slate-900 border border-white/5 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex items-center space-x-3">
-                        <DollarSign size={14} className="text-emerald-500" />
-                        <div>
-                            <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest">Revenue</p>
-                            <p className="text-xs md:text-sm font-black text-white">{formatCurrency(totalRevenue)}</p>
-                        </div>
-                    </div>
-                    <div className="shrink-0 bg-slate-900 border border-white/5 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex items-center space-x-3">
-                        <TrendingUp size={14} className="text-rose-500" />
-                        <div>
-                            <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest">Expenses</p>
-                            <p className="text-xs md:text-sm font-black text-white">{formatCurrency(totalExpenses)}</p>
-                        </div>
-                    </div>
                     <div className="shrink-0 bg-slate-900 border border-white/5 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex items-center space-x-3">
                         <Package size={14} className="text-blue-500" />
                         <div>
@@ -146,6 +132,13 @@ export default function AdminPortal() {
                         <div>
                             <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest">Export Orders</p>
                             <p className="text-xs md:text-sm font-black text-white">{exportOrders.length}</p>
+                        </div>
+                    </div>
+                    <div className="shrink-0 bg-slate-900 border border-white/5 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl flex items-center space-x-3">
+                        <Wallet size={14} className="text-emerald-500" />
+                        <div>
+                            <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest">Monthly Fee</p>
+                            <p className="text-xs md:text-sm font-black text-white">UGX 15,000</p>
                         </div>
                     </div>
                 </div>
@@ -245,58 +238,82 @@ export default function AdminPortal() {
                     </div>
                 ) : activeView === 'ANALYTICS' ? (
                     <div className="space-y-6 md:space-y-10">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                            <div className="bg-slate-900 border border-white/5 p-6 md:p-10 rounded-2xl md:rounded-[2.5rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Platform Revenue</p>
-                                <p className="text-2xl md:text-4xl font-black text-emerald-500 tracking-tighter">{formatCurrency(totalRevenue)}</p>
-                                <p className="text-[9px] text-slate-600 mt-2 font-bold">Across {users.length} organizations</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
+                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Active Users</p>
+                                <p className="text-2xl md:text-3xl font-black text-white tracking-tighter">{users.filter(u => u.activationStatus === 'ACTIVE').length}</p>
+                                <p className="text-[9px] text-slate-600 mt-1 font-bold">of {users.length} total accounts</p>
                             </div>
-                            <div className="bg-slate-900 border border-white/5 p-6 md:p-10 rounded-2xl md:rounded-[2.5rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Platform Expenses</p>
-                                <p className="text-2xl md:text-4xl font-black text-rose-500 tracking-tighter">{formatCurrency(totalExpenses)}</p>
-                                <p className="text-[9px] text-slate-600 mt-2 font-bold">{transactions.length} total transactions</p>
+                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
+                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Messages</p>
+                                <p className="text-2xl md:text-3xl font-black text-blue-400 tracking-tighter">{messages.length}</p>
+                                <p className="text-[9px] text-slate-600 mt-1 font-bold">{announcements.length} broadcasts sent</p>
                             </div>
-                            <div className="bg-slate-900 border border-white/5 p-6 md:p-10 rounded-2xl md:rounded-[2.5rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-3">Net Position</p>
-                                <p className={`text-2xl md:text-4xl font-black tracking-tighter ${totalRevenue - totalExpenses >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{formatCurrency(totalRevenue - totalExpenses)}</p>
-                                <p className="text-[9px] text-slate-600 mt-2 font-bold">All-time balance</p>
+                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
+                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Staff Across Orgs</p>
+                                <p className="text-2xl md:text-3xl font-black text-indigo-400 tracking-tighter">{staff.length}</p>
+                                <p className="text-[9px] text-slate-600 mt-1 font-bold">{farms.length} farms registered</p>
+                            </div>
+                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
+                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Monthly App Fee</p>
+                                <p className="text-2xl md:text-3xl font-black text-emerald-400 tracking-tighter">UGX 15,000</p>
+                                <p className="text-[9px] text-slate-600 mt-1 font-bold">per organization/month</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                             <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem]">
-                                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 md:mb-6">Resource Summary</h3>
-                                <div className="space-y-3 md:space-y-4">
-                                    {[
-                                        { label: 'Registered Farms', value: farms.length, icon: BarChart3, color: 'text-emerald-500' },
-                                        { label: 'Inventory Items', value: inventory.length, icon: Package, color: 'text-blue-500' },
-                                        { label: 'Staff Members', value: staff.length, icon: Users, color: 'text-indigo-500' },
-                                        { label: 'Export Orders', value: exportOrders.length, icon: FileText, color: 'text-amber-500' },
-                                    ].map((item, i) => (
+                                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 md:mb-6">User Activity & Payment Status</h3>
+                                <div className="space-y-2 md:space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+                                    {users.length === 0 ? (
+                                        <p className="text-center text-slate-700 py-8 text-xs font-bold uppercase tracking-widest">No users registered</p>
+                                    ) : users.map((u, i) => {
+                                        const daysSinceCreation = Math.floor((Date.now() - new Date(u.createdAt || Date.now()).getTime()) / 86400000);
+                                        const isPaid = daysSinceCreation < 30;
+                                        return (
                                         <div key={i} className="flex items-center justify-between p-3 md:p-4 bg-black/50 rounded-xl md:rounded-2xl border border-white/5">
-                                            <div className="flex items-center space-x-3">
-                                                <item.icon size={14} className={item.color} />
-                                                <span className="text-[10px] md:text-xs font-bold text-slate-400">{item.label}</span>
+                                            <div className="flex items-center space-x-3 min-w-0">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${u.activationStatus === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-800 text-slate-600'}`}>
+                                                    {u.name.charAt(0)}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] md:text-xs font-bold text-white truncate">{u.name}</p>
+                                                    <p className="text-[8px] text-slate-600 truncate">{u.companyName || u.email}</p>
+                                                </div>
                                             </div>
-                                            <span className="text-sm md:text-lg font-black text-white">{item.value}</span>
+                                            <div className="flex items-center space-x-2 shrink-0">
+                                                <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${isPaid ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5' : 'border-rose-500/20 text-rose-500 bg-rose-500/5'}`}>
+                                                    {isPaid ? 'Paid' : 'Due'}
+                                                </span>
+                                                <span className="text-[8px] font-bold text-slate-600">UGX 15k</span>
+                                            </div>
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                             <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem]">
-                                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 md:mb-6">Recent Transactions</h3>
-                                <div className="space-y-2 md:space-y-3 max-h-64 overflow-y-auto pr-2 scrollbar-thin">
-                                    {transactions.length === 0 ? (
-                                        <p className="text-center text-slate-700 py-8 text-xs font-bold uppercase tracking-widest">No transactions</p>
-                                    ) : transactions.slice(0, 10).map((tx, i) => (
+                                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 md:mb-6">Recent Activity Feed</h3>
+                                <div className="space-y-2 md:space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+                                    {[
+                                        ...messages.slice(0, 5).map(m => ({ type: 'message', text: `Message: ${m.subject}`, by: m.senderName, date: m.date })),
+                                        ...announcements.slice(0, 5).map(a => ({ type: 'broadcast', text: `Broadcast: ${a.title}`, by: a.author, date: a.date })),
+                                        ...users.slice(0, 5).map(u => ({ type: 'user', text: `User joined: ${u.name}`, by: u.companyName || 'New org', date: u.createdAt || new Date().toISOString() })),
+                                    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 15).length === 0 ? (
+                                        <p className="text-center text-slate-700 py-8 text-xs font-bold uppercase tracking-widest">No recent activity</p>
+                                    ) : [
+                                        ...messages.slice(0, 5).map(m => ({ type: 'message', text: `Message: ${m.subject}`, by: m.senderName, date: m.date })),
+                                        ...announcements.slice(0, 5).map(a => ({ type: 'broadcast', text: `Broadcast: ${a.title}`, by: a.author, date: a.date })),
+                                        ...users.slice(0, 5).map(u => ({ type: 'user', text: `User joined: ${u.name}`, by: u.companyName || 'New org', date: u.createdAt || new Date().toISOString() })),
+                                    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 15).map((item, i) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-black/30 rounded-xl border border-white/5">
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] md:text-xs font-bold text-white truncate">{tx.category || tx.description || 'Transaction'}</p>
-                                                <p className="text-[8px] text-slate-600">{new Date(tx.date).toLocaleDateString()}</p>
+                                            <div className="flex items-center space-x-3 min-w-0">
+                                                <div className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'message' ? 'bg-blue-500' : item.type === 'broadcast' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] md:text-xs font-bold text-white truncate">{item.text}</p>
+                                                    <p className="text-[8px] text-slate-600">{item.by} - {new Date(item.date).toLocaleDateString()}</p>
+                                                </div>
                                             </div>
-                                            <span className={`text-xs font-black shrink-0 ml-2 ${tx.type === 'INCOME' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
-                                            </span>
                                         </div>
                                     ))}
                                 </div>

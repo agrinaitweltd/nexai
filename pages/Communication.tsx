@@ -235,39 +235,39 @@ export default function Communication() {
 
       {/* NEW MESSAGE MODAL */}
       {showNewMsgModal && (
-          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in zoom-in duration-300">
-              <div className="bg-white dark:bg-slate-900 rounded-[3.5rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col">
-                  <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-3 md:p-4 backdrop-blur-xl animate-in zoom-in duration-300">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] w-full max-w-lg md:max-w-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col max-h-[90vh]">
+                  <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                     <div>
-                        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase tracking-tighter">Compose Memo</h3>
-                        <p className="text-slate-500 mt-3 font-medium text-sm">Synchronize with team members across authorized nodes.</p>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">Compose Memo</h3>
+                        <p className="text-slate-500 mt-1 md:mt-2 font-medium text-xs md:text-sm">Synchronize with team members across authorized nodes.</p>
                     </div>
-                    <button onClick={() => setShowNewMsgModal(false)} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+                    <button onClick={() => setShowNewMsgModal(false)} className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                   </div>
                   
-                  <div className="p-10 space-y-8 flex-1 overflow-y-auto">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4">Subject Narrative</label>
-                        <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-6 rounded-[2rem] font-black text-lg outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="Logistics Audit Summary..." onChange={e => setNewMsg({...newMsg, subject: e.target.value})} />
+                  <div className="p-5 md:p-8 space-y-5 md:space-y-6 flex-1 overflow-y-auto">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">Subject</label>
+                        <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="Logistics Audit Summary..." onChange={e => setNewMsg({...newMsg, subject: e.target.value})} />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4">Recipient Node Group</label>
-                        <select className="w-full bg-slate-50 dark:bg-slate-800 border-none p-6 rounded-[2rem] font-black text-xs uppercase tracking-widest outline-none shadow-inner appearance-none">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">Recipient Group</label>
+                        <select className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold text-xs uppercase tracking-widest outline-none shadow-inner appearance-none">
                             <option>Broad System Access (All Staff)</option>
                             <option>Operations & Logistics Hub</option>
                             <option>Administrative / Finance Leads</option>
                         </select>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4">Detailed Narrative</label>
-                        <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none p-10 rounded-[3rem] h-48 outline-none font-medium text-lg shadow-inner resize-none leading-relaxed" placeholder="Draft your briefing here..." onChange={e => setNewMsg({...newMsg, content: e.target.value})} />
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">Message</label>
+                        <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-6 rounded-xl md:rounded-2xl h-36 md:h-44 outline-none font-medium text-sm shadow-inner resize-none leading-relaxed" placeholder="Draft your briefing here..." onChange={e => setNewMsg({...newMsg, content: e.target.value})} />
                       </div>
                   </div>
 
-                  <div className="p-10 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-6 bg-slate-50/50 dark:bg-slate-900/50">
-                      <button onClick={() => setShowNewMsgModal(false)} className="px-10 py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-3xl transition-all">Discard</button>
-                      <button onClick={handleSendMessage} className="px-14 py-5 bg-emerald-600 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-xs flex items-center">
-                          Authorize Dispatch <SendHorizontal size={18} className="ml-3" />
+                  <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3 md:space-x-4 bg-slate-50/50 dark:bg-slate-900/50">
+                      <button onClick={() => setShowNewMsgModal(false)} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-xl md:rounded-2xl transition-all text-[10px]">Discard</button>
+                      <button onClick={handleSendMessage} className="px-8 md:px-10 py-3 md:py-4 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-[10px] flex items-center">
+                          Send <SendHorizontal size={16} className="ml-2" />
                       </button>
                   </div>
               </div>
@@ -276,41 +276,39 @@ export default function Communication() {
 
       {/* ANNOUNCEMENT MODAL */}
       {showAnnModal && (
-          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in fade-in duration-300">
-              <div className="bg-white dark:bg-slate-900 rounded-[3.5rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col">
-                  <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50">
+          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-3 md:p-4 backdrop-blur-xl animate-in fade-in duration-300">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] w-full max-w-lg md:max-w-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col max-h-[90vh]">
+                  <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50">
                     <div>
-                        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase tracking-tighter">System Broadcast</h3>
-                        <p className="text-slate-500 mt-3 font-medium text-sm">Inject a system-wide announcement across all authorized nodes.</p>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">System Broadcast</h3>
+                        <p className="text-slate-500 mt-1 md:mt-2 font-medium text-xs md:text-sm">Post a system-wide announcement.</p>
                     </div>
-                    <button onClick={() => setShowAnnModal(false)} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+                    <button onClick={() => setShowAnnModal(false)} className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                   </div>
                   
-                  <div className="p-10 space-y-8 flex-1 overflow-y-auto">
-                      <div className="grid grid-cols-1 gap-8">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4">Broadcast Headline</label>
-                            <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-6 rounded-[2rem] font-black text-lg outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="e.g. Mandatory System Sync..." onChange={e => setNewAnn({...newAnn, title: e.target.value})} />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4">Priority Protocol</label>
-                            <select className="w-full bg-slate-50 dark:bg-slate-800 border-none p-6 rounded-[2rem] font-black text-[10px] uppercase tracking-widest outline-none shadow-inner appearance-none" onChange={e => setNewAnn({...newAnn, priority: e.target.value as any})}>
-                                <option value="MEDIUM">Standard Operational Update</option>
-                                <option value="HIGH">CRITICAL ALERT - IMMEDIATE ATTENTION</option>
-                                <option value="LOW">Low Impact Synchronization</option>
-                            </select>
-                          </div>
+                  <div className="p-5 md:p-8 space-y-5 md:space-y-6 flex-1 overflow-y-auto">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">Headline</label>
+                        <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="e.g. Mandatory System Sync..." onChange={e => setNewAnn({...newAnn, title: e.target.value})} />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4">Broadcast Narrative</label>
-                        <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none p-10 rounded-[3rem] h-48 outline-none font-medium text-lg shadow-inner resize-none leading-relaxed" placeholder="Detailed broadcast content..." onChange={e => setNewAnn({...newAnn, content: e.target.value})} />
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">Priority</label>
+                        <select className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold text-[10px] uppercase tracking-widest outline-none shadow-inner appearance-none" onChange={e => setNewAnn({...newAnn, priority: e.target.value as any})}>
+                            <option value="MEDIUM">Standard Operational Update</option>
+                            <option value="HIGH">CRITICAL ALERT - IMMEDIATE ATTENTION</option>
+                            <option value="LOW">Low Impact Synchronization</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2">Content</label>
+                        <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-6 rounded-xl md:rounded-2xl h-36 md:h-44 outline-none font-medium text-sm shadow-inner resize-none leading-relaxed" placeholder="Detailed broadcast content..." onChange={e => setNewAnn({...newAnn, content: e.target.value})} />
                       </div>
                   </div>
 
-                  <div className="p-10 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-6 bg-slate-50/50">
-                      <button onClick={() => setShowAnnModal(false)} className="px-10 py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-3xl transition-all">Discard</button>
-                      <button onClick={handlePostAnnouncement} className="px-14 py-5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all text-xs flex items-center justify-center min-w-[240px]">
-                          Commit to Feed <ShieldCheck size={18} className="ml-3" />
+                  <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3 md:space-x-4 bg-slate-50/50">
+                      <button onClick={() => setShowAnnModal(false)} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-xl md:rounded-2xl transition-all text-[10px]">Discard</button>
+                      <button onClick={handlePostAnnouncement} className="px-8 md:px-10 py-3 md:py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl md:rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl active:scale-95 transition-all text-[10px] flex items-center justify-center">
+                          Post Broadcast <ShieldCheck size={16} className="ml-2" />
                       </button>
                   </div>
               </div>

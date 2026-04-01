@@ -16,6 +16,8 @@ export default function Vault() {
   
   const [newDoc, setNewDoc] = useState<Partial<AppDocument>>({ type: 'CONTRACT', category: 'General' });
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const generateReport = (reportType: string) => {
     setIsGenerating(true);
@@ -137,22 +139,26 @@ export default function Vault() {
   });
 
   const handleUpload = () => {
-    if (newDoc.name && newDoc.type) {
+    if ((newDoc.name || selectedFile?.name) && newDoc.type) {
         setIsUploading(true);
+        const fileName = newDoc.name || selectedFile?.name || 'Untitled Document';
+        const fileSize = selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) + 'MB' : (Math.random() * 5 + 0.5).toFixed(1) + 'MB';
+        
         setTimeout(() => {
             addDocument({
                 id: crypto.randomUUID(),
-                name: newDoc.name!,
+                name: fileName,
                 type: newDoc.type!,
                 category: newDoc.category || 'General',
-                size: (Math.random() * 5 + 0.5).toFixed(1) + 'MB', 
+                size: fileSize,
                 date: new Date().toISOString(),
-                url: '#',
+                url: selectedFile ? URL.createObjectURL(selectedFile) : '#',
                 uploadedBy: user?.name || 'Authorized Lead'
             } as AppDocument);
             setIsUploading(false);
             setShowUploadModal(false);
             setNewDoc({ type: 'CONTRACT', category: 'General' });
+            setSelectedFile(null);
         }, 1500);
     }
   };
@@ -215,35 +221,35 @@ export default function Vault() {
           </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
           {filteredDocs.length === 0 ? (
-              <div className="col-span-full py-24 text-center bg-white dark:bg-slate-900 rounded-[3.5rem] border-2 border-dashed border-slate-100 dark:border-slate-800">
-                  <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FileStack size={40} className="text-slate-200 dark:text-slate-700" />
+              <div className="col-span-full py-16 md:py-24 text-center bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] border-2 border-dashed border-slate-100 dark:border-slate-800">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileStack size={32} className="text-slate-200 dark:text-slate-700" />
                   </div>
-                  <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-xs">No Signal Detected in Archive</p>
+                  <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">No Documents Found</p>
               </div>
           ) : filteredDocs.map(doc => (
-              <div key={doc.id} className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all group flex flex-col justify-between">
+              <div key={doc.id} className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
                   <div>
-                    <div className="flex justify-between items-start mb-6">
-                        <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-11 h-11 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
                             {getIcon(doc.type)}
                         </div>
                         <div className="flex space-x-1">
-                            <button onClick={() => setPreviewDoc(doc)} className="p-2.5 text-slate-400 hover:text-blue-500 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all" title="Preview"><Eye size={16}/></button>
-                            <button onClick={() => deleteDocument(doc.id)} className="p-2.5 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-800 rounded-xl transition-all" title="Delete"><Trash2 size={16}/></button>
+                            <button onClick={() => setPreviewDoc(doc)} className="p-2 text-slate-400 hover:text-blue-500 bg-slate-50 dark:bg-slate-800 rounded-lg transition-all" title="Preview"><Eye size={14}/></button>
+                            <button onClick={() => deleteDocument(doc.id)} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-800 rounded-lg transition-all" title="Delete"><Trash2 size={14}/></button>
                         </div>
                     </div>
-                    <h3 className="font-black text-slate-800 dark:text-white text-base line-clamp-2 leading-snug mb-3">{doc.name}</h3>
-                    <div className="flex items-center space-x-2 mb-8">
-                        <span className="text-[8px] font-black uppercase tracking-widest bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded text-emerald-600 border border-emerald-100 dark:border-emerald-800/50">{doc.type}</span>
+                    <h3 className="font-black text-slate-800 dark:text-white text-sm line-clamp-2 leading-snug mb-2">{doc.name}</h3>
+                    <div className="flex items-center space-x-2 mb-5">
+                        <span className="text-[8px] font-black uppercase tracking-widest bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded text-emerald-600 border border-emerald-100 dark:border-emerald-800/50">{doc.type}</span>
                         <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{doc.size}</span>
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
-                      <div className="space-y-1">
+                  <div className="pt-4 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
+                      <div className="space-y-0.5">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center">
                             <Plus size={10} className="mr-1 text-emerald-500" /> {doc.uploadedBy.split(' ')[0]}
                         </p>
@@ -251,8 +257,8 @@ export default function Vault() {
                             {new Date(doc.date).toLocaleDateString()}
                         </p>
                       </div>
-                      <button className="bg-slate-900 dark:bg-white text-white dark:text-black p-3 rounded-xl hover:scale-110 active:scale-90 transition-all shadow-lg">
-                          <Download size={16} />
+                      <button className="bg-slate-900 dark:bg-white text-white dark:text-black p-2.5 rounded-lg hover:scale-110 active:scale-90 transition-all shadow-lg">
+                          <Download size={14} />
                       </button>
                   </div>
               </div>
@@ -261,32 +267,32 @@ export default function Vault() {
 
       {/* PREVIEW MODAL */}
       {previewDoc && (
-          <div className="fixed inset-0 bg-slate-950/95 flex items-center justify-center z-[200] p-4 md:p-12 backdrop-blur-xl animate-in zoom-in duration-300">
-               <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-5xl h-[85vh] shadow-2xl flex flex-col overflow-hidden border border-white/10">
-                    <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
-                        <div className="flex items-center space-x-6">
-                            <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm border dark:border-slate-700">
+          <div className="fixed inset-0 bg-slate-950/95 flex items-center justify-center z-[200] p-3 md:p-8 backdrop-blur-xl animate-in zoom-in duration-300">
+               <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2rem] w-full max-w-4xl h-[85vh] shadow-2xl flex flex-col overflow-hidden border border-white/10">
+                    <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="flex items-center space-x-3 md:space-x-5 min-w-0">
+                            <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm border dark:border-slate-700 shrink-0">
                                 {getIcon(previewDoc.type)}
                             </div>
-                            <div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white leading-none">{previewDoc.name}</h3>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">{previewDoc.type} • Secured Node Identifier • {previewDoc.size}</p>
+                            <div className="min-w-0">
+                                <h3 className="text-sm md:text-lg font-black text-slate-900 dark:text-white leading-none truncate">{previewDoc.name}</h3>
+                                <p className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{previewDoc.type} - {previewDoc.size}</p>
                             </div>
                         </div>
-                        <button onClick={() => setPreviewDoc(null)} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm border dark:border-slate-700"><X size={24}/></button>
+                        <button onClick={() => setPreviewDoc(null)} className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm border dark:border-slate-700 shrink-0"><X size={20}/></button>
                     </div>
-                    <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-12 flex items-center justify-center overflow-auto">
-                        <div className="w-full max-w-3xl bg-white dark:bg-slate-900 p-20 rounded-[2.5rem] shadow-2xl space-y-10 min-h-full border dark:border-slate-800">
+                    <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-4 md:p-8 flex items-center justify-center overflow-auto">
+                        <div className="w-full max-w-2xl bg-white dark:bg-slate-900 p-8 md:p-14 rounded-2xl shadow-xl space-y-8 border dark:border-slate-800">
                             <div className="h-4 w-2/3 bg-slate-100 dark:bg-slate-800 rounded-full" />
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div className="h-3 w-full bg-slate-50 dark:bg-slate-800/50 rounded-full" />
                                 <div className="h-3 w-full bg-slate-50 dark:bg-slate-800/50 rounded-full" />
                                 <div className="h-3 w-4/5 bg-slate-50 dark:bg-slate-800/50 rounded-full" />
                             </div>
-                            <div className="h-40 w-full bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center">
-                                <FileText size={48} className="text-slate-200 dark:text-slate-800" />
+                            <div className="h-32 w-full bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                                <FileText size={40} className="text-slate-200 dark:text-slate-800" />
                             </div>
-                            <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest italic pt-10">End of Encrypted Section</p>
+                            <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest italic pt-6">Document Preview</p>
                         </div>
                     </div>
                </div>
@@ -295,60 +301,87 @@ export default function Vault() {
 
       {/* UPLOAD MODAL */}
       {showUploadModal && (
-          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in fade-in duration-300">
-              <div className="bg-white dark:bg-slate-900 rounded-[3.5rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-white/10">
-                  <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-3 md:p-4 backdrop-blur-xl animate-in fade-in duration-300">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] w-full max-w-lg md:max-w-xl shadow-2xl overflow-hidden border border-white/10 flex flex-col max-h-[90vh]">
+                  <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                     <div>
-                        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Ingestion Manager</h3>
-                        <p className="text-slate-500 mt-3 font-medium text-sm">Secure corporate file ingestion with automated indexing.</p>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Upload Document</h3>
+                        <p className="text-slate-500 mt-1 font-medium text-xs md:text-sm">Secure file upload with indexing.</p>
                     </div>
-                    <button onClick={() => setShowUploadModal(false)} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+                    <button onClick={() => { setShowUploadModal(false); setSelectedFile(null); }} className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                   </div>
                   
-                  <div className="p-10 space-y-10">
-                      <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[3rem] p-12 text-center bg-slate-50/30 dark:bg-slate-800/30 hover:bg-slate-50 transition-all cursor-pointer group shadow-inner">
-                           <UploadCloud size={48} className="mx-auto text-slate-300 group-hover:text-emerald-600 transition-colors mb-4" />
-                           <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Select Statutory Assets</p>
-                           <p className="text-[10px] text-slate-400 mt-2 font-medium">PDF, DOCX, XLSX, JPG (Enterprise Limit: 50MB)</p>
+                  <div className="p-5 md:p-8 space-y-5 md:space-y-6 overflow-y-auto">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.csv,.txt"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setSelectedFile(file);
+                            if (!newDoc.name) setNewDoc({...newDoc, name: file.name});
+                          }
+                        }}
+                      />
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 md:p-8 text-center bg-slate-50/30 dark:bg-slate-800/30 hover:bg-slate-50 transition-all cursor-pointer group shadow-inner"
+                      >
+                           {selectedFile ? (
+                             <div className="flex flex-col items-center">
+                               <CheckCircle2 size={36} className="text-emerald-500 mb-3" />
+                               <p className="text-sm font-black text-emerald-600 uppercase tracking-widest">{selectedFile.name}</p>
+                               <p className="text-[10px] text-slate-400 mt-1 font-medium">{(selectedFile.size / (1024 * 1024)).toFixed(1)} MB - Click to change</p>
+                             </div>
+                           ) : (
+                             <>
+                               <UploadCloud size={36} className="mx-auto text-slate-300 group-hover:text-emerald-600 transition-colors mb-3" />
+                               <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Select File to Upload</p>
+                               <p className="text-[10px] text-slate-400 mt-1 font-medium">PDF, DOCX, XLSX, JPG, PNG (Max: 50MB)</p>
+                             </>
+                           )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4 block">Manifest Display Name</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2 block">Document Name</label>
                               <input 
-                                className="w-full border-none bg-slate-50 dark:bg-slate-800 p-6 rounded-[2rem] dark:text-white font-black outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner"
-                                placeholder="e.g. Q4 Logistics Manifest"
+                                className="w-full border-none bg-slate-50 dark:bg-slate-800 p-4 rounded-xl dark:text-white font-bold outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm"
+                                placeholder="e.g. Q4 Logistics Report"
+                                value={newDoc.name || ''}
                                 onChange={e => setNewDoc({...newDoc, name: e.target.value})}
                               />
                           </div>
-                          <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-4 block">Asset Classification</label>
+                          <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2 block">Classification</label>
                               <select 
-                                className="w-full border-none bg-slate-50 dark:bg-slate-800 p-6 rounded-[2rem] dark:text-white font-black outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner uppercase tracking-widest text-[10px]"
+                                className="w-full border-none bg-slate-50 dark:bg-slate-800 p-4 rounded-xl dark:text-white font-bold outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner uppercase tracking-widest text-[10px]"
                                 value={newDoc.type}
                                 onChange={e => setNewDoc({...newDoc, type: e.target.value as any})}
                               >
                                   <option value="CONTRACT">Legal Contract</option>
-                                  <option value="INVOICE">Fiscal Invoice</option>
-                                  <option value="RECEIPT">Settlement Receipt</option>
-                                  <option value="REPORT">Sector Report</option>
-                                  <option value="DOWNLOAD">Public Download</option>
+                                  <option value="INVOICE">Invoice</option>
+                                  <option value="RECEIPT">Receipt</option>
+                                  <option value="REPORT">Report</option>
+                                  <option value="DOWNLOAD">Download</option>
                               </select>
                           </div>
                       </div>
                   </div>
 
-                  <div className="p-10 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-6 bg-slate-50/50 dark:bg-slate-900/50">
-                      <button onClick={() => setShowUploadModal(false)} className="px-10 py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-3xl transition-all">Discard</button>
+                  <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3 bg-slate-50/50 dark:bg-slate-900/50">
+                      <button onClick={() => { setShowUploadModal(false); setSelectedFile(null); }} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-xl md:rounded-2xl transition-all text-[10px]">Cancel</button>
                       <button 
                         onClick={handleUpload}
-                        disabled={isUploading}
-                        className="px-14 py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all text-xs flex items-center justify-center disabled:opacity-50 min-w-[240px]"
+                        disabled={isUploading || (!newDoc.name && !selectedFile)}
+                        className="px-8 md:px-10 py-3 md:py-4 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl active:scale-95 transition-all text-[10px] flex items-center justify-center disabled:opacity-50"
                       >
                           {isUploading ? (
-                              <><RefreshCw className="animate-spin mr-3" size={16} /> Finalizing Asset...</>
+                              <><RefreshCw className="animate-spin mr-2" size={16} /> Uploading...</>
                           ) : (
-                              <>Synchronize with Vault <CheckCircle2 size={18} className="ml-3" /></>
+                              <>Upload <CheckCircle2 size={16} className="ml-2" /></>
                           )}
                       </button>
                   </div>
@@ -358,16 +391,16 @@ export default function Vault() {
 
       {/* GENERATE REPORT MODAL */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in zoom-in duration-300">
-          <div className="bg-white dark:bg-slate-900 rounded-[3.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-white/10">
-            <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[150] p-3 md:p-4 backdrop-blur-xl animate-in zoom-in duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-white/10 max-h-[90vh] flex flex-col">
+            <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
               <div>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Generate Report</h3>
-                <p className="text-slate-500 mt-2 font-medium text-sm">Create a PDF report from your data</p>
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Generate Report</h3>
+                <p className="text-slate-500 mt-1 font-medium text-xs md:text-sm">Create a PDF from your data</p>
               </div>
-              <button onClick={() => setShowGenerateModal(false)} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+              <button onClick={() => setShowGenerateModal(false)} className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
             </div>
-            <div className="p-8 space-y-4">
+            <div className="p-4 md:p-6 space-y-3 overflow-y-auto">
               {[
                 { id: 'financial', title: 'Financial Summary', desc: 'Income, expenses, and transaction history', icon: <DollarSign size={20} className="text-emerald-500" />, count: `${transactions.length} transactions` },
                 { id: 'inventory', title: 'Inventory Report', desc: 'Stock levels, valuations, and item list', icon: <Package size={20} className="text-blue-500" />, count: `${inventory.length} items` },
@@ -378,9 +411,9 @@ export default function Vault() {
                   key={report.id}
                   onClick={() => generateReport(report.id)}
                   disabled={isGenerating}
-                  className="w-full flex items-center space-x-5 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left group disabled:opacity-50"
+                  className="w-full flex items-center space-x-4 p-4 md:p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-left group disabled:opacity-50"
                 >
-                  <div className="w-12 h-12 bg-white dark:bg-slate-900 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="w-10 h-10 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform shrink-0">
                     {report.icon}
                   </div>
                   <div className="flex-1 min-w-0">
