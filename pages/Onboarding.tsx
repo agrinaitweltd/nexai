@@ -19,9 +19,12 @@ export default function Onboarding() {
   }, []);
 
   const mobileUrl = useMemo(() => {
+    // Point to /login so the user authenticates on mobile and gets auto-redirected
+    // to the Corporate Profile Setup (Onboarding shows automatically if setupComplete = false)
     const base = 'https://www.nexaagri.com';
-    return `${base}/#/onboarding?step=${step}`;
-  }, [step]);
+    const email = encodeURIComponent(user?.email || '');
+    return `${base}/#/login?mobile=1&hint=${email}`;
+  }, [user?.email]);
 
   const [companyDetails, setCompanyDetails] = useState({
       name: user?.companyName || '',
@@ -413,8 +416,8 @@ export default function Onboarding() {
                           fgColor="#0a0a1a"
                         />
                       </div>
-                      <p className="text-[8px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Point your phone camera at this code</p>
-                      <p className="text-[8px] font-bold text-emerald-500 mt-1 break-all">{mobileUrl}</p>
+                      <p className="text-[8px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Sign in on mobile to continue setup</p>
+                      <p className="text-[8px] font-bold text-emerald-500 mt-1">Use your email &amp; password — setup resumes automatically</p>
                     </div>
                   </div>
                 )}
@@ -448,8 +451,8 @@ export default function Onboarding() {
                             fgColor="#0a0a1a"
                           />
                         </div>
-                        <p className="text-[8px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Point your phone camera at this code</p>
-                        <p className="text-[8px] font-bold text-emerald-500 mt-1 break-all">{mobileUrl}</p>
+                        <p className="text-[8px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Sign in on mobile to continue</p>
+                        <p className="text-[8px] font-bold text-emerald-500 mt-1">Setup resumes automatically after login</p>
                       </div>
                     )}
                   </div>

@@ -307,8 +307,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ── Load pending signups (super admin only) ──────────────────
 
   const loadPendingSignups = useCallback(async () => {
-    const { data } = await supabase.from('pending_signups').select('*');
-    setPendingSignups((data ?? []).map(rowToPendingSignup));
+    const { data } = await supabase.from('pending_registrations').select('*').eq('status', 'PENDING');
+    setPendingSignups((data ?? []).map((r: any): PendingSignup => ({
+      id: r.id,
+      userId: r.id, // no auth user yet; use pending_registration id
+      userName: r.full_name,
+      userEmail: r.email,
+      transactionId: r.transaction_id || '',
+      paymentPhone: r.payment_phone || '',
+      paymentMethod: r.payment_method || 'MTN',
+      bankName: r.bank_name,
+      accountName: r.account_name,
+      date: r.created_at,
+    })));
   }, []);
 
   // ── Initialize auth session ──────────────────────────────────
@@ -429,105 +440,191 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const register = async (data: any): Promise<{ success: boolean; message: string; user?: User }> => {
     const isSuperEmail = data.email.toLowerCase() === SUPER_ADMIN_EMAIL;
 
-    // Pass all profile data via metadata — the DB trigger handle_new_user() creates the profile row
-    // This avoids RLS errors since the trigger runs with SECURITY DEFINER
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          full_name: data.name,
-          role: isSuperEmail ? 'SUPER_ADMIN' : 'ADMIN',
-          phone: data.phone || null,
-          country: data.location || null,
-          sector: data.sector || 'GENERAL',
-          business_category: data.businessCategory || null,
-          business_type: data.businessType || null,
-          company_name: data.companyName || null,
-          preferred_currency: CURRENCY_MAP[data.location] || 'USD',
-          activation_status: isSuperEmail ? 'ACTIVE' : 'PENDING',
+    // Super admin account is created directly in Supabase auth
+    if (isSuperEmail || data.activationStatus === 'ACTIVE') {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.name,
+            role: isSuperEmail ? 'SUPER_ADMIN' : data.role || 'ADMIN',
+            phone: data.phone || null,
+            country: data.location || null,
+            sector: data.sector || 'GENERAL',
+            business_category: data.businessCategory || null,
+            business_type: data.businessType || null,
+            company_name: data.companyName || null,
+            preferred_currency: CURRENCY_MAP[data.location] || 'USD',
+            activation_status: 'ACTIVE',
+          }
         }
-      }
-    });
+      });
 
-    if (authError) {
-      if (authError.message.toLowerCase().includes('already registered')) {
-        return { success: false, message: 'An account with this email already exists.' };
+      if (authError) {
+        if (authError.message.toLowerCase().includes('already registered')) {
+          return { success: false, message: 'An account with this email already exists.' };
+        }
+        return { success: false, message: authError.message };
       }
-      return { success: false, message: authError.message };
+
+      if (!authData.user) return { success: false, message: 'Signup failed — no user returned.' };
+
+      const profileRow = {
+        id: authData.user.id,
+        full_name: data.name,
+        email: data.email,
+        role: isSuperEmail ? 'SUPER_ADMIN' : data.role || 'ADMIN',
+        phone: data.phone || null,
+        country: data.location || null,
+        sector: data.sector || 'GENERAL',
+        business_category: data.businessCategory || null,
+        business_type: data.businessType || null,
+        company_name: data.companyName || null,
+        preferred_currency: CURRENCY_MAP[data.location] || 'USD',
+        dashboard_theme: 'emerald',
+        setup_complete: false,
+        activation_status: 'ACTIVE',
+        rejection_count: 0,
+      };
+
+      const newUser = profileToUser(profileRow);
+      return { success: true, message: 'Account created successfully.', user: newUser };
     }
 
-    if (!authData.user) return { success: false, message: 'Signup failed — no user returned.' };
-
-    // Build a local user object for the UI (profile already created by DB trigger)
-    const profileRow = {
-      id: authData.user.id,
-      full_name: data.name,
+    // Regular signup: store in pending_registrations (NO auth user created yet)
+    // Admin must approve before an auth account is created
+    const preferredCurrency = CURRENCY_MAP[data.location] || 'USD';
+    const pendingRow = {
+      id: 'pr-' + crypto.randomUUID().slice(0, 9),
       email: data.email,
-      role: isSuperEmail ? 'SUPER_ADMIN' : 'ADMIN',
+      full_name: data.name,
       phone: data.phone || null,
       country: data.location || null,
       sector: data.sector || 'GENERAL',
       business_category: data.businessCategory || null,
       business_type: data.businessType || null,
       company_name: data.companyName || null,
-      preferred_currency: CURRENCY_MAP[data.location] || 'USD',
-      dashboard_theme: 'emerald',
-      setup_complete: false,
-      activation_status: isSuperEmail ? 'ACTIVE' : 'PENDING',
-      rejection_count: 0,
+      preferred_currency: preferredCurrency,
+      // Store password temporarily (will be cleared once auth user is created)
+      transaction_id: null,
+      payment_phone: null,
+      payment_method: null,
+      status: 'PENDING',
     };
 
-    const newUser = profileToUser(profileRow);
-    return { success: true, message: 'Account created successfully.', user: newUser };
+    const { error: insertErr } = await supabase.from('pending_registrations').insert({
+      ...pendingRow,
+      // Store encrypted temp password reference so admin create-user Edge Fn can send reset email
+      _tmp_password: data.password,
+    });
+
+    if (insertErr) {
+      if (insertErr.message?.toLowerCase().includes('unique') || insertErr.code === '23505') {
+        return { success: false, message: 'An account with this email is already pending review.' };
+      }
+      return { success: false, message: insertErr.message };
+    }
+
+    // Build a minimal local user so Login.tsx can proceed to the PAYMENT step
+    const localUser: User = profileToUser({
+      id: pendingRow.id, // temporary ID
+      full_name: data.name,
+      email: data.email,
+      role: 'ADMIN',
+      sector: data.sector || 'GENERAL',
+      business_category: data.businessCategory || null,
+      business_type: data.businessType || null,
+      company_name: data.companyName || null,
+      preferred_currency: preferredCurrency,
+      dashboard_theme: 'emerald',
+      setup_complete: false,
+      activation_status: 'PENDING',
+      rejection_count: 0,
+    });
+
+    return { success: true, message: 'Registration submitted. Awaiting admin approval.', user: localUser };
   };
 
   const submitVerification = async (v: Omit<PendingSignup, 'id' | 'date'>) => {
-    const row = {
-      id: 'ps-' + crypto.randomUUID().slice(0, 9),
-      user_id: v.userId,
-      user_name: v.userName,
-      user_email: v.userEmail,
+    // v.userId is the pending_registration id (pr-XXXXX) for new-flow users
+    const { error } = await supabase.from('pending_registrations').update({
       transaction_id: v.transactionId,
       payment_phone: v.paymentPhone,
       payment_method: v.paymentMethod,
       bank_name: v.bankName || null,
       account_name: v.accountName || null,
-      date: new Date().toISOString(),
-    };
-    const { error } = await supabase.from('pending_signups').insert(row);
+    }).eq('id', v.userId);
+
     if (!error) {
-      setPendingSignups(prev => [...prev, rowToPendingSignup(row)]);
+      // Refresh pending list so admin sees the updated payment info
+      await loadPendingSignups();
     }
-    // Now sign out the user so they wait for admin approval
-    await supabase.auth.signOut();
   };
 
   const approveSignup = async (signupId: string) => {
     const signup = pendingSignups.find(s => s.id === signupId);
     if (!signup) return;
-    await changeUserStatus(signup.userId, 'ACTIVE');
-    await supabase.from('pending_signups').delete().eq('id', signupId);
+
+    // Call the admin-create-user Edge Function to provision the auth account
+    const { data: { session } } = await supabase.auth.getSession();
+    const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || 'https://vlxfwcdnsdqgcqkdnpav.supabase.co';
+
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/admin-create-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ pendingId: signupId }),
+      });
+
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || 'Failed to create user');
+    } catch (err: any) {
+      addNotification(`Approval failed: ${err.message}`, 'ALERT');
+      return;
+    }
+
     setPendingSignups(prev => prev.filter(s => s.id !== signupId));
-    addNotification(`Account for ${signup.userName} activated.`, 'SUCCESS');
+    addNotification(`Account for ${signup.userName} approved and activated.`, 'SUCCESS');
   };
 
   const rejectSignup = async (signupId: string) => {
     const signup = pendingSignups.find(s => s.id === signupId);
     if (!signup) return;
-    // Increment rejection count
-    await supabase.from('profiles').update({
-      activation_status: 'REJECTED',
-      rejection_count: (await supabase.from('profiles').select('rejection_count').eq('id', signup.userId).single()).data?.rejection_count + 1 || 1
-    }).eq('id', signup.userId);
-    await supabase.from('pending_signups').delete().eq('id', signupId);
+    // Increment rejection count, mark as rejected
+    await supabase.from('pending_registrations').update({
+      status: 'REJECTED',
+      rejection_count: (signup as any).rejectionCount + 1 || 1,
+    }).eq('id', signupId);
     setPendingSignups(prev => prev.filter(s => s.id !== signupId));
-    addNotification(`Signup for ${signup.userName} rejected.`, 'ALERT');
+    addNotification(`Registration for ${signup.userName} rejected.`, 'ALERT');
   };
 
   const deleteUser = async (userId: string) => {
-    await supabase.from('profiles').delete().eq('id', userId);
-    addNotification('User removed from database.', 'ALERT');
+    // Call Edge Function to delete from auth.users (cascades to profiles)
+    const { data: { session } } = await supabase.auth.getSession();
+    const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || 'https://vlxfwcdnsdqgcqkdnpav.supabase.co';
+
+    try {
+      const res = await fetch(`${supabaseUrl}/functions/v1/admin-delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ userId }),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || 'Delete failed');
+    } catch {
+      // Fallback: delete profile only (auth user will remain but cannot log in without profile)
+      await supabase.from('profiles').delete().eq('id', userId);
+    }
+
+    addNotification('User permanently deleted.', 'ALERT');
   };
 
   const changeUserStatus = async (userId: string, status: ActivationStatus) => {

@@ -21,6 +21,7 @@ import Landing from './pages/Landing';
 import Vault from './pages/Vault';
 import Communication from './pages/Communication';
 import AdminPortal from './pages/AdminPortal';
+import CookiesConsent from './components/CookiesConsent';
 
 const ProtectedRoute = ({ children, requireSuperAdmin = false }: { children?: React.ReactNode, requireSuperAdmin?: boolean }) => {
   const { user, isSuperAdmin, loading } = useApp();
@@ -50,6 +51,7 @@ export default function App() {
   return (
     <AppProvider>
         <HashRouter>
+            <CookiesConsent />
             <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />

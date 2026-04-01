@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Moon, Sun, Shield, Users, Building, Monitor, Lock, HelpCircle, CreditCard, ExternalLink, RefreshCw, Ship, Anchor, Globe, Plus, Trash2, CheckCircle2, X, Palette, Layout, MapPin } from 'lucide-react';
+import { Moon, Sun, Shield, Users, Building, Monitor, Lock, HelpCircle, CreditCard, ExternalLink, RefreshCw, Ship, Anchor, Globe, Plus, Trash2, CheckCircle2, X, Palette, Layout, MapPin, Smartphone } from 'lucide-react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link } = ReactRouterDOM as any;
 import { DashboardTheme } from '../types';
+import { MobileAuthSettings, isMobileDevice } from '../components/MobileAuth';
 
 export default function Settings() {
   const { user, theme, toggleTheme, replayTutorial, updateDashboardTheme, updateUser } = useApp();
@@ -146,6 +147,15 @@ export default function Settings() {
               </div>
           </div>
       )}
+
+      {/* Mobile Security Section */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 p-8 md:p-12 transition-colors">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+              <Smartphone size={22} className="mr-3 text-indigo-500" /> Mobile Security
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">Manage quick-access options for signing in on your mobile device.</p>
+          <MobileAuthSettings userId={user?.id || ''} userEmail={user?.email || ''} />
+      </div>
     </div>
   );
 }

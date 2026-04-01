@@ -23,12 +23,9 @@ import {
   LineChart,
   Cpu,
   Cloud,
-  Phone,
-  MessageCircle,
-  Smartphone,
   CheckCircle2,
-  Linkedin,
-  Mail
+  Mail,
+  Linkedin
 } from 'lucide-react';
 import { NexaLogo } from '../components/NexaLogo';
 
@@ -45,14 +42,29 @@ function useInView(threshold = 0.15) {
   return { ref, inView };
 }
 
+const ROTATING_WORDS = ['Farms', 'Finance', 'Livestock', 'Crops'];
+
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [wordVisible, setWordVisible] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordVisible(false);
+      setTimeout(() => {
+        setWordIndex(i => (i + 1) % ROTATING_WORDS.length);
+        setWordVisible(true);
+      }, 350);
+    }, 2200);
+    return () => clearInterval(interval);
   }, []);
 
   const heroAnim = useInView(0.1);
@@ -90,7 +102,7 @@ export default function Landing() {
 
   const howItWorks = [
     { step: "01", title: "Create Your Account", desc: "Sign up on the Nexa platform with your business details — it only takes a few minutes.", badge: "Quick Start", badgeColor: "text-emerald-600" },
-    { step: "02", title: "Pay UGX 15,000/mo", desc: "Activate your enterprise hub with a simple monthly subscription via MTN MoMo or Airtel Money.", badge: "Affordable", badgeColor: "text-blue-600" },
+    { step: "02", title: "Subscribe for $4.99/mo", desc: "Activate your enterprise hub with a simple monthly subscription via card, MTN MoMo or Airtel Money.", badge: "Affordable", badgeColor: "text-blue-600" },
     { step: "03", title: "Configure Your Profile", desc: "Set up your farms, staff, inventory, and compliance details through guided onboarding.", badge: "Quick & Easy", badgeColor: "text-purple-600" },
     { step: "04", title: "Manage Operations Anywhere", desc: "Monitor, track, and manage your entire enterprise from anywhere — anytime, on any device.", badge: "Anywhere 24/7", badgeColor: "text-amber-600" }
   ];
@@ -100,10 +112,6 @@ export default function Landing() {
     { icon: LineChart, title: "Advanced Analytics", desc: "Understand how operations are moving, selling, and balancing, and see trends for each unit at the farm level." },
     { icon: Cpu, title: "AI-Ready Architecture", desc: "Built so the system can learn from farm data and help detect health problems or productivity changes early." },
     { icon: Cloud, title: "Scalable Platform", desc: "A strong cloud system that can start small and grow easily as more farmers, produce, and data join the platform." }
-  ];
-
-  const teamMembers = [
-    { name: "Oliver Amanya Alinaitwe", role: "Founder", education: "Currently studying Information Technologies & Business Administration", initials: "OA", color: "from-emerald-500 to-teal-600" }
   ];
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -118,12 +126,16 @@ export default function Landing() {
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         @keyframes slideLeft { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes slideRight { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes wordIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes wordOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
         .anim-fade-up { animation: fadeUp 0.8s ease-out both; }
         .anim-fade-in { animation: fadeIn 0.6s ease-out both; }
         .anim-scale-in { animation: scaleIn 0.6s ease-out both; }
         .anim-slide-left { animation: slideLeft 0.8s ease-out both; }
         .anim-slide-right { animation: slideRight 0.8s ease-out both; }
         .anim-float { animation: float 6s ease-in-out infinite; }
+        .word-in { animation: wordIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+        .word-out { animation: wordOut 0.35s ease-in forwards; }
         .d1 { animation-delay: 0.1s; }
         .d2 { animation-delay: 0.2s; }
         .d3 { animation-delay: 0.3s; }
@@ -142,7 +154,7 @@ export default function Landing() {
           <div className="hidden md:flex items-center space-x-10">
             <a href="#top" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Home</a>
             <a href="#features" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Features</a>
-            <a href="#team" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Team</a>
+            <a href="#mission" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Mission</a>
             <a href="#audience" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">About</a>
             <div className="flex items-center space-x-4 ml-6 border-l border-slate-200 pl-8">
                 <Link to="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 hover:text-emerald-600 transition-colors">Sign In</Link>
@@ -155,22 +167,22 @@ export default function Landing() {
             </div>
           </div>
 
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2.5 text-slate-900 bg-slate-50 rounded-xl border border-slate-100">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2.5 text-slate-900 bg-slate-50 rounded-xl border border-slate-100 transition-all active:scale-95">
             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-100 p-6 space-y-8 shadow-2xl">
-            <div className="space-y-5">
-                <a href="#top" onClick={() => setIsMenuOpen(false)} className="block text-lg font-black uppercase tracking-tight text-slate-900">Home</a>
-                <a href="#features" onClick={() => setIsMenuOpen(false)} className="block text-lg font-black uppercase tracking-tight text-slate-900">Features</a>
-                <a href="#team" onClick={() => setIsMenuOpen(false)} className="block text-lg font-black uppercase tracking-tight text-slate-900">Team</a>
-                <a href="#audience" onClick={() => setIsMenuOpen(false)} className="block text-lg font-black uppercase tracking-tight text-slate-900">About</a>
+          <div className="md:hidden bg-white border-b border-slate-100 shadow-2xl animate-in slide-in-from-top-2 duration-300">
+            <div className="px-5 pt-4 pb-2 space-y-1">
+                <a href="#top" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl bg-slate-50 text-sm font-black uppercase tracking-widest text-slate-900 active:scale-95 transition-all">Home <ArrowRight size={14} className="text-slate-400" /></a>
+                <a href="#features" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-95 transition-all">Features <ArrowRight size={14} className="text-slate-400" /></a>
+                <a href="#audience" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-95 transition-all">About <ArrowRight size={14} className="text-slate-400" /></a>
+                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-95 transition-all">Pricing <ArrowRight size={14} className="text-slate-400" /></a>
             </div>
-            <div className="space-y-3 pt-5 border-t">
-                <Link to="/login" className="block w-full text-center py-3.5 text-slate-500 font-black uppercase tracking-widest text-xs">Sign In</Link>
-                <Link to="/login" className="block w-full bg-emerald-600 text-white text-center py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg">Get Started</Link>
+            <div className="px-5 pt-3 pb-6 space-y-3 border-t border-slate-100">
+                <Link to="/login" className="flex items-center justify-center w-full border border-slate-200 bg-white text-slate-900 text-center py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-all">Sign In</Link>
+                <Link to="/login" className="flex items-center justify-center gap-2 w-full bg-emerald-600 text-white text-center py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Get Started <ArrowRight size={14} /></Link>
             </div>
           </div>
         )}
@@ -189,8 +201,15 @@ export default function Landing() {
               </div>
               
               <h1 className={`text-4xl md:text-7xl lg:text-8xl font-black text-slate-950 tracking-tighter leading-[0.95] max-w-4xl mb-6 md:mb-8 ${heroAnim.inView ? 'anim-fade-up d1' : ''}`}>
-                Manage Your Farms, <br className="hidden md:block" />
-                Crops & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400">Agricultural Exports.</span>
+                Manage Your{' '}
+                <span
+                  className={`inline-block text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400 ${wordVisible ? 'word-in' : 'word-out'}`}
+                  style={{ minWidth: '8ch', display: 'inline-block' }}
+                >
+                  {ROTATING_WORDS[wordIndex]}
+                </span>,{' '}
+                <br className="hidden md:block" />
+                & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400">Agricultural Exports.</span>
               </h1>
               
               <p className={`text-slate-500 text-base md:text-xl font-medium leading-relaxed max-w-2xl mb-8 md:mb-10 ${heroAnim.inView ? 'anim-fade-up d2' : ''}`}>
@@ -234,7 +253,7 @@ export default function Landing() {
       </section>
 
       {/* How It Works */}
-      <section ref={howAnim.ref} className="py-20 md:py-36 px-5 md:px-12 bg-white">
+      <section id="pricing" ref={howAnim.ref} className="py-20 md:py-36 px-5 md:px-12 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className={`text-center mb-14 md:mb-20 ${howAnim.inView ? '' : 'opacity-0'}`}>
             <div className={`inline-flex items-center space-x-2 bg-emerald-50 px-4 py-2 rounded-full text-[10px] font-bold text-emerald-700 border border-emerald-100 mb-6 ${howAnim.inView ? 'anim-fade-up' : ''}`}>
@@ -345,123 +364,69 @@ export default function Landing() {
                 </div>
               ))}
             </div>
-            <div className={`bg-slate-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden ${techAnim.inView ? 'anim-slide-left d2' : 'opacity-0'}`}>
-              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className={`bg-slate-900 rounded-2xl overflow-hidden relative ${techAnim.inView ? 'anim-slide-left d2' : 'opacity-0'}`}>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+              {/* Browser chrome bar */}
+              <div className="relative z-10 px-5 py-3 flex items-center space-x-3 border-b border-white/5">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-[9px] font-bold text-slate-500 ml-3 uppercase tracking-wider">nexaagri.com — Dashboard</span>
+                <div className="ml-auto flex items-center space-x-1.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[7px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
+                </div>
+              </div>
               <div className="relative z-10">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-[9px] font-bold text-slate-500 ml-3 uppercase tracking-wider">nexaagri.com — Dashboard</span>
-                </div>
-                
-                {/* Dashboard Screenshot Mockup */}
-                <div className="bg-slate-800 rounded-xl p-4 border border-slate-700/50">
-                  {/* Top Bar */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center"><Leaf size={14} className="text-emerald-400" /></div>
-                      <div>
-                        <p className="text-[9px] font-black text-white uppercase tracking-wider">Operations Hub</p>
-                        <p className="text-[7px] font-bold text-slate-500">Global Overview</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[7px] font-bold text-emerald-400 uppercase">Live</span>
-                    </div>
-                  </div>
-                  
-                  {/* Stats Row */}
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {[
-                      { val: '842', label: 'Farms', color: 'text-emerald-400' },
-                      { val: '15.4k', label: 'Animals', color: 'text-blue-400' },
-                      { val: 'UGX 12M', label: 'Revenue', color: 'text-amber-400' },
-                      { val: '99.9%', label: 'Uptime', color: 'text-purple-400' }
-                    ].map((s, i) => (
-                      <div key={i} className="bg-slate-700/50 p-2.5 rounded-lg text-center">
-                        <p className={`text-sm font-black tracking-tighter ${s.color}`}>{s.val}</p>
-                        <p className="text-[6px] font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Chart Area */}
-                  <div className="bg-slate-750 rounded-lg p-3 mb-3 border border-slate-700/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-wider">Production Output</p>
-                      <div className="flex space-x-2">
-                        {['1W', '1M', '3M'].map((period, i) => (
-                          <span key={i} className={`text-[6px] font-bold px-2 py-0.5 rounded ${i === 1 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-500'}`}>{period}</span>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Sparkline Chart */}
-                    <div className="flex items-end space-x-1 h-16">
-                      {[40, 55, 35, 65, 50, 70, 45, 80, 60, 75, 85, 70, 90, 78, 95, 88].map((h, i) => (
-                        <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, rgba(16,185,129,0.3), rgba(16,185,129,${0.4 + (h/200)}))` }} />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Bottom Row - Inventory + Alerts */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-700/50 p-2.5 rounded-lg">
-                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-wider mb-2">Top Inventory</p>
-                      {['Arabica Coffee', 'Robusta Beans', 'Vanilla Pods'].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between py-1">
-                          <span className="text-[7px] font-bold text-slate-300">{item}</span>
-                          <div className="h-1.5 w-12 rounded-full bg-slate-600 overflow-hidden">
-                            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${90 - i * 20}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="bg-slate-700/50 p-2.5 rounded-lg">
-                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-wider mb-2">Recent Activity</p>
-                      {['New farm added', 'Export cleared', 'Staff assigned'].map((item, i) => (
-                        <div key={i} className="flex items-center space-x-2 py-1">
-                          <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-emerald-400' : i === 1 ? 'bg-blue-400' : 'bg-amber-400'}`} />
-                          <span className="text-[7px] font-bold text-slate-300">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="/dashboard-preview.png"
+                  alt="Nexa Dashboard Preview"
+                  className="w-full object-cover object-top"
+                  style={{ maxHeight: '420px' }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Team */}
-      <section id="team" ref={teamAnim.ref} className="py-20 md:py-36 bg-emerald-50/20 px-5 md:px-12">
+      {/* Mission & Vision */}
+      <section id="mission" ref={teamAnim.ref} className="py-20 md:py-36 bg-slate-900 px-5 md:px-12">
         <div className="max-w-7xl mx-auto">
           <div className={`text-center mb-14 md:mb-20 ${teamAnim.inView ? '' : 'opacity-0'}`}>
-            <h2 className={`text-[10px] font-black text-emerald-600 uppercase tracking-[0.6em] mb-4 ${teamAnim.inView ? 'anim-fade-up' : ''}`}>Leadership</h2>
-            <h3 className={`text-3xl md:text-5xl font-black tracking-tighter text-slate-900 mb-4 ${teamAnim.inView ? 'anim-fade-up d1' : ''}`}>Our Team</h3>
-            <p className={`text-slate-400 font-medium max-w-xl mx-auto text-sm md:text-base ${teamAnim.inView ? 'anim-fade-up d2' : ''}`}>
-              Experienced leaders at the intersection of agriculture, technology, and finance.
+            <h2 className={`text-[10px] font-black text-emerald-500 uppercase tracking-[0.6em] mb-4 ${teamAnim.inView ? 'anim-fade-up' : ''}`}>Why Nexa</h2>
+            <h3 className={`text-3xl md:text-5xl font-black tracking-tighter text-white mb-4 ${teamAnim.inView ? 'anim-fade-up d1' : ''}`}>Built on Purpose.</h3>
+            <p className={`text-slate-400 font-medium max-w-2xl mx-auto text-sm md:text-base ${teamAnim.inView ? 'anim-fade-up d2' : ''}`}>
+              Nexa exists to close the gap between raw agricultural potential and global market access — giving every enterprise the tools to compete at the highest level.
             </p>
           </div>
 
-          <div className="flex justify-center">
-            {teamMembers.map((member, i) => (
-              <div key={i} className={`bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-500 group text-center max-w-sm w-full ${teamAnim.inView ? `anim-scale-in d${i+1}` : 'opacity-0'}`}>
-                <div className={`h-1.5 bg-gradient-to-r ${member.color}`} />
-                <div className="p-8 md:p-10">
-                  <div className={`w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br ${member.color} mx-auto mb-5 flex items-center justify-center text-white font-black text-2xl md:text-3xl shadow-lg group-hover:scale-110 transition-transform border-4 border-white`}>
-                    {member.initials}
-                  </div>
-                  <h4 className="font-bold text-slate-900 text-base md:text-lg mb-1 group-hover:text-emerald-600 transition-colors">{member.name}</h4>
-                  <p className="text-emerald-600 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3">{member.role}</p>
-                  <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed mb-4">{member.education}</p>
-                  <div className="flex items-center justify-center space-x-3">
-                    <a href="#" className="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Linkedin size={16} /></a>
-                    <a href="#" className="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Mail size={16} /></a>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { label: 'Our Mission', title: 'Digitize Every Farm', body: 'To bring enterprise-grade operational clarity to every agricultural business — from single farms to multi-national export hubs — through simple, powerful technology.', accent: 'bg-emerald-500' },
+              { label: 'Our Vision', title: 'A Connected Food Economy', body: 'A world where the journey from farm to fork is fully transparent, traceable, and trusted — where farmers have equal access to global markets and institutional-grade infrastructure.', accent: 'bg-blue-500' },
+              { label: 'Our Promise', title: 'Always Improving', body: 'We continuously evolve with the needs of our users — shipping features that actually move businesses forward. Your feedback shapes every release.', accent: 'bg-amber-500' }
+            ].map((item, i) => (
+              <div key={i} className={`bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-emerald-500/30 hover:bg-white/10 transition-all duration-500 ${teamAnim.inView ? `anim-fade-up d${i+1}` : 'opacity-0'}`}>
+                <div className={`w-1 h-10 rounded-full ${item.accent} mb-6`} />
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] mb-3">{item.label}</p>
+                <h4 className="text-xl font-black text-white tracking-tighter mb-4">{item.title}</h4>
+                <p className="text-slate-400 text-sm font-medium leading-relaxed">{item.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className={`mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 ${teamAnim.inView ? 'anim-fade-up d4' : 'opacity-0'}`}>
+            {[
+              { metric: '$4.99', label: 'Per month, all-inclusive' },
+              { metric: '18+', label: 'Countries served' },
+              { metric: '99.9%', label: 'Platform uptime' },
+              { metric: '24/7', label: 'Data availability' }
+            ].map((s, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:border-emerald-500/20 transition-all">
+                <p className="text-3xl font-black text-white tracking-tighter mb-1">{s.metric}</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{s.label}</p>
               </div>
             ))}
           </div>

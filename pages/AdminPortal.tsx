@@ -138,7 +138,7 @@ export default function AdminPortal() {
                         <Wallet size={14} className="text-emerald-500" />
                         <div>
                             <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest">Monthly Fee</p>
-                            <p className="text-xs md:text-sm font-black text-white">UGX 15,000</p>
+                            <p className="text-xs md:text-sm font-black text-white">$4.99/mo</p>
                         </div>
                     </div>
                 </div>
@@ -256,7 +256,7 @@ export default function AdminPortal() {
                             </div>
                             <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
                                 <p className="text-[7px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Monthly Fee</p>
-                                <p className="text-xl md:text-3xl font-black text-emerald-400 tracking-tighter">UGX 15k</p>
+                                <p className="text-xl md:text-3xl font-black text-emerald-400 tracking-tighter">$4.99</p>
                                 <p className="text-[8px] md:text-[9px] text-slate-600 mt-1 font-bold">per org/month</p>
                             </div>
                         </div>
@@ -285,7 +285,7 @@ export default function AdminPortal() {
                                                 <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${isPaid ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5' : 'border-rose-500/20 text-rose-500 bg-rose-500/5'}`}>
                                                     {isPaid ? 'Paid' : 'Due'}
                                                 </span>
-                                                <span className="text-[8px] font-bold text-slate-600">UGX 15k</span>
+                                                <span className="text-[8px] font-bold text-slate-600">$4.99</span>
                                             </div>
                                         </div>
                                         );

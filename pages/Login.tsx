@@ -6,6 +6,7 @@ import { Eye, EyeOff, Search, ChevronDown, ArrowRight, Globe2, Mail, Lock, Build
 import { BUSINESS_CATEGORIES, mapTypeToSector } from '../services/businessCategories';
 import { NexaLogo } from '../components/NexaLogo';
 import { User } from '../types';
+import { getSavedAuth, clearSavedAuth, isMobileDevice, MobileLoginSaveSheet, MobileUnlockPrompt } from '../components/MobileAuth';
 
 const AFRICAN_COUNTRIES = [
     "Kenya", "Uganda", "Tanzania", "Nigeria", "Ghana", "South Africa", "Rwanda", "Ethiopia", 
@@ -25,7 +26,22 @@ export default function Login() {
   const isAdminLogin = queryParams.get('mode') === 'admin';
   const resetToken = queryParams.get('token');
 
+  const isMobileSetup = queryParams.get('mobile') === '1';
+  const emailHint = queryParams.get('hint') ? decodeURIComponent(queryParams.get('hint')!) : '';
+
   const [view, setView] = useState<AuthView>('LOGIN');
+
+  // Switch to password reset view when Supabase fires the PASSWORD_RECOVERY event
+  React.useEffect(() => {
+    if (isPasswordRecovery) setView('RESET_PASSWORD');
+  }, [isPasswordRecovery]);
+
+  // Mobile auth state
+  const [savedMobileAuth] = useState(() => getSavedAuth());
+  const [showMobileUnlock, setShowMobileUnlock] = useState(() => isMobileDevice() && !!getSavedAuth());
+  const [showSaveLoginSheet, setShowSaveLoginSheet] = useState(false);
+  const [loggedInUserId, setLoggedInUserId] = useState('');
+  const [loggedInEmail, setLoggedInEmail] = useState('');
 
   // Switch to password reset view when Supabase fires the PASSWORD_RECOVERY event
   React.useEffect(() => {
@@ -39,7 +55,7 @@ export default function Login() {
   const [forgotSuccess, setForgotSuccess] = useState(false);
 
   // Login State
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(emailHint);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -99,7 +115,18 @@ export default function Login() {
     try {
         const result = await login(email, password);
         if (result === true) {
-            navigate('/app', { replace: true });
+            // On mobile with no saved auth, offer to save login
+            if (isMobileDevice() && !getSavedAuth()) {
+                // Get the user id from supabase session for biometric setup
+                const { supabase: sb } = await import('../supabaseClient');
+                const { data: { session } } = await sb.auth.getSession();
+                setLoggedInUserId(session?.user?.id || '');
+                setLoggedInEmail(email);
+                setShowSaveLoginSheet(true);
+                setIsLoading(false);
+            } else {
+                navigate('/app', { replace: true });
+            }
         } else if (result === 'PENDING') {
             setView('AWAITING');
             setIsLoading(false);
@@ -247,6 +274,40 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex bg-white font-sans overflow-hidden">
+
+      {/* Mobile unlock prompt (PIN / Face ID) */}
+      {showMobileUnlock && savedMobileAuth && (
+        <div className="fixed inset-0 bg-white z-[400] flex flex-col items-center justify-center p-6">
+          <div className="mb-8"><NexaLogo className="h-10" /></div>
+          <div className="w-full max-w-sm">
+            <MobileUnlockPrompt
+              savedAuth={savedMobileAuth}
+              onSuccess={async (savedEmail) => {
+                // Silently attempt to restore session or ask for password
+                setShowMobileUnlock(false);
+                setEmail(savedEmail);
+                // Focus password so user can complete sign-in if session expired
+              }}
+              onFallback={() => {
+                clearSavedAuth();
+                setShowMobileUnlock(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Save login sheet (shown after first mobile login) */}
+      {showSaveLoginSheet && (
+        <MobileLoginSaveSheet
+          userEmail={loggedInEmail}
+          userId={loggedInUserId}
+          onDone={() => {
+            setShowSaveLoginSheet(false);
+            navigate('/app', { replace: true });
+          }}
+        />
+      )}
       {/* Branding Side - Left */}
       <div className="hidden lg:flex lg:w-1/2 bg-nexa-dark flex-col justify-between p-16 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-nexa-blue rounded-full blur-[140px] -translate-y-1/2 translate-x-1/2 opacity-20"></div>

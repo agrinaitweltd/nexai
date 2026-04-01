@@ -1,0 +1,106 @@
+// @ts-nocheck
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Verify caller is super admin
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: callerUser }, error: authErr } = await supabaseAdmin.auth.getUser(token);
+    if (authErr || !callerUser) return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: corsHeaders });
+
+    const { data: callerProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', callerUser.id).single();
+    if (callerProfile?.role !== 'SUPER_ADMIN') {
+      return new Response(JSON.stringify({ error: 'Forbidden: Super admin only' }), { status: 403, headers: corsHeaders });
+    }
+
+    const { pendingId } = await req.json();
+    if (!pendingId) return new Response(JSON.stringify({ error: 'pendingId required' }), { status: 400, headers: corsHeaders });
+
+    // Look up the pending registration
+    const { data: pending, error: pendingErr } = await supabaseAdmin
+      .from('pending_registrations')
+      .select('*')
+      .eq('id', pendingId)
+      .single();
+
+    if (pendingErr || !pending) {
+      return new Response(JSON.stringify({ error: 'Pending registration not found' }), { status: 404, headers: corsHeaders });
+    }
+
+    // Create the auth user with a temporary password; user will set their own via email
+    const tempPassword = crypto.randomUUID().slice(0, 12) + 'Ax1!';
+    const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+      email: pending.email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: pending.full_name,
+        role: 'ADMIN',
+        phone: pending.phone || null,
+        country: pending.country || null,
+        sector: pending.sector || 'GENERAL',
+        business_category: pending.business_category || null,
+        business_type: pending.business_type || null,
+        company_name: pending.company_name || null,
+        preferred_currency: pending.preferred_currency || 'USD',
+        activation_status: 'ACTIVE',
+      }
+    });
+
+    if (createErr || !newUser.user) {
+      return new Response(JSON.stringify({ error: createErr?.message || 'Failed to create user' }), { status: 500, headers: corsHeaders });
+    }
+
+    // Activate the profile (trigger should create it, but ensure status is ACTIVE)
+    await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        id: newUser.user.id,
+        email: pending.email,
+        full_name: pending.full_name,
+        role: 'ADMIN',
+        phone: pending.phone || null,
+        country: pending.country || null,
+        sector: pending.sector || 'GENERAL',
+        business_category: pending.business_category || null,
+        business_type: pending.business_type || null,
+        company_name: pending.company_name || null,
+        preferred_currency: pending.preferred_currency || 'USD',
+        dashboard_theme: 'emerald',
+        setup_complete: false,
+        activation_status: 'ACTIVE',
+        rejection_count: 0,
+      }, { onConflict: 'id' });
+
+    // Send password reset email so user can set their own password
+    await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: pending.email,
+    });
+
+    // Delete the pending registration
+    await supabaseAdmin.from('pending_registrations').delete().eq('id', pendingId);
+
+    return new Response(JSON.stringify({ success: true, userId: newUser.user.id }), { headers: corsHeaders });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: corsHeaders });
+  }
+});
