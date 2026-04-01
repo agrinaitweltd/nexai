@@ -65,18 +65,20 @@ export default function Landing() {
 
   const stats = [
     { label: "Active Export Hubs", value: "120+" },
-    { label: "Ugandan Districts", value: "45+" },
+    { label: "Countries Served", value: "18+" },
     { label: "Volume Tracked", value: "25k+ Tons" },
     { label: "Compliance Rate", value: "99.9%" }
   ];
 
   const features = [
-    { icon: Tractor, title: "Farm Management", desc: "Complete oversight of production units, soil metrics, and labor allocations for primary producers." },
-    { icon: Leaf, title: "Crop Lifecycle Tracking", desc: "Real-time monitoring from planting to harvest with yield forecasting and quality grading." },
-    { icon: Ship, title: "Export & Logistics", desc: "End-to-end shipment manifests with built-in UCDA compliance and global logistics tracking." },
-    { icon: Users, title: "Staff & Departments", desc: "Manage personnel across multiple business units with granular role-based access protocols." },
-    { icon: DollarSign, title: "Financial Auditing", desc: "Integrated fiscal ledger for tracking production costs, requisition approvals, and export revenues." },
-    { icon: ClipboardCheck, title: "Compliance Manager", desc: "Automated handling of UCDA registrations, tax IDs (TIN), and statutory agribusiness requirements." }
+    { icon: Tractor, title: "Farm & Livestock Management", desc: "Complete oversight of production units, animal health tracking, soil metrics, and labor allocations across all your farms." },
+    { icon: Leaf, title: "Crop Lifecycle Tracking", desc: "Monitor every stage from planting to harvest with yield forecasting, quality grading, and real-time field insights." },
+    { icon: Ship, title: "Export & Logistics", desc: "End-to-end shipment manifests, customs documentation, and global logistics tracking with built-in compliance automation." },
+    { icon: Users, title: "Staff & Department Control", desc: "Manage personnel across multiple business units with granular role-based access, attendance tracking, and department budgets." },
+    { icon: DollarSign, title: "Financial Intelligence", desc: "Integrated fiscal ledger for tracking production costs, purchase orders, requisition approvals, and real-time revenue analytics." },
+    { icon: ClipboardCheck, title: "Compliance & Reporting", desc: "Automated handling of regulatory registrations, tax IDs, export certifications, and one-click statutory reports." },
+    { icon: BarChart3, title: "Analytics Dashboard", desc: "Visual insights across every operation — inventory levels, financial health, staff performance, and seasonal trend analysis." },
+    { icon: ShieldCheck, title: "Document Vault", desc: "Securely store and manage business-critical documents, certificates, contracts, and compliance records with encrypted cloud storage." }
   ];
 
   const values = [
@@ -87,10 +89,10 @@ export default function Landing() {
   ];
 
   const howItWorks = [
-    { step: "01", title: "Contact Nexa", desc: "Reach us through the online portal, by phone, or on WhatsApp.", badge: "Quick Start", badgeColor: "text-emerald-600" },
-    { step: "02", title: "Setup Your Account", desc: "Configure your enterprise profile with business details and compliance info.", badge: "Quick & Easy", badgeColor: "text-blue-600" },
-    { step: "03", title: "Access Services on Mobile", desc: "Start receiving alerts, insights, and agricultural intelligence on your phone.", badge: "Always On", badgeColor: "text-purple-600" },
-    { step: "04", title: "Manage Operations Anywhere", desc: "Monitor, track, and manage your enterprise from anywhere — anytime, 24/7.", badge: "Anywhere 24/7", badgeColor: "text-amber-600" }
+    { step: "01", title: "Create Your Account", desc: "Sign up on the Nexa platform with your business details — it only takes a few minutes.", badge: "Quick Start", badgeColor: "text-emerald-600" },
+    { step: "02", title: "Pay UGX 15,000/mo", desc: "Activate your enterprise hub with a simple monthly subscription via MTN MoMo or Airtel Money.", badge: "Affordable", badgeColor: "text-blue-600" },
+    { step: "03", title: "Configure Your Profile", desc: "Set up your farms, staff, inventory, and compliance details through guided onboarding.", badge: "Quick & Easy", badgeColor: "text-purple-600" },
+    { step: "04", title: "Manage Operations Anywhere", desc: "Monitor, track, and manage your entire enterprise from anywhere — anytime, on any device.", badge: "Anywhere 24/7", badgeColor: "text-amber-600" }
   ];
 
   const techFeatures = [
@@ -101,11 +103,7 @@ export default function Landing() {
   ];
 
   const teamMembers = [
-    { name: "Godfrey Mundua", role: "Chief Business Officer (CBO)", education: "MBA, Makerere University", initials: "GM", color: "from-emerald-500 to-teal-600" },
-    { name: "Allen Kirungi", role: "Director, Communications", education: "Masters in Organizational Leadership & Management", initials: "AK", color: "from-blue-500 to-indigo-600" },
-    { name: "Job Assaira Mavine", role: "Chief Information Officer (CIO)", education: "BSc. Information Technology / FinTech", initials: "JM", color: "from-purple-500 to-violet-600" },
-    { name: "Edward Banda", role: "Chief Innovation & Experience Officer", education: "Master's & Bachelor's degrees in IT", initials: "EB", color: "from-amber-500 to-orange-600" },
-    { name: "Dr. Apollo Ekelot", role: "Director, Finance and Administration", education: "ACCA, CPA (UGA)", initials: "AE", color: "from-rose-500 to-pink-600" }
+    { name: "Oliver Amanya Alinaitwe", role: "Founder", education: "Currently studying Information Technologies & Business Administration", initials: "OA", color: "from-emerald-500 to-teal-600" }
   ];
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -187,7 +185,7 @@ export default function Landing() {
           <div className={heroAnim.inView ? '' : 'opacity-0'}>
               <div className={`inline-flex items-center space-x-2.5 bg-white px-4 py-2 rounded-full text-[10px] font-bold text-emerald-700 border border-emerald-100 shadow-sm mb-6 md:mb-8 ${heroAnim.inView ? 'anim-fade-up' : ''}`}>
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Modernizing Agricultural Management for Africa</span>
+                <span>Modernizing Agricultural Management Globally</span>
               </div>
               
               <h1 className={`text-4xl md:text-7xl lg:text-8xl font-black text-slate-950 tracking-tighter leading-[0.95] max-w-4xl mb-6 md:mb-8 ${heroAnim.inView ? 'anim-fade-up d1' : ''}`}>
@@ -196,7 +194,7 @@ export default function Landing() {
               </h1>
               
               <p className={`text-slate-500 text-base md:text-xl font-medium leading-relaxed max-w-2xl mb-8 md:mb-10 ${heroAnim.inView ? 'anim-fade-up d2' : ''}`}>
-                Nexa combines Africa's traditional agricultural knowledge with modern technology, helping farmers track crop health, movement, and productivity — while connecting farmers, professionals, and markets through trusted data.
+                Nexa combines traditional agricultural knowledge with modern technology, helping farmers worldwide track crop health, movement, and productivity — while connecting farmers, professionals, and markets through trusted data.
               </p>
               
               <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 ${heroAnim.inView ? 'anim-fade-up d3' : ''}`}>
@@ -253,9 +251,9 @@ export default function Landing() {
                 <div className="text-5xl font-black text-slate-100 group-hover:text-emerald-50 transition-colors absolute top-4 right-6">{item.step}</div>
                 <div className="relative z-10">
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                    {i === 0 && <Phone size={20} />}
-                    {i === 1 && <Smartphone size={20} />}
-                    {i === 2 && <MessageCircle size={20} />}
+                    {i === 0 && <Users size={20} />}
+                    {i === 1 && <DollarSign size={20} />}
+                    {i === 2 && <ClipboardCheck size={20} />}
                     {i === 3 && <Globe2 size={20} />}
                   </div>
                   <h4 className={`font-bold text-slate-900 mb-3 ${item.badgeColor}`}>{item.title}</h4>
@@ -274,13 +272,13 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-5 md:px-12">
           <div className="mb-14 md:mb-20 space-y-3 text-center">
               <h2 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.6em]">Built For</h2>
-              <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900">Regional Sector Leaders.</h3>
+              <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 mb-4">Global Sector Leaders.</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               {[
-                { title: "Coffee Exporters", desc: "Specialized tools for Uganda's primary export sector including UCDA manifest automation.", icon: Globe2 },
+                { title: "Coffee & Commodity Exporters", desc: "Specialized tools for the global export sector including manifest automation and compliance.", icon: Globe2 },
                 { title: "Agricultural Companies", desc: "Enterprise-grade infrastructure for large-scale operations and value-addition factories.", icon: Building2 },
-                { title: "Commercial Farm Owners", desc: "Direct production management for large-scale crop and livestock enterprises.", icon: Tractor },
+                { title: "Commercial Farm Owners", desc: "Direct production management for large-scale crop and livestock enterprises worldwide.", icon: Tractor },
                 { title: "Production Managers", desc: "Day-to-day operational tools for managing field staff and inventory workflows.", icon: Briefcase }
               ].map((item, i) => (
                   <div key={i} className="p-8 bg-white rounded-2xl border border-slate-100 hover:shadow-xl hover:border-emerald-100 transition-all duration-500 group">
@@ -303,13 +301,13 @@ export default function Landing() {
              <h3 className={`text-3xl md:text-6xl font-black tracking-tighter leading-none ${featuresAnim.inView ? 'anim-fade-up d1' : ''}`}>Total Command Over <br/>Your Assets.</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {features.map((f, i) => (
-              <div key={i} className={`p-8 bg-white/5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all duration-500 hover:bg-white/10 group ${featuresAnim.inView ? `anim-fade-up d${Math.min(i+1, 6)}` : 'opacity-0'}`}>
-                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                  <f.icon size={24} />
+              <div key={i} className={`p-7 bg-white/5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all duration-500 hover:bg-white/10 group ${featuresAnim.inView ? `anim-fade-up d${Math.min(i+1, 6)}` : 'opacity-0'}`}>
+                <div className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                  <f.icon size={22} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 tracking-tight">{f.title}</h3>
+                <h3 className="text-lg font-bold mb-2 tracking-tight">{f.title}</h3>
                 <p className="text-slate-400 text-sm font-medium leading-relaxed">{f.desc}</p>
               </div>
             ))}
@@ -329,7 +327,7 @@ export default function Landing() {
               Built for <span className="text-emerald-600">Trust</span>, Scale & Intelligence
             </h3>
             <p className={`text-slate-400 font-medium max-w-2xl mx-auto text-sm md:text-base ${techAnim.inView ? 'anim-fade-up d2' : ''}`}>
-              Nexa's platform architecture handles the complexity of Africa's agricultural landscape — from remote farms to institutional-scale data operations.
+              Nexa's platform architecture handles the complexity of modern agriculture — from remote farms to institutional-scale data operations worldwide.
             </p>
           </div>
 
@@ -350,48 +348,86 @@ export default function Landing() {
             <div className={`bg-slate-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden ${techAnim.inView ? 'anim-slide-left d2' : 'opacity-0'}`}>
               <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
               <div className="relative z-10">
-                <div className="flex items-center space-x-3 mb-6">
+                <div className="flex items-center space-x-3 mb-4">
                   <div className="w-3 h-3 rounded-full bg-red-500" />
                   <div className="w-3 h-3 rounded-full bg-amber-500" />
                   <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-[9px] font-bold text-slate-500 ml-3 uppercase tracking-wider">platform.nexaagri.com/architecture</span>
+                  <span className="text-[9px] font-bold text-slate-500 ml-3 uppercase tracking-wider">nexaagri.com — Dashboard</span>
                 </div>
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5">Nexa Architecture</h4>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {['Data Ingestion', 'Intelligence Engine', 'Delivery Layer'].map((l, i) => (
-                    <div key={i} className="bg-white/5 p-3 rounded-xl border border-white/10 text-center">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 mx-auto mb-2 flex items-center justify-center text-emerald-400">
-                        {i === 0 && <Database size={14} />}
-                        {i === 1 && <Cpu size={14} />}
-                        {i === 2 && <Cloud size={14} />}
+                
+                {/* Dashboard Screenshot Mockup */}
+                <div className="bg-slate-800 rounded-xl p-4 border border-slate-700/50">
+                  {/* Top Bar */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center"><Leaf size={14} className="text-emerald-400" /></div>
+                      <div>
+                        <p className="text-[9px] font-black text-white uppercase tracking-wider">Operations Hub</p>
+                        <p className="text-[7px] font-bold text-slate-500">Global Overview</p>
                       </div>
-                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">{l}</p>
                     </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-4 gap-2 mb-6">
-                  {[
-                    { val: '842k+', label: 'Data Points' },
-                    { val: '15.4k+', label: 'Records/Day' },
-                    { val: '99.9%', label: 'Uptime' },
-                    { val: '67ms', label: 'Avg Response' }
-                  ].map((s, i) => (
-                    <div key={i} className="text-center">
-                      <p className="text-sm md:text-lg font-black text-white tracking-tighter">{s.val}</p>
-                      <p className="text-[7px] font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[7px] font-bold text-emerald-400 uppercase">Live</span>
                     </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[8px] font-bold text-slate-500 uppercase tracking-wider mb-2">Data Processing Pipeline</p>
-                  {[85, 72, 90, 60].map((w, i) => (
-                    <div key={i} className="flex items-center space-x-3">
-                      <div className="h-2.5 rounded-full bg-emerald-500/20 flex-1">
-                        <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-1000" style={{ width: techAnim.inView ? `${w}%` : '0%' }} />
+                  </div>
+                  
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {[
+                      { val: '842', label: 'Farms', color: 'text-emerald-400' },
+                      { val: '15.4k', label: 'Animals', color: 'text-blue-400' },
+                      { val: 'UGX 12M', label: 'Revenue', color: 'text-amber-400' },
+                      { val: '99.9%', label: 'Uptime', color: 'text-purple-400' }
+                    ].map((s, i) => (
+                      <div key={i} className="bg-slate-700/50 p-2.5 rounded-lg text-center">
+                        <p className={`text-sm font-black tracking-tighter ${s.color}`}>{s.val}</p>
+                        <p className="text-[6px] font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
                       </div>
-                      <span className="text-[8px] font-bold text-slate-500 w-7">{w}%</span>
+                    ))}
+                  </div>
+
+                  {/* Chart Area */}
+                  <div className="bg-slate-750 rounded-lg p-3 mb-3 border border-slate-700/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-wider">Production Output</p>
+                      <div className="flex space-x-2">
+                        {['1W', '1M', '3M'].map((period, i) => (
+                          <span key={i} className={`text-[6px] font-bold px-2 py-0.5 rounded ${i === 1 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-500'}`}>{period}</span>
+                        ))}
+                      </div>
                     </div>
-                  ))}
+                    {/* Sparkline Chart */}
+                    <div className="flex items-end space-x-1 h-16">
+                      {[40, 55, 35, 65, 50, 70, 45, 80, 60, 75, 85, 70, 90, 78, 95, 88].map((h, i) => (
+                        <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, rgba(16,185,129,0.3), rgba(16,185,129,${0.4 + (h/200)}))` }} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bottom Row - Inventory + Alerts */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-slate-700/50 p-2.5 rounded-lg">
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-wider mb-2">Top Inventory</p>
+                      {['Arabica Coffee', 'Robusta Beans', 'Vanilla Pods'].map((item, i) => (
+                        <div key={i} className="flex items-center justify-between py-1">
+                          <span className="text-[7px] font-bold text-slate-300">{item}</span>
+                          <div className="h-1.5 w-12 rounded-full bg-slate-600 overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${90 - i * 20}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-slate-700/50 p-2.5 rounded-lg">
+                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-wider mb-2">Recent Activity</p>
+                      {['New farm added', 'Export cleared', 'Staff assigned'].map((item, i) => (
+                        <div key={i} className="flex items-center space-x-2 py-1">
+                          <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-emerald-400' : i === 1 ? 'bg-blue-400' : 'bg-amber-400'}`} />
+                          <span className="text-[7px] font-bold text-slate-300">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -410,20 +446,21 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
+          <div className="flex justify-center">
             {teamMembers.map((member, i) => (
-              <div key={i} className={`bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-500 group text-center ${teamAnim.inView ? `anim-scale-in d${i+1}` : 'opacity-0'}`}>
+              <div key={i} className={`bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-500 group text-center max-w-sm w-full ${teamAnim.inView ? `anim-scale-in d${i+1}` : 'opacity-0'}`}>
                 <div className={`h-1.5 bg-gradient-to-r ${member.color}`} />
-                <div className="p-4 md:p-6">
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br ${member.color} mx-auto mb-4 flex items-center justify-center text-white font-black text-lg md:text-2xl shadow-lg group-hover:scale-110 transition-transform border-4 border-white`}>
+                <div className="p-8 md:p-10">
+                  <div className={`w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br ${member.color} mx-auto mb-5 flex items-center justify-center text-white font-black text-2xl md:text-3xl shadow-lg group-hover:scale-110 transition-transform border-4 border-white`}>
                     {member.initials}
                   </div>
-                  <h4 className="font-bold text-slate-900 text-xs md:text-sm mb-1 group-hover:text-emerald-600 transition-colors">{member.name}</h4>
-                  <p className="text-emerald-600 text-[8px] md:text-[10px] font-bold uppercase tracking-wider mb-2">{member.role}</p>
-                  <p className="text-slate-400 text-[8px] md:text-[10px] font-medium leading-relaxed mb-3">{member.education}</p>
-                  <button className="text-[8px] md:text-[9px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center justify-center mx-auto uppercase tracking-wider group/btn">
-                    View Full Profile <ArrowRight size={10} className="ml-1 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
+                  <h4 className="font-bold text-slate-900 text-base md:text-lg mb-1 group-hover:text-emerald-600 transition-colors">{member.name}</h4>
+                  <p className="text-emerald-600 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3">{member.role}</p>
+                  <p className="text-slate-400 text-xs md:text-sm font-medium leading-relaxed mb-4">{member.education}</p>
+                  <div className="flex items-center justify-center space-x-3">
+                    <a href="#" className="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Linkedin size={16} /></a>
+                    <a href="#" className="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Mail size={16} /></a>
+                  </div>
                 </div>
               </div>
             ))}
@@ -449,7 +486,7 @@ export default function Landing() {
       <section className="py-20 md:py-32 px-5 md:px-12 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 mb-5">Ready to Transform Your Operations?</h3>
-          <p className="text-slate-400 text-sm md:text-lg font-medium max-w-2xl mx-auto mb-8">Join hundreds of agricultural enterprises across Uganda already using Nexa to streamline their operations.</p>
+          <p className="text-slate-400 text-sm md:text-lg font-medium max-w-2xl mx-auto mb-8">Join hundreds of agricultural enterprises across the globe already using Nexa to streamline their operations.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link 
               to="/login" 
@@ -469,7 +506,7 @@ export default function Landing() {
             <div className="col-span-1 md:col-span-2 space-y-5">
                 <NexaLogo className="h-8" />
                 <p className="text-slate-500 text-base max-w-sm font-medium leading-relaxed">
-                    Uganda's premier management architecture for agricultural exports, value addition, and commercial production.
+                    The modern management architecture for agricultural exports, value addition, and commercial production — built for the global market.
                 </p>
                 <div className="flex items-center space-x-3">
                   <a href="#" className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Linkedin size={16} /></a>

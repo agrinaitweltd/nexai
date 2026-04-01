@@ -2,16 +2,16 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { User, InventoryItem, Farm } from '../types';
-// Fixed: Added missing ArrowRight icon import
 import { ChevronRight, Check, Package, Users, Building, Flag, Phone, Mail, Hash, Globe, Scale, Landmark, ShieldCheck, UserCheck, AlertCircle, FileText, X, ArrowRight, Smartphone, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default function Onboarding() {
   const { user, completeOnboarding, addFarm, updateUser } = useApp();
   const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
   const [stepError, setStepError] = useState('');
   const [showQrCode, setShowQrCode] = useState(false);
+  const [selectedActivationProvider, setSelectedActivationProvider] = useState<'MTN' | 'AIRTEL'>('MTN');
 
   const isDesktop = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -97,8 +97,8 @@ export default function Onboarding() {
   const StepIndicator = () => (
     <div className="flex justify-between items-center mb-16 px-4 md:px-12 relative">
       <div className="absolute left-12 right-12 top-5 h-0.5 bg-slate-100 dark:bg-slate-700 -z-10"></div>
-      {[1, 2, 3, 4].map(s => (
-        <div key={s} className="flex flex-col items-center bg-white dark:bg-slate-900 z-10 px-4">
+      {[1, 2, 3, 4, 5].map(s => (
+        <div key={s} className="flex flex-col items-center bg-white dark:bg-slate-900 z-10 px-3">
           <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-sm font-black transition-all duration-500 shadow-sm ${
             step >= s 
             ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-xl scale-110' 
@@ -106,11 +106,12 @@ export default function Onboarding() {
           }`}>
             {step > s ? <Check size={20} /> : s}
           </div>
-          <p className={`text-[9px] font-black uppercase tracking-widest mt-4 ${step >= s ? 'text-slate-900 dark:text-white' : 'text-slate-300'}`}>
+          <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest mt-4 ${step >= s ? 'text-slate-900 dark:text-white' : 'text-slate-300'}`}>
              {s === 1 && 'Corporate'}
              {s === 2 && 'Fiscal'}
              {s === 3 && 'Operating'}
-             {s === 4 && 'Complete'}
+             {s === 4 && 'Activate'}
+             {s === 5 && 'Complete'}
           </p>
         </div>
       ))}
@@ -127,7 +128,7 @@ export default function Onboarding() {
             <div className="relative z-10">
                 <ShieldCheck size={40} className="text-emerald-500 mb-8" />
                 <h1 className="text-4xl font-black tracking-tighter leading-tight mb-4">Account Integrity Setup</h1>
-                <p className="text-slate-400 font-medium leading-relaxed">Mandatory identity verification for agricultural enterprise nodes in the Uganda region.</p>
+                <p className="text-slate-400 font-medium leading-relaxed">Mandatory identity verification for agricultural enterprise nodes on the Nexa platform.</p>
             </div>
             <div className="relative z-10 pt-12 space-y-6">
                 <div className="flex items-center space-x-4">
@@ -273,8 +274,103 @@ export default function Onboarding() {
                 </div>
             )}
             
-            {/* STEP 4: Activation */}
-             {step === 4 && (
+            {/* STEP 4: Account Activation Payment */}
+            {step === 4 && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 flex-1">
+                    <div className="text-center">
+                        <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-emerald-600">
+                            <Landmark size={32} />
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-3">Account Activation</h2>
+                        <p className="text-slate-500 font-medium max-w-sm mx-auto text-sm">Activate your enterprise hub with a monthly subscription of <span className="font-black text-slate-900 dark:text-white">UGX 15,000</span>.</p>
+                    </div>
+
+                    {/* Provider Toggle */}
+                    <div className="flex p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl max-w-sm mx-auto w-full">
+                        <button 
+                            type="button"
+                            onClick={() => setSelectedActivationProvider('MTN')}
+                            className={`flex-1 flex items-center justify-center space-x-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'MTN' ? 'bg-[#ffcc00] text-[#003366] shadow-lg' : 'text-slate-400'}`}
+                        >
+                            <span>MTN MoMo</span>
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => setSelectedActivationProvider('AIRTEL')}
+                            className={`flex-1 flex items-center justify-center space-x-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'AIRTEL' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400'}`}
+                        >
+                            <span>Airtel Money</span>
+                        </button>
+                    </div>
+
+                    {/* Payment Card */}
+                    <div className="max-w-md mx-auto w-full">
+                        <div className={`w-full rounded-2xl p-6 md:p-8 shadow-2xl border text-left overflow-hidden relative transition-all duration-500 ${selectedActivationProvider === 'MTN' ? 'bg-gradient-to-br from-[#ffcc00] to-[#e6b800] border-[#cc9900]/30 text-[#003366]' : 'bg-gradient-to-br from-slate-900 to-black border-white/10 text-white'}`}>
+                            <div className="flex justify-between items-start mb-8">
+                                <p className={`text-[9px] font-black uppercase tracking-[0.4em] ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/60' : 'text-blue-400'}`}>Monthly Activation</p>
+                                <Globe size={20} className={selectedActivationProvider === 'MTN' ? 'text-[#003366]/30' : 'text-blue-400 opacity-50'} />
+                            </div>
+                            
+                            <div className="space-y-8 relative z-10">
+                                {selectedActivationProvider === 'MTN' ? (
+                                    <div>
+                                        <p className="text-[10px] font-black text-[#003366]/60 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-14 h-14 bg-[#003366] rounded-2xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden">
+                                                <svg viewBox="0 0 60 60" className="w-10 h-10">
+                                                    <rect width="60" height="60" fill="#003366" rx="8"/>
+                                                    <rect x="8" y="25" width="44" height="22" rx="4" fill="#ffcc00"/>
+                                                    <text x="30" y="41" textAnchor="middle" fill="#003366" fontSize="14" fontWeight="900" fontFamily="Arial, sans-serif">MoMo</text>
+                                                    <text x="30" y="18" textAnchor="middle" fill="#ffcc00" fontSize="9" fontWeight="900" fontFamily="Arial, sans-serif">MTN</text>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-xl md:text-2xl font-black text-[#003366] tracking-tighter leading-none">+256 768 638225</p>
+                                                <p className="text-[10px] font-bold text-[#003366]/50 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden p-1">
+                                                <svg viewBox="0 0 60 60" className="w-10 h-10">
+                                                    <rect width="60" height="60" fill="white" rx="8"/>
+                                                    <path d="M15 28C15 28 20 18 30 18C38 18 42 28 42 28" fill="none" stroke="#ED1C24" strokeWidth="5" strokeLinecap="round"/>
+                                                    <circle cx="18" cy="26" r="4" fill="#ED1C24"/>
+                                                    <text x="30" y="44" textAnchor="middle" fill="#ED1C24" fontSize="10" fontWeight="900" fontFamily="Arial, sans-serif">airtel</text>
+                                                    <text x="30" y="54" textAnchor="middle" fill="#F7941D" fontSize="7" fontWeight="700" fontFamily="Arial, sans-serif">money</text>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-xl md:text-2xl font-black text-white tracking-tighter leading-none">+256 758 762690</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className={`flex justify-between items-end border-t pt-6 ${selectedActivationProvider === 'MTN' ? 'border-[#003366]/10' : 'border-white/5'}`}>
+                                    <div>
+                                        <p className={`text-[8px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/40' : 'text-slate-500'}`}>Amount</p>
+                                        <p className="font-black text-emerald-600 uppercase text-sm">UGX 15,000/mo</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={`text-[8px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/40' : 'text-slate-500'}`}>Status</p>
+                                        <p className={`font-black uppercase text-xs animate-pulse ${selectedActivationProvider === 'MTN' ? 'text-[#003366]' : 'text-white'}`}>Awaiting Payment</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Send payment to the number above, then proceed to complete setup.</p>
+                </div>
+            )}
+            
+            {/* STEP 5: Activation */}
+             {step === 5 && (
                 <div className="space-y-8 text-center animate-in zoom-in duration-500 flex-1 flex flex-col justify-center">
                     <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 text-emerald-600 shadow-2xl border-4 border-white dark:border-slate-800">
                         <UserCheck size={48} />
@@ -300,8 +396,31 @@ export default function Onboarding() {
             )}
 
             <div className="mt-16 pt-8 border-t border-slate-50 dark:border-slate-800 flex flex-col gap-6 shrink-0 relative">
-                {/* QR Code for Desktop Users */}
-                {isDesktop && step < 4 && (
+                {/* QR Code for Desktop Users - Prominent on Corporate Profile (Step 1) */}
+                {isDesktop && step === 1 && (
+                  <div className="flex items-center justify-center">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-lg text-center max-w-xs w-full">
+                      <div className="flex items-center justify-center space-x-2 mb-4">
+                        <QrCode size={14} className="text-emerald-500" />
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Continue on Mobile</span>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl inline-block shadow-inner border">
+                        <QRCodeSVG 
+                          value={mobileUrl}
+                          size={140}
+                          level="M"
+                          bgColor="#ffffff"
+                          fgColor="#0a0a1a"
+                        />
+                      </div>
+                      <p className="text-[8px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Point your phone camera at this code</p>
+                      <p className="text-[8px] font-bold text-emerald-500 mt-1 break-all">{mobileUrl}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* QR Code toggle for other steps */}
+                {isDesktop && step > 1 && step < 4 && (
                   <div className="flex items-center justify-center">
                     {!showQrCode ? (
                       <button 
