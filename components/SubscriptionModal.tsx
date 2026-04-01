@@ -291,18 +291,33 @@ export default function SubscriptionModal() {
                                                 <button 
                                                     type="button"
                                                     onClick={() => setMomoProvider('MTN')}
-                                                    className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center space-y-3 group ${momoProvider === 'MTN' ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20 shadow-lg scale-[1.02]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50 grayscale opacity-60'}`}
+                                                    className={`p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center space-y-3 group ${momoProvider === 'MTN' ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20 shadow-lg scale-[1.02]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50 grayscale opacity-60'}`}
                                                 >
-                                                    <div className="w-16 h-16 bg-amber-400 rounded-2xl flex items-center justify-center text-slate-900 font-black text-2xl shadow-md group-hover:scale-110 transition-transform">MTN</div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">MTN Mobile Money</span>
+                                                    <div className="w-14 h-14 md:w-16 md:h-16 bg-[#003366] rounded-xl md:rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform overflow-hidden">
+                                                        <svg viewBox="0 0 60 60" className="w-10 h-10 md:w-12 md:h-12">
+                                                            <rect width="60" height="60" fill="#003366" rx="8"/>
+                                                            <rect x="8" y="25" width="44" height="22" rx="4" fill="#ffcc00"/>
+                                                            <text x="30" y="41" textAnchor="middle" fill="#003366" fontSize="14" fontWeight="900" fontFamily="Arial, sans-serif">MoMo</text>
+                                                            <text x="30" y="18" textAnchor="middle" fill="#ffcc00" fontSize="9" fontWeight="900" fontFamily="Arial, sans-serif">MTN</text>
+                                                        </svg>
+                                                    </div>
+                                                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">MTN Mobile Money</span>
                                                 </button>
                                                 <button 
                                                     type="button"
                                                     onClick={() => setMomoProvider('AIRTEL')}
-                                                    className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center space-y-3 group ${momoProvider === 'AIRTEL' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-lg scale-[1.02]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50 grayscale opacity-60'}`}
+                                                    className={`p-4 md:p-6 rounded-2xl md:rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center space-y-3 group ${momoProvider === 'AIRTEL' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-lg scale-[1.02]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/50 grayscale opacity-60'}`}
                                                 >
-                                                    <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md italic group-hover:scale-110 transition-transform">airtel</div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Airtel Money</span>
+                                                    <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform overflow-hidden border border-slate-100 dark:border-slate-700 p-1">
+                                                        <svg viewBox="0 0 60 60" className="w-10 h-10 md:w-12 md:h-12">
+                                                            <rect width="60" height="60" fill="white" rx="8"/>
+                                                            <path d="M15 28C15 28 20 18 30 18C38 18 42 28 42 28" fill="none" stroke="#ED1C24" strokeWidth="5" strokeLinecap="round"/>
+                                                            <circle cx="18" cy="26" r="4" fill="#ED1C24"/>
+                                                            <text x="30" y="44" textAnchor="middle" fill="#ED1C24" fontSize="10" fontWeight="900" fontFamily="Arial, sans-serif">airtel</text>
+                                                            <text x="30" y="54" textAnchor="middle" fill="#F7941D" fontSize="7" fontWeight="700" fontFamily="Arial, sans-serif">money</text>
+                                                        </svg>
+                                                    </div>
+                                                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Airtel Money</span>
                                                 </button>
                                             </div>
                                         </div>

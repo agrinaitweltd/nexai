@@ -237,34 +237,34 @@ export default function AdminPortal() {
                         ))}
                     </div>
                 ) : activeView === 'ANALYTICS' ? (
-                    <div className="space-y-6 md:space-y-10">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Active Users</p>
-                                <p className="text-2xl md:text-3xl font-black text-white tracking-tighter">{users.filter(u => u.activationStatus === 'ACTIVE').length}</p>
-                                <p className="text-[9px] text-slate-600 mt-1 font-bold">of {users.length} total accounts</p>
+                    <div className="space-y-4 md:space-y-8">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
+                                <p className="text-[7px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Active Users</p>
+                                <p className="text-xl md:text-3xl font-black text-white tracking-tighter">{users.filter(u => u.activationStatus === 'ACTIVE').length}</p>
+                                <p className="text-[8px] md:text-[9px] text-slate-600 mt-1 font-bold">of {users.length} total</p>
                             </div>
-                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Messages</p>
-                                <p className="text-2xl md:text-3xl font-black text-blue-400 tracking-tighter">{messages.length}</p>
-                                <p className="text-[9px] text-slate-600 mt-1 font-bold">{announcements.length} broadcasts sent</p>
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
+                                <p className="text-[7px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Messages</p>
+                                <p className="text-xl md:text-3xl font-black text-blue-400 tracking-tighter">{messages.length}</p>
+                                <p className="text-[8px] md:text-[9px] text-slate-600 mt-1 font-bold">{announcements.length} broadcasts</p>
                             </div>
-                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Staff Across Orgs</p>
-                                <p className="text-2xl md:text-3xl font-black text-indigo-400 tracking-tighter">{staff.length}</p>
-                                <p className="text-[9px] text-slate-600 mt-1 font-bold">{farms.length} farms registered</p>
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
+                                <p className="text-[7px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Staff</p>
+                                <p className="text-xl md:text-3xl font-black text-indigo-400 tracking-tighter">{staff.length}</p>
+                                <p className="text-[8px] md:text-[9px] text-slate-600 mt-1 font-bold">{farms.length} farms</p>
                             </div>
-                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem]">
-                                <p className="text-[8px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2">Monthly App Fee</p>
-                                <p className="text-2xl md:text-3xl font-black text-emerald-400 tracking-tighter">UGX 15,000</p>
-                                <p className="text-[9px] text-slate-600 mt-1 font-bold">per organization/month</p>
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
+                                <p className="text-[7px] md:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Monthly Fee</p>
+                                <p className="text-xl md:text-3xl font-black text-emerald-400 tracking-tighter">UGX 15k</p>
+                                <p className="text-[8px] md:text-[9px] text-slate-600 mt-1 font-bold">per org/month</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem]">
-                                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 md:mb-6">User Activity & Payment Status</h3>
-                                <div className="space-y-2 md:space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5">
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
+                                <h3 className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 md:mb-5">User Activity & Payment Status</h3>
+                                <div className="space-y-2 max-h-64 md:max-h-80 overflow-y-auto pr-1 scrollbar-thin">
                                     {users.length === 0 ? (
                                         <p className="text-center text-slate-700 py-8 text-xs font-bold uppercase tracking-widest">No users registered</p>
                                     ) : users.map((u, i) => {
@@ -292,9 +292,9 @@ export default function AdminPortal() {
                                     })}
                                 </div>
                             </div>
-                            <div className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem]">
-                                <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 md:mb-6">Recent Activity Feed</h3>
-                                <div className="space-y-2 md:space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-6 rounded-xl md:rounded-2xl">
+                                <h3 className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 md:mb-5">Recent Activity Feed</h3>
+                                <div className="space-y-2 max-h-64 md:max-h-80 overflow-y-auto pr-1 scrollbar-thin">
                                     {[
                                         ...messages.slice(0, 5).map(m => ({ type: 'message', text: `Message: ${m.subject}`, by: m.senderName, date: m.date })),
                                         ...announcements.slice(0, 5).map(a => ({ type: 'broadcast', text: `Broadcast: ${a.title}`, by: a.author, date: a.date })),

@@ -64,6 +64,7 @@ export default function Login() {
   const [payMethod, setPayMethod] = useState<'MTN' | 'AIRTEL' | 'BANK'>('MTN');
   const [selectedBank, setSelectedBank] = useState(UG_BANKS[0]);
   const [accountName, setAccountName] = useState('');
+  const [selectedActivationProvider, setSelectedActivationProvider] = useState<'MTN' | 'AIRTEL'>('MTN');
 
   useEffect(() => {
       calculateStrength(newPassword);
@@ -652,40 +653,86 @@ export default function Login() {
                     <div className="w-20 h-20 bg-emerald-600 rounded-[2.5rem] flex items-center justify-center text-white mb-8 shadow-2xl">
                         <LockIcon size={32} />
                     </div>
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-4 leading-none">Account Activation</h2>
-                    <p className="text-slate-500 font-medium mb-10 max-w-sm">Initialization of your secure agricultural hub requires a activation fee.</p>
+                    <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter mb-4 leading-none">Account Activation</h2>
+                    <p className="text-slate-500 font-medium mb-8 max-w-sm text-sm md:text-base">Initialization of your secure agricultural hub requires an activation fee. Choose your provider below.</p>
                     
-                    {/* Re-designed Card Layout */}
+                    {/* Provider Toggle */}
+                    <div className="flex p-1.5 bg-slate-100 rounded-2xl mb-8 w-full max-w-sm">
+                        <button 
+                            type="button"
+                            onClick={() => setSelectedActivationProvider('MTN')}
+                            className={`flex-1 flex items-center justify-center space-x-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'MTN' ? 'bg-[#ffcc00] text-[#003366] shadow-lg' : 'text-slate-400'}`}
+                        >
+                            <span>MTN MoMo</span>
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => setSelectedActivationProvider('AIRTEL')}
+                            className={`flex-1 flex items-center justify-center space-x-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'AIRTEL' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400'}`}
+                        >
+                            <span>Airtel Money</span>
+                        </button>
+                    </div>
+
+                    {/* Payment Card */}
                     <div className="w-full perspective-1000 group">
-                        <div className="w-full bg-gradient-to-br from-slate-900 to-black rounded-[3rem] p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 text-white text-left overflow-hidden relative transition-all duration-700 hover:rotate-y-2 hover:scale-[1.02]">
-                            <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform duration-700"><Smartphone size={180}/></div>
-                            <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-nexa-blue rounded-full blur-[120px] opacity-10"></div>
+                        <div className={`w-full rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border text-left overflow-hidden relative transition-all duration-500 ${selectedActivationProvider === 'MTN' ? 'bg-gradient-to-br from-[#ffcc00] to-[#e6b800] border-[#cc9900]/30 text-[#003366]' : 'bg-gradient-to-br from-slate-900 to-black border-white/10 text-white'}`}>
                             
-                            <div className="flex justify-between items-start mb-12">
-                                <p className="text-[10px] font-black text-nexa-blue uppercase tracking-[0.4em]">Activation ID #9912</p>
-                                <Globe2 size={24} className="text-nexa-blue opacity-50" />
+                            <div className="flex justify-between items-start mb-8 md:mb-12">
+                                <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/60' : 'text-nexa-blue'}`}>Activation ID #9912</p>
+                                <Globe2 size={24} className={selectedActivationProvider === 'MTN' ? 'text-[#003366]/30' : 'text-nexa-blue opacity-50'} />
                             </div>
                             
-                            <div className="space-y-12 relative z-10">
-                                <div>
-                                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
-                                    <div className="flex items-center space-x-6">
-                                        <div className="w-16 h-16 bg-amber-400 rounded-3xl flex items-center justify-center text-slate-900 font-black text-2xl shadow-xl">MTN</div>
-                                        <div>
-                                            <p className="text-3xl font-black text-white tracking-tighter leading-none">+256 768 638225</p>
-                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
+                            <div className="space-y-8 md:space-y-12 relative z-10">
+                                {selectedActivationProvider === 'MTN' ? (
+                                    <div>
+                                        <p className="text-[10px] md:text-[11px] font-black text-[#003366]/60 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
+                                        <div className="flex items-center space-x-4 md:space-x-6">
+                                            {/* MTN MoMo Logo */}
+                                            <div className="w-14 h-14 md:w-16 md:h-16 bg-[#003366] rounded-2xl md:rounded-3xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden">
+                                                <svg viewBox="0 0 60 60" className="w-10 h-10 md:w-12 md:h-12">
+                                                    <rect width="60" height="60" fill="#003366" rx="8"/>
+                                                    <rect x="8" y="25" width="44" height="22" rx="4" fill="#ffcc00"/>
+                                                    <text x="30" y="41" textAnchor="middle" fill="#003366" fontSize="14" fontWeight="900" fontFamily="Arial, sans-serif">MoMo</text>
+                                                    <text x="30" y="18" textAnchor="middle" fill="#ffcc00" fontSize="9" fontWeight="900" fontFamily="Arial, sans-serif">MTN</text>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-xl md:text-3xl font-black text-[#003366] tracking-tighter leading-none">+256 768 638225</p>
+                                                <p className="text-[10px] md:text-[11px] font-bold text-[#003366]/50 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div className="flex justify-between items-end border-t border-white/5 pt-8">
+                                ) : (
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Routing</p>
+                                        <p className="text-[10px] md:text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
+                                        <div className="flex items-center space-x-4 md:space-x-6">
+                                            {/* Airtel Money Logo */}
+                                            <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden p-1">
+                                                <svg viewBox="0 0 60 60" className="w-10 h-10 md:w-12 md:h-12">
+                                                    <rect width="60" height="60" fill="white" rx="8"/>
+                                                    <path d="M15 28C15 28 20 18 30 18C38 18 42 28 42 28" fill="none" stroke="#ED1C24" strokeWidth="5" strokeLinecap="round"/>
+                                                    <circle cx="18" cy="26" r="4" fill="#ED1C24"/>
+                                                    <text x="30" y="44" textAnchor="middle" fill="#ED1C24" fontSize="10" fontWeight="900" fontFamily="Arial, sans-serif">airtel</text>
+                                                    <text x="30" y="54" textAnchor="middle" fill="#F7941D" fontSize="7" fontWeight="700" fontFamily="Arial, sans-serif">money</text>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-xl md:text-3xl font-black text-white tracking-tighter leading-none">+256 758 762690</p>
+                                                <p className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className={`flex justify-between items-end border-t pt-6 md:pt-8 ${selectedActivationProvider === 'MTN' ? 'border-[#003366]/10' : 'border-white/5'}`}>
+                                    <div>
+                                        <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/40' : 'text-slate-500'}`}>Routing</p>
                                         <p className="font-bold text-nexa-green uppercase text-xs">Direct Activation</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Status</p>
-                                        <p className="font-black text-white uppercase text-xs animate-pulse">Awaiting Signal</p>
+                                        <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/40' : 'text-slate-500'}`}>Status</p>
+                                        <p className={`font-black uppercase text-xs animate-pulse ${selectedActivationProvider === 'MTN' ? 'text-[#003366]' : 'text-white'}`}>Awaiting Signal</p>
                                     </div>
                                 </div>
                             </div>
@@ -694,11 +741,11 @@ export default function Login() {
 
                     <button 
                         onClick={() => setView('VERIFICATION')}
-                        className="w-full mt-10 bg-nexa-dark text-white py-6 rounded-[2.5rem] font-black uppercase tracking-[0.4em] shadow-xl hover:bg-emerald-600 transition-all hover:scale-[1.02] active:scale-95 text-xs"
+                        className="w-full mt-8 md:mt-10 bg-nexa-dark text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black uppercase tracking-[0.4em] shadow-xl hover:bg-emerald-600 transition-all hover:scale-[1.02] active:scale-95 text-[10px] md:text-xs"
                     >
                         Continue
                     </button>
-                    <button onClick={() => setView('SIGNUP')} className="mt-6 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-colors">Discard Request</button>
+                    <button onClick={() => setView('SIGNUP')} className="mt-5 md:mt-6 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-colors">Discard Request</button>
                 </div>
             )}
 
