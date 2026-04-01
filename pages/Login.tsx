@@ -18,19 +18,25 @@ const UG_BANKS = ["Stanbic Bank", "Equity Bank", "Absa Bank", "Centenary Bank", 
 type AuthView = 'LOGIN' | 'SIGNUP' | 'PAYMENT' | 'VERIFICATION' | 'AWAITING' | 'REJECTED' | 'LIMIT' | 'FORGOT_PASSWORD' | 'RESET_PASSWORD';
 
 export default function Login() {
-  const { login, register, submitVerification, resetUserStatus, requestPasswordReset, resetPassword } = useApp();
+  const { login, register, submitVerification, resetUserStatus, requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const isAdminLogin = queryParams.get('mode') === 'admin';
   const resetToken = queryParams.get('token');
 
-  const [view, setView] = useState<AuthView>(resetToken ? 'RESET_PASSWORD' : 'LOGIN');
+  const [view, setView] = useState<AuthView>('LOGIN');
+
+  // Switch to password reset view when Supabase fires the PASSWORD_RECOVERY event
+  React.useEffect(() => {
+    if (isPasswordRecovery) setView('RESET_PASSWORD');
+  }, [isPasswordRecovery]);
   
   // States
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [pendingUser, setPendingUser] = useState<User | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   // Login State
   const [email, setEmail] = useState('');
@@ -167,26 +173,24 @@ export default function Login() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-        setError("Please enter your email address.");
+        setError('Please enter your email address.');
         return;
     }
     setIsLoading(true);
     setError('');
     const result = await requestPasswordReset(email);
+    setIsLoading(false);
     if (result.success) {
-        setError(''); // Clear error
-        alert(result.message); // Simple alert for mock
-        setView('LOGIN');
+        setForgotSuccess(true);
     } else {
         setError(result.message);
     }
-    setIsLoading(false);
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-        setError("Passwords do not match.");
+        setError('Passwords do not match.');
         return;
     }
     if (strength.label !== 'Strong') {
@@ -195,11 +199,12 @@ export default function Login() {
     }
     setIsLoading(true);
     setError('');
-    const result = await resetPassword(resetToken || '', newPassword);
+    const result = await resetPassword('', newPassword);
     if (result.success) {
-        alert(result.message);
-        navigate('/login', { replace: true });
+        clearPasswordRecovery();
         setView('LOGIN');
+        setNewPassword('');
+        setConfirmPassword('');
     } else {
         setError(result.message);
     }
@@ -373,48 +378,61 @@ export default function Login() {
             {/* FORGOT PASSWORD VIEW */}
             {view === 'FORGOT_PASSWORD' && (
                 <div className="flex-1">
-                    <div>
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4">Reset Password</h2>
-                        <p className="text-slate-500 font-medium text-lg">Enter your email to receive recovery instructions.</p>
-                    </div>
-
-                    <form onSubmit={handleForgotPassword} className="space-y-6 mt-12">
-                        {error && (
-                            <div className="p-6 bg-red-50 text-red-600 text-xs rounded-[1.5rem] flex items-start animate-in shake duration-300 font-black uppercase tracking-widest border border-red-100">
-                                <AlertCircle size={20} className="mr-3 shrink-0" />
-                                <span>{error}</span>
+                    {forgotSuccess ? (
+                        <div className="flex flex-col items-center justify-center text-center py-16 animate-in zoom-in duration-500">
+                            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-8">
+                                <CheckCircle2 size={40} className="text-emerald-500" />
                             </div>
-                        )}
-                        
-                        <div className="space-y-4">
-                            <div className="space-y-1">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-6">Email Address</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                                    <input 
-                                        type="email" 
-                                        value={email} 
-                                        onChange={e => setEmail(e.target.value)} 
-                                        className="w-full border-none rounded-[2.5rem] pl-18 pr-8 py-5 text-slate-900 placeholder-slate-400 focus:ring-8 focus:ring-nexa-green/5 outline-none transition-all bg-white shadow-xl shadow-slate-200/50 font-bold" 
-                                        placeholder="your@email.com" 
-                                    />
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-4">Check Your Inbox</h2>
+                            <p className="text-slate-500 font-medium text-lg max-w-sm mb-10">A password reset link has been sent to <span className="font-black text-slate-900">{email}</span>. Click the link to set a new password.</p>
+                            <button type="button" onClick={() => { setView('LOGIN'); setForgotSuccess(false); setEmail(''); }} className="text-slate-400 font-black uppercase text-[9px] tracking-widest hover:text-slate-900">Back to Sign In</button>
+                        </div>
+                    ) : (
+                        <>
+                        <div>
+                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4">Reset Password</h2>
+                            <p className="text-slate-500 font-medium text-lg">Enter your email to receive recovery instructions.</p>
+                        </div>
+
+                        <form onSubmit={handleForgotPassword} className="space-y-6 mt-12">
+                            {error && (
+                                <div className="p-6 bg-red-50 text-red-600 text-xs rounded-[1.5rem] flex items-start animate-in shake duration-300 font-black uppercase tracking-widest border border-red-100">
+                                    <AlertCircle size={20} className="mr-3 shrink-0" />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+                            
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-6">Email Address</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                        <input 
+                                            type="email" 
+                                            value={email} 
+                                            onChange={e => setEmail(e.target.value)} 
+                                            className="w-full border-none rounded-[2.5rem] pl-18 pr-8 py-5 text-slate-900 placeholder-slate-400 focus:ring-8 focus:ring-nexa-green/5 outline-none transition-all bg-white shadow-xl shadow-slate-200/50 font-bold" 
+                                            placeholder="your@email.com" 
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <button 
-                            type="submit" 
-                            disabled={isLoading}
-                            className="w-full bg-nexa-dark text-white py-6 rounded-[2.5rem] font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-xl flex items-center justify-center group active:scale-95 text-xs disabled:opacity-50"
-                        >
-                            {isLoading ? 'Sending...' : 'Send Reset Link'} 
-                            {!isLoading && <ArrowRight size={20} className="ml-4 group-hover:translate-x-2 transition-transform" />}
-                        </button>
-                        
-                        <div className="text-center pt-6">
-                            <button type="button" onClick={() => setView('LOGIN')} className="text-slate-400 font-black uppercase text-[9px] tracking-widest hover:text-slate-900">Back to Sign In</button>
-                        </div>
-                    </form>
+                            <button 
+                                type="submit" 
+                                disabled={isLoading}
+                                className="w-full bg-nexa-dark text-white py-6 rounded-[2.5rem] font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-xl flex items-center justify-center group active:scale-95 text-xs disabled:opacity-50"
+                            >
+                                {isLoading ? 'Sending...' : 'Send Reset Link'} 
+                                {!isLoading && <ArrowRight size={20} className="ml-4 group-hover:translate-x-2 transition-transform" />}
+                            </button>
+                            
+                            <div className="text-center pt-6">
+                                <button type="button" onClick={() => setView('LOGIN')} className="text-slate-400 font-black uppercase text-[9px] tracking-widest hover:text-slate-900">Back to Sign In</button>
+                            </div>
+                        </form>
+                        </>
+                    )}
                 </div>
             )}
 

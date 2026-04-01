@@ -194,6 +194,8 @@ interface AppContextType {
   updateUser: (updates: Partial<User>) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, newPass: string) => Promise<{ success: boolean; message: string }>;
+  isPasswordRecovery: boolean;
+  clearPasswordRecovery: () => void;
   addAnimal: (animal: Animal) => Promise<void>;
   addStaff: (staff: StaffMember, pass: string) => Promise<void>;
   payStaff: (payment: StaffPayment) => Promise<void>;
@@ -329,7 +331,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && mounted) {
+        // Supabase has set the session from the recovery link — signal the UI
+        setIsPasswordRecovery(true);
+        return;
+      }
+      if (event === 'SIGNED_IN' && session?.user && mounted) {
+        // If signing in normally (not recovery), make sure recovery flag is cleared
+        // We only keep it if it was already set by PASSWORD_RECOVERY
+      }
       if (event === 'SIGNED_OUT' && mounted) {
         setUser(null);
         setIsSuperAdmin(false);
@@ -406,10 +417,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const register = async (data: any): Promise<{ success: boolean; message: string; user?: User }> => {
-    // Sign up with Supabase Auth
+    const isSuperEmail = data.email.toLowerCase() === SUPER_ADMIN_EMAIL;
+
+    // Pass all profile data via metadata — the DB trigger handle_new_user() creates the profile row
+    // This avoids RLS errors since the trigger runs with SECURITY DEFINER
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: {
+        data: {
+          full_name: data.name,
+          role: isSuperEmail ? 'SUPER_ADMIN' : 'ADMIN',
+          phone: data.phone || null,
+          country: data.location || null,
+          sector: data.sector || 'GENERAL',
+          business_category: data.businessCategory || null,
+          business_type: data.businessType || null,
+          company_name: data.companyName || null,
+          preferred_currency: CURRENCY_MAP[data.location] || 'USD',
+          activation_status: isSuperEmail ? 'ACTIVE' : 'PENDING',
+        }
+      }
     });
 
     if (authError) {
@@ -421,8 +449,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (!authData.user) return { success: false, message: 'Signup failed — no user returned.' };
 
-    const isSuperEmail = data.email.toLowerCase() === SUPER_ADMIN_EMAIL;
-
+    // Build a local user object for the UI (profile already created by DB trigger)
     const profileRow = {
       id: authData.user.id,
       full_name: data.name,
@@ -440,14 +467,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activation_status: isSuperEmail ? 'ACTIVE' : 'PENDING',
       rejection_count: 0,
     };
-
-    const { error: profileError } = await supabase.from('profiles').insert(profileRow);
-    if (profileError) {
-      return { success: false, message: 'Profile creation failed: ' + profileError.message };
-    }
-
-    // Don't sign out yet — user needs to submit verification which requires auth session for RLS
-    // Sign out happens after verification is submitted
 
     const newUser = profileToUser(profileRow);
     return { success: true, message: 'Account created successfully.', user: newUser };
@@ -525,17 +544,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const requestPasswordReset = async (email: string): Promise<{ success: boolean; message: string }> => {
+    // Use the origin root so Supabase can append #access_token=...&type=recovery cleanly
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/#/login?token=reset`,
+      redirectTo: window.location.origin + '/',
     });
     if (error) return { success: false, message: error.message };
     return { success: true, message: 'Password reset email sent. Check your inbox.' };
   };
 
   const resetPassword = async (_token: string, newPass: string): Promise<{ success: boolean; message: string }> => {
+    // Session is already set by Supabase from the recovery link token
     const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) return { success: false, message: error.message };
-    return { success: true, message: 'Password updated successfully. Please login.' };
+    await supabase.auth.signOut();
+    return { success: true, message: 'Password updated successfully. Please sign in.' };
   };
 
   const getAllUsers = async (): Promise<User[]> => {
@@ -930,13 +952,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ── Provider value ───────────────────────────────────────────
 
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const clearPasswordRecovery = () => setIsPasswordRecovery(false);
+
   return (
     <AppContext.Provider value={{
       user, isSuperAdmin, loading, theme, toggleTheme, logout,
       farms, inventory, transactions, notifications, requisitions, crops, staff, harvests, exports, animals, clients, documents, messages, announcements, purchaseOrders, staffPayments, pendingSignups, departments,
       addFarm, addToInventory, addTransaction, addNotification, markNotificationRead, markAllNotificationsRead, addCrop, updateCropStatus, addHarvest, updateHarvest,
       createExport, updateExportPayment, updateExportStatus, updateRequisitionStatus, addRequisition, login, register, submitVerification, approveSignup, rejectSignup, deleteUser, changeUserStatus, resetUserStatus, completeOnboarding, updateUser,
-      requestPasswordReset, resetPassword,
+      requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery,
       addAnimal, addStaff, payStaff, assignTask, updateTaskStatus, updateStaffPermissions, addClient, replayTutorial, updateDashboardWidgets, updateDashboardTheme,
       selectSubscription,
       addDocument, deleteDocument, sendMessage, markMessageRead, addAnnouncement, bulkUpdateInventory, deleteInventoryItems, deductInventory, approvePurchaseOrder, addPurchaseOrder, updatePurchaseOrderStatus, payPurchaseOrder,
