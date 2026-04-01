@@ -86,22 +86,27 @@ export default function Layout() {
 
   return (
     <div className={`flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors ${theme}`}>
+      {/* Mobile sidebar overlay */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:shadow-none border-r border-slate-200 dark:border-slate-800 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:w-64 md:shadow-none border-r border-slate-200 dark:border-slate-800 flex flex-col ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center text-slate-900 dark:text-white">
-            <NexaLogo className="h-10" />
+            <NexaLogo className="h-9" />
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 dark:text-slate-400 p-1 hover:bg-slate-50 rounded-lg">
-            <X size={24} />
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 dark:text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-95 transition-all">
+            <X size={22} />
           </button>
         </div>
 
-        <nav className="p-4 space-y-1.5 mt-2 overflow-y-auto max-h-[calc(100vh-220px)] scrollbar-hide">
+        <nav className="p-3 space-y-1 mt-1 overflow-y-auto flex-1 scrollbar-hide">
           <NavItem to="/app" icon={LayoutDashboard} label="Dashboard" />
           {(isAdmin || hasPermission('LOG_HARVEST')) && (
              <NavItem to="/app/farms" icon={Tractor} label="Crops & Farms" />
@@ -117,44 +122,45 @@ export default function Layout() {
           <NavItem to="/app/finance" icon={DollarSign} label="Finance & Audit" />
           <NavItem to="/app/reports" icon={BarChart3} label="Intelligence" />
           
-          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
              <NavItem to="/app/settings" icon={Settings} label="Settings" />
              <NavItem to="/app/help" icon={HelpCircle} label="Help & FAQs" />
           </div>
         </nav>
 
-        <div className="absolute bottom-0 w-full border-t border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-           <div className="p-4">
-                <button 
-                onClick={logout}
-                className="flex items-center space-x-3 px-4 py-2.5 w-full text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all text-sm font-bold active:scale-95"
-                >
-                <LogOut size={18} />
-                <span>Sign Out</span>
-                </button>
-           </div>
+        <div className="border-t border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-3">
+            <button 
+            onClick={logout}
+            className="flex items-center space-x-3 px-4 py-2.5 w-full text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all text-sm font-bold active:scale-95"
+            >
+            <LogOut size={18} />
+            <span>Sign Out</span>
+            </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className="bg-white dark:bg-slate-900 min-h-24 py-4 flex items-center shadow-sm z-40 transition-colors border-b border-slate-100 dark:border-slate-800 shrink-0">
-          <div className="flex-1 flex flex-col justify-center px-4 md:px-10">
-            <div className="flex items-center space-x-3">
-                <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
-                    Hello, {user?.name?.split(' ')[0]}!
-                </h2>
-            </div>
-            <div className="flex items-center space-x-2 mt-1">
-                <p className="text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">
-                  {user?.companyName || 'Your Business'}
-                </p>
-                <ChevronRight size={12} className="text-slate-300" />
-                <span className={`${activeTextClass} text-[10px] md:text-xs font-bold uppercase tracking-widest`}>{user?.sector}</span>
+        <header className="bg-white dark:bg-slate-900 py-3 md:py-4 flex items-center shadow-sm z-40 transition-colors border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="flex items-center px-4 md:px-10 flex-1 min-w-0">
+            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 mr-3 shrink-0 active:scale-95 transition-all">
+              <Menu size={22} />
+            </button>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                  Hello, {user?.name?.split(' ')[0]}!
+              </h2>
+              <div className="flex items-center space-x-2 mt-0.5">
+                  <p className="text-slate-400 dark:text-slate-500 text-[9px] md:text-xs font-bold uppercase tracking-widest truncate">
+                    {user?.companyName || 'Your Business'}
+                  </p>
+                  <ChevronRight size={10} className="text-slate-300 shrink-0" />
+                  <span className={`${activeTextClass} text-[9px] md:text-xs font-bold uppercase tracking-widest shrink-0`}>{user?.sector}</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center pr-4 md:pr-10 space-x-2 md:space-x-4">
+          <div className="flex items-center pr-4 md:pr-10 space-x-2 shrink-0">
             <div className="hidden lg:flex flex-col items-end mr-4">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Balance</span>
                 <span className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(balance)}</span>
@@ -197,17 +203,13 @@ export default function Layout() {
               )}
             </div>
 
-            <Link to="/app/profile" className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-all shadow-sm">
+            <Link to="/app/profile" className="hidden md:flex w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-all shadow-sm">
                 <UserIcon size={20} />
             </Link>
-            
-            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 ml-1">
-              <Menu size={24} />
-            </button>
           </div>
         </header>
 
-        <main ref={mainContentRef} className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-10 transition-colors scrollbar-thin bg-slate-50/50 dark:bg-slate-950">
+        <main ref={mainContentRef} className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 lg:p-10 transition-colors scrollbar-thin bg-slate-50/50 dark:bg-slate-950">
           <div className={`max-w-7xl mx-auto min-h-full route-page-shell ${isPageEntering ? 'route-page-enter' : ''}`}>
             <Outlet />
           </div>

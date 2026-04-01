@@ -132,6 +132,14 @@ export default function Finance() {
             date: new Date().toISOString(),
             description: newTx.description || 'Manual Ledger Entry',
         } as Transaction);
+        // Update linked account balance if selected
+        if (newTx.accountId) {
+            const acct = financeAccounts.find(a => a.id === newTx.accountId);
+            if (acct) {
+                const delta = newTx.type === 'INCOME' ? newTx.amount : -newTx.amount;
+                updateFinanceAccount({ ...acct, balance: acct.balance + delta, lastUpdated: new Date().toISOString() });
+            }
+        }
         setShowTxModal(false);
         setNewTx({ type: 'INCOME', paymentMethod: 'CASH' });
     }
@@ -206,22 +214,22 @@ export default function Finance() {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-         <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Consolidated Liquidity</p>
-             <h1 className="text-5xl font-black tracking-tighter">{formatCurrency(balance)}</h1>
-             <div className="absolute right-4 top-4 opacity-5 group-hover:opacity-10 transition-opacity"><DollarSign size={160} /></div>
+    <div className="space-y-6 md:space-y-8 pb-20">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+         <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden group">
+             <p className="text-slate-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest md:tracking-[0.3em] mb-2 md:mb-4">Consolidated Liquidity</p>
+             <h1 className="text-3xl md:text-5xl font-black tracking-tighter truncate">{formatCurrency(balance)}</h1>
+             <div className="absolute right-4 top-4 opacity-5 group-hover:opacity-10 transition-opacity"><DollarSign size={100} /></div>
          </div>
-         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 text-slate-800 dark:text-white shadow-xl relative overflow-hidden group border border-slate-100 dark:border-slate-800">
-             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Operational Outflow</p>
-             <h1 className="text-5xl font-black tracking-tighter text-red-600">{formatCurrency(transactions.filter(t => t.type === 'EXPENSE').reduce((a,b)=>a+b.amount, 0))}</h1>
-             <div className="absolute right-4 bottom-4 opacity-5 group-hover:rotate-12 transition-transform"><TrendingDown size={120} /></div>
+         <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 text-slate-800 dark:text-white shadow-xl relative overflow-hidden group border border-slate-100 dark:border-slate-800">
+             <p className="text-slate-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest md:tracking-[0.3em] mb-2 md:mb-4">Operational Outflow</p>
+             <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-red-600 truncate">{formatCurrency(transactions.filter(t => t.type === 'EXPENSE').reduce((a,b)=>a+b.amount, 0))}</h1>
+             <div className="absolute right-4 bottom-4 opacity-5 group-hover:rotate-12 transition-transform"><TrendingDown size={80} /></div>
          </div>
-         <div className="bg-emerald-600 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group hidden xl:block">
-             <p className="text-emerald-100 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Contract Asset Value</p>
-             <h1 className="text-5xl font-black tracking-tighter">{formatCurrency(exports.reduce((a,b)=>a+b.totalValue, 0))}</h1>
-             <div className="absolute right-4 bottom-4 opacity-10 group-hover:-rotate-12 transition-transform"><TrendingUp size={120} /></div>
+         <div className="bg-emerald-600 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden group sm:col-span-2 xl:col-span-1">
+             <p className="text-emerald-100 text-[9px] md:text-[10px] font-bold uppercase tracking-widest md:tracking-[0.3em] mb-2 md:mb-4">Contract Asset Value</p>
+             <h1 className="text-3xl md:text-5xl font-black tracking-tighter truncate">{formatCurrency(exports.reduce((a,b)=>a+b.totalValue, 0))}</h1>
+             <div className="absolute right-4 bottom-4 opacity-10 group-hover:-rotate-12 transition-transform"><TrendingUp size={80} /></div>
          </div>
       </div>
 
@@ -379,6 +387,17 @@ export default function Finance() {
                             </select>
                         </div>
                       </div>
+                      {financeAccounts.length > 0 && (
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Account</label>
+                            <select className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" onChange={e => setNewTx({...newTx, accountId: e.target.value || undefined})}>
+                                <option value="">No specific account</option>
+                                {financeAccounts.map(acct => (
+                                    <option key={acct.id} value={acct.id}>{acct.provider} — {acct.name !== acct.provider ? acct.name + ' — ' : ''}{formatCurrency(acct.balance)}</option>
+                                ))}
+                            </select>
+                        </div>
+                      )}
                       <div className="space-y-1.5">
                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Official Memo</label>
                           <input className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-5 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner font-medium text-lg" placeholder="Purpose of transaction..." onChange={e => setNewTx({...newTx, description: e.target.value})} />

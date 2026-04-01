@@ -323,6 +323,7 @@ export interface Transaction {
   date: string;
   paymentMethod: PaymentMethod;
   reference?: string;
+  accountId?: string;
 }
 
 export interface Notification {

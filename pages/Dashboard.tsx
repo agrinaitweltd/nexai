@@ -24,44 +24,44 @@ const FinancialStatsWidget = () => {
   ] : [];
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full transition-all relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><DollarSign size={100}/></div>
-        <h3 className="font-bold text-slate-800 dark:text-white mb-6 flex items-center text-xs uppercase tracking-[0.2em] relative z-10">
-            <Wallet size={18} className="mr-2 text-emerald-500"/> Financial Standing
+    <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full transition-all relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform"><DollarSign size={80}/></div>
+        <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
+            <Wallet size={16} className="mr-2 text-emerald-500"/> Financial Standing
         </h3>
         
-        <div className="space-y-6 relative z-10">
-             <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-inner">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Available Capital</p>
-                <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter truncate">{formatCurrency(balance)}</p>
+        <div className="space-y-4 md:space-y-6 relative z-10">
+             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Available Capital</p>
+                <p className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter truncate">{formatCurrency(balance)}</p>
              </div>
              
-             <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-800/50">
+             <div className="grid grid-cols-2 gap-3 md:gap-4">
+                <div className="p-3 md:p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl md:rounded-2xl border border-emerald-100 dark:border-emerald-800/50">
                     <div className="flex items-center text-emerald-600 mb-1">
-                        <ArrowUpRight size={14} className="mr-1" />
-                        <span className="text-[9px] font-black uppercase tracking-widest">Inflow</span>
+                        <ArrowUpRight size={12} className="mr-1" />
+                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">Inflow</span>
                     </div>
-                    <p className="text-lg font-black text-slate-900 dark:text-white truncate">{formatCurrency(revenue)}</p>
+                    <p className="text-sm md:text-lg font-black text-slate-900 dark:text-white truncate">{formatCurrency(revenue)}</p>
                 </div>
-                <div className="p-4 bg-rose-50 dark:bg-rose-900/10 rounded-2xl border border-rose-100 dark:border-rose-800/50">
+                <div className="p-3 md:p-4 bg-rose-50 dark:bg-rose-900/10 rounded-xl md:rounded-2xl border border-rose-100 dark:border-rose-800/50">
                     <div className="flex items-center text-rose-600 mb-1">
-                        <ArrowDown size={14} className="mr-1" />
-                        <span className="text-[9px] font-black uppercase tracking-widest">Outflow</span>
+                        <ArrowDown size={12} className="mr-1" />
+                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">Outflow</span>
                     </div>
-                    <p className="text-lg font-black text-slate-900 dark:text-white truncate">{formatCurrency(expenses)}</p>
+                    <p className="text-sm md:text-lg font-black text-slate-900 dark:text-white truncate">{formatCurrency(expenses)}</p>
                 </div>
              </div>
         </div>
 
         {transactions.length > 0 && (
-            <div className="h-24 w-full mt-6 relative z-10">
+            <div className="h-20 md:h-24 w-full mt-4 md:mt-6 relative z-10">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} layout="vertical" margin={{ left: -30 }}>
                         <XAxis type="number" hide />
-                        <YAxis dataKey="name" type="category" width={80} style={{fontSize: '9px', fontWeight: 900, fill: '#94a3b8', textTransform: 'uppercase'}} />
+                        <YAxis dataKey="name" type="category" width={70} style={{fontSize: '8px', fontWeight: 900, fill: '#94a3b8', textTransform: 'uppercase'}} />
                         <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                        <Bar dataKey="value" barSize={12} radius={[0, 10, 10, 0]}>
+                        <Bar dataKey="value" barSize={10} radius={[0, 10, 10, 0]}>
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#f43f5e'} />
                             ))}
@@ -85,20 +85,20 @@ const StockDistributionWidget = () => {
   const COLORS = ['#10b981', '#3b82f6', '#6366f1', '#f43f5e', '#f59e0b'];
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full transition-all relative overflow-hidden group">
-      <h3 className="font-bold text-slate-800 dark:text-white mb-6 flex items-center text-xs uppercase tracking-[0.2em]">
-          <Warehouse size={18} className="mr-2 text-blue-500"/> Stock Distribution
+    <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full transition-all relative overflow-hidden group">
+      <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em]">
+          <Warehouse size={16} className="mr-2 text-blue-500"/> Stock Distribution
       </h3>
       
       {inventory.length > 0 ? (
-        <div className="flex items-center h-48">
+        <div className="flex items-center h-40 md:h-48">
           <div className="flex-1 h-full">
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie
                         data={stockData}
-                        innerRadius={40}
-                        outerRadius={70}
+                        innerRadius={30}
+                        outerRadius={55}
                         paddingAngle={5}
                         dataKey="value"
                     >
@@ -110,17 +110,17 @@ const StockDistributionWidget = () => {
                 </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-1.5 md:space-y-2">
             {stockData.map((item, i) => (
               <div key={i} className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[i % COLORS.length]}} />
-                <span className="text-[10px] font-bold text-slate-500 truncate uppercase tracking-tighter">{item.name}</span>
+                <div className="w-2 h-2 rounded-full shrink-0" style={{backgroundColor: COLORS[i % COLORS.length]}} />
+                <span className="text-[9px] md:text-[10px] font-bold text-slate-500 truncate uppercase tracking-tighter">{item.name}</span>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="h-48 flex items-center justify-center text-slate-300 italic text-xs border-2 border-dashed rounded-3xl">
+        <div className="h-40 md:h-48 flex items-center justify-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl md:rounded-3xl">
           No Inventory Data
         </div>
       )}
@@ -138,21 +138,21 @@ const QuickActionsWidget = () => {
     ];
 
     return (
-        <div className="bg-slate-900 dark:bg-white p-8 rounded-[2.5rem] shadow-xl h-full transition-all flex flex-col justify-between border border-white/5 dark:border-slate-100">
-             <h3 className="font-bold text-white dark:text-slate-900 mb-6 flex items-center text-xs uppercase tracking-[0.2em] opacity-80">
-                <Settings size={18} className="mr-2" /> Action Dashboard
+        <div className="bg-slate-900 dark:bg-white p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-xl h-full transition-all flex flex-col justify-between border border-white/5 dark:border-slate-100">
+             <h3 className="font-bold text-white dark:text-slate-900 mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-80">
+                <Settings size={16} className="mr-2" /> Action Dashboard
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
                 {actions.map((act, i) => (
                     <button 
                         key={i}
                         onClick={() => navigate(act.path)}
-                        className="bg-white/10 dark:bg-slate-50 hover:scale-105 dark:hover:bg-slate-100 p-5 rounded-[2rem] flex flex-col items-center justify-center space-y-3 transition-all active:scale-95 group shadow-sm"
+                        className="bg-white/10 dark:bg-slate-50 hover:scale-105 dark:hover:bg-slate-100 p-3 md:p-5 rounded-xl md:rounded-[2rem] flex flex-col items-center justify-center space-y-2 md:space-y-3 transition-all active:scale-95 group shadow-sm"
                     >
-                        <div className={`p-3 rounded-2xl text-white ${act.color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
-                            <act.icon size={20} />
+                        <div className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl text-white ${act.color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
+                            <act.icon size={18} />
                         </div>
-                        <span className="text-[9px] font-black text-white dark:text-slate-800 uppercase tracking-widest text-center">{act.label}</span>
+                        <span className="text-[8px] md:text-[9px] font-black text-white dark:text-slate-800 uppercase tracking-widest text-center leading-tight">{act.label}</span>
                     </button>
                 ))}
             </div>
@@ -170,21 +170,21 @@ const RecentActivityWidget = () => {
     ].sort((a,b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
 
     return (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-6 flex items-center text-xs uppercase tracking-[0.2em]">
-                <Activity size={18} className="mr-2 text-amber-500"/> Activity Stream
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em]">
+                <Activity size={16} className="mr-2 text-amber-500"/> Activity Stream
             </h3>
-            <div className="space-y-5">
+            <div className="space-y-3 md:space-y-5">
                 {activities.length === 0 ? (
-                    <div className="py-12 text-center text-slate-300 italic text-xs uppercase font-bold tracking-widest">No Recent Activity</div>
+                    <div className="py-8 md:py-12 text-center text-slate-300 italic text-xs uppercase font-bold tracking-widest">No Recent Activity</div>
                 ) : activities.map((act, i) => (
-                    <div key={i} className="flex items-start space-x-4">
-                        <div className={`mt-1 p-2 rounded-lg bg-slate-50 dark:bg-slate-800 ${act.color}`}>
-                            <act.icon size={14} />
+                    <div key={i} className="flex items-start space-x-3 md:space-x-4">
+                        <div className={`mt-0.5 p-1.5 md:p-2 rounded-lg bg-slate-50 dark:bg-slate-800 ${act.color} shrink-0`}>
+                            <act.icon size={13} />
                         </div>
-                        <div>
-                            <p className="text-xs font-bold text-slate-800 dark:text-white">{act.title}</p>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{new Date(act.time).toLocaleString()}</p>
+                        <div className="min-w-0">
+                            <p className="text-[11px] md:text-xs font-bold text-slate-800 dark:text-white truncate">{act.title}</p>
+                            <p className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase mt-0.5">{new Date(act.time).toLocaleString()}</p>
                         </div>
                     </div>
                 ))}
@@ -282,27 +282,28 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 pb-20 px-2 md:px-0">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-6 md:space-y-8 pb-20">
+      {/* Header row — stack on mobile */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.role === 'ADMIN' ? 'Corporate Command' : 'Operational Hub'}</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{user?.role === 'ADMIN' ? 'Corporate Command' : 'Operational Hub'}</h1>
             <div className="flex items-center space-x-2 text-slate-400">
-                <Clock size={14} className="text-emerald-500" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em]">Real-time synchronization active • {new Date().toLocaleDateString()}</p>
+                <Clock size={14} className="text-emerald-500 shrink-0" />
+                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] truncate">Real-time sync active • {new Date().toLocaleDateString()}</p>
             </div>
         </div>
         
-        <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2">
              <div className="relative">
                 <button 
                     onClick={() => setShowThemePicker(!showThemePicker)}
-                    className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:scale-105 transition-all shadow-sm"
+                    className="p-2.5 md:p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl md:rounded-2xl hover:scale-105 transition-all shadow-sm"
                     title="Change Dashboard Theme"
                 >
-                    <Palette size={20} className="text-slate-500" />
+                    <Palette size={18} className="text-slate-500" />
                 </button>
                 {showThemePicker && (
-                    <div className="absolute right-0 mt-3 p-3 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2 z-50 animate-in zoom-in duration-200">
+                    <div className="absolute right-0 mt-3 p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2 z-50 animate-in zoom-in duration-200">
                         {THEME_OPTIONS.map(opt => (
                             <button 
                                 key={opt.id} 
@@ -316,20 +317,20 @@ export default function Dashboard() {
              
              <button 
                 onClick={() => setIsEditing(!isEditing)}
-                className={`px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center transition-all shadow-lg active:scale-95 ${isEditing ? 'bg-slate-900 text-white dark:bg-white dark:text-black' : 'bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'}`}
+                className={`px-5 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest flex items-center transition-all shadow-lg active:scale-95 ${isEditing ? 'bg-slate-900 text-white dark:bg-white dark:text-black' : 'bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'}`}
              >
-                {isEditing ? <Check size={18} className="mr-2" /> : <Settings size={18} className="mr-2" />}
-                {isEditing ? 'Commit Configuration' : 'Customize Hub'}
+                {isEditing ? <Check size={16} className="mr-1.5" /> : <Settings size={16} className="mr-1.5" />}
+                <span className="hidden sm:inline">{isEditing ? 'Save' : 'Customize'}</span>
              </button>
         </div>
       </div>
 
       {isEditing && (
-        <div className="p-6 bg-slate-100 dark:bg-slate-900/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800 animate-in fade-in slide-in-from-top-4">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Available Hub Components</p>
+        <div className="p-4 md:p-6 bg-slate-100 dark:bg-slate-900/50 rounded-2xl md:rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800 animate-in fade-in slide-in-from-top-4">
+             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 md:mb-6 text-center">Available Hub Components</p>
              <div className="flex flex-wrap justify-center gap-2">
                 {AVAILABLE_WIDGETS.filter(aw => !myWidgets.find(mw => mw.type === aw.type)).map(aw => (
-                    <button key={aw.type} onClick={() => handleAddWidget(aw.type)} className="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-105 active:scale-95 transition-all text-slate-600 dark:text-slate-300">
+                    <button key={aw.type} onClick={() => handleAddWidget(aw.type)} className="px-4 md:px-5 py-2 md:py-2.5 bg-white dark:bg-slate-800 rounded-xl text-[8px] md:text-[9px] font-black uppercase tracking-widest shadow-sm hover:scale-105 active:scale-95 transition-all text-slate-600 dark:text-slate-300">
                         + {aw.title}
                     </button>
                 ))}
@@ -340,17 +341,17 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 xl:gap-8">
           {myWidgets.map((widget, index) => (
               <div 
                 key={widget.id} 
-                className={`relative transition-all duration-300 ${isEditing ? 'ring-4 ring-emerald-500/20 rounded-[2.5rem] p-2 bg-slate-100/30 scale-[0.98]' : ''} ${widget.type === 'FINANCIAL_STATS' || widget.type === 'QUICK_ACTIONS' ? 'xl:col-span-2' : 'col-span-1'}`}
+                className={`relative transition-all duration-300 ${isEditing ? 'ring-4 ring-emerald-500/20 rounded-2xl md:rounded-[2.5rem] p-1.5 md:p-2 bg-slate-100/30 scale-[0.98]' : ''} ${widget.type === 'FINANCIAL_STATS' || widget.type === 'QUICK_ACTIONS' ? 'md:col-span-2' : 'col-span-1'}`}
               >
                   {isEditing && (
-                      <div className="absolute -top-4 -right-2 flex space-x-1 z-10 animate-in fade-in zoom-in">
-                          <button onClick={() => handleMoveWidget(index, 'LEFT')} className="bg-white p-3 rounded-2xl shadow-xl border hover:text-emerald-600 transition-all"><ChevronLeft size={16} /></button>
-                          <button onClick={() => handleMoveWidget(index, 'RIGHT')} className="bg-white p-3 rounded-2xl shadow-xl border hover:text-emerald-600 transition-all"><ChevronRight size={16} /></button>
-                          <button onClick={() => handleRemoveWidget(widget.id)} className="bg-red-500 text-white p-3 rounded-2xl shadow-xl hover:bg-red-600 transition-all"><X size={16} /></button>
+                      <div className="absolute -top-3 md:-top-4 -right-1 md:-right-2 flex space-x-1 z-10 animate-in fade-in zoom-in">
+                          <button onClick={() => handleMoveWidget(index, 'LEFT')} className="bg-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl border hover:text-emerald-600 transition-all"><ChevronLeft size={14} /></button>
+                          <button onClick={() => handleMoveWidget(index, 'RIGHT')} className="bg-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl border hover:text-emerald-600 transition-all"><ChevronRight size={14} /></button>
+                          <button onClick={() => handleRemoveWidget(widget.id)} className="bg-red-500 text-white p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl hover:bg-red-600 transition-all"><X size={14} /></button>
                       </div>
                   )}
                   {renderWidgetContent(widget.type)}
@@ -361,13 +362,13 @@ export default function Dashboard() {
       {/* First-time Tour Overlay */}
       {showTour && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-500">
-          <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 max-w-md w-full shadow-2xl border border-white/10 text-center space-y-6 animate-in zoom-in duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mx-auto shadow-inner">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[3rem] p-6 md:p-10 max-w-md w-full shadow-2xl border border-white/10 text-center space-y-5 md:space-y-6 animate-in zoom-in duration-300">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center mx-auto shadow-inner">
               {tourSteps[tourStep].icon}
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{tourSteps[tourStep].title}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{tourSteps[tourStep].description}</p>
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{tourSteps[tourStep].title}</h2>
+              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{tourSteps[tourStep].description}</p>
             </div>
             <div className="flex items-center justify-center space-x-2 py-2">
               {tourSteps.map((_, i) => (
@@ -394,12 +395,12 @@ const ActivationRequestsWidget = () => {
     if (!pendingSignups) return null;
     
     return (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-xl border-2 border-emerald-500/20 h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><UserPlus size={100}/></div>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-6 flex items-center text-xs uppercase tracking-[0.2em] relative z-10">
-                <ShieldCheck size={18} className="mr-2 text-emerald-500"/> Verification Queue
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-xl border-2 border-emerald-500/20 h-full relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform"><UserPlus size={80}/></div>
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
+                <ShieldCheck size={16} className="mr-2 text-emerald-500"/> Verification Queue
             </h3>
-            <div className="space-y-4 relative z-10 max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+            <div className="space-y-3 md:space-y-4 relative z-10 max-h-60 md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
                 {pendingSignups.length === 0 ? (
                     <div className="py-12 text-center">
                         <CheckCircle2 size={32} className="mx-auto text-emerald-500 mb-2 opacity-30" />

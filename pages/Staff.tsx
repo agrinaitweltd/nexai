@@ -106,23 +106,23 @@ export default function Staff() {
   ];
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-6">
+    <div className="space-y-6 md:space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 md:gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Team Architecture</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Orchestrate your departments and employee access nodes.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Team Architecture</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Orchestrate departments and employee access.</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex p-1 shadow-sm overflow-hidden">
+        <div className="flex flex-wrap gap-2 md:gap-3">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl md:rounded-2xl flex p-1 shadow-sm overflow-hidden">
                  <button 
                     onClick={() => setViewMode('LIST')} 
-                    className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === 'LIST' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-inner' : 'text-slate-400'}`}
+                    className={`px-4 md:px-6 py-2.5 md:py-3 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-lg md:rounded-xl transition-all ${viewMode === 'LIST' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-inner' : 'text-slate-400'}`}
                  >
                     Personnel
                  </button>
                  <button 
                     onClick={() => setViewMode('DEPARTMENTS')} 
-                    className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === 'DEPARTMENTS' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-inner' : 'text-slate-400'}`}
+                    className={`px-4 md:px-6 py-2.5 md:py-3 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-lg md:rounded-xl transition-all ${viewMode === 'DEPARTMENTS' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-inner' : 'text-slate-400'}`}
                  >
                     Departments
                  </button>
@@ -130,10 +130,10 @@ export default function Staff() {
             
             <button 
                 onClick={() => setShowAddModal(true)}
-                className="bg-slate-900 dark:bg-white text-white dark:text-black px-8 py-3 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all text-[10px]"
+                className="bg-slate-900 dark:bg-white text-white dark:text-black px-5 md:px-8 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all text-[9px] md:text-[10px]"
             >
-                <UserPlus size={16} className="mr-2 inline" />
-                Register Staff
+                <UserPlus size={14} className="mr-1.5 md:mr-2 inline" />
+                Add Staff
             </button>
         </div>
       </div>
@@ -260,68 +260,86 @@ export default function Staff() {
       {/* STAFF MODAL */}
       {showAddModal && (
           <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in fade-in duration-300">
-              <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col max-h-[95vh]">
-                  <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col max-h-[95vh]">
+                  <div className="p-5 md:p-10 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 gap-3">
                     <div>
-                        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase tracking-tighter">Staff Provisioning</h3>
-                        <p className="text-slate-500 mt-2 font-medium text-sm">Issue authorized access tokens to new team members.</p>
+                        <h3 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">Staff Provisioning</h3>
+                        <p className="text-slate-500 mt-1 md:mt-2 font-medium text-xs md:text-sm">Issue access tokens to new team members.</p>
                     </div>
-                    <button onClick={closeAddModal} className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={24}/></button>
+                    <button onClick={closeAddModal} className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white dark:bg-slate-800 border flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                   </div>
                   
                   {addStep === 'DETAILS' ? (
-                      <div className="p-10 space-y-10 overflow-y-auto scrollbar-thin flex-1">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="p-6 md:p-10 space-y-6 md:space-y-10 overflow-y-auto scrollbar-thin flex-1">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Legal Name</label>
-                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="Samuel Kiptoo" onChange={e => setNewStaff({...newStaff, name: e.target.value})} />
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Legal Name *</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm" placeholder="Samuel Kiptoo" onChange={e => setNewStaff({...newStaff, name: e.target.value})} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Work Email (Login ID)</label>
-                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="samuel@nexa.ug" onChange={e => setNewStaff({...newStaff, email: e.target.value})} />
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Work Email (Login ID) *</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm" placeholder="samuel@nexa.ug" onChange={e => setNewStaff({...newStaff, email: e.target.value})} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Phone Number</label>
-                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="+256 700 123456" onChange={e => setNewStaff({...newStaff, phone: e.target.value})} />
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Phone Number</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm" placeholder="+256 700 123456" onChange={e => setNewStaff({...newStaff, phone: e.target.value})} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Primary Position *</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm" placeholder="Senior Agronomist" onChange={e => setNewStaff({...newStaff, role: e.target.value})} />
                                 </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Primary Position</label>
-                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner" placeholder="Senior Agronomist" onChange={e => setNewStaff({...newStaff, role: e.target.value})} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Department Allocation</label>
-                                    <select className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-black dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-[10px] uppercase tracking-widest" onChange={e => setNewStaff({...newStaff, departmentId: e.target.value})}>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Department</label>
+                                    <select className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-black dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-[10px] uppercase tracking-widest" onChange={e => setNewStaff({...newStaff, departmentId: e.target.value})}>
                                         <option value="">No Allocation (General)</option>
                                         {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                     </select>
                                 </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4">Temporary Security Key</label>
-                                <div className="relative">
-                                    <input type={showPassword ? 'text' : 'password'} className="w-full bg-slate-50 dark:bg-slate-800 border-none p-5 rounded-2xl font-black dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner tracking-widest" placeholder="Set temporary password" value={staffPassword} onChange={e => setStaffPassword(e.target.value)} />
-                                    <button onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}</button>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Assigned Farm(s)</label>
+                                    <select multiple className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm min-h-[60px]" onChange={e => setNewStaff({...newStaff, assignedFarmIds: Array.from(e.target.selectedOptions, o => o.value)})}>
+                                        {farms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                    </select>
+                                    {farms.length === 0 && <p className="text-[8px] text-slate-400 px-2">No farms registered yet</p>}
                                 </div>
                           </div>
 
-                          <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
-                               <div className="absolute top-0 right-0 p-8 opacity-10"><Wallet size={120} /></div>
-                               <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] mb-6 px-2">Remuneration Logic</h4>
-                               <div className="grid grid-cols-2 gap-6 relative z-10">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Location / Address</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm" placeholder="Kampala, Uganda" onChange={e => setNewStaff({...newStaff, location: e.target.value})} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Emergency Contact</label>
+                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner text-sm" placeholder="Name — +256 700 000000" onChange={e => setNewStaff({...newStaff, emergencyContact: e.target.value})} />
+                                </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 md:px-4">Temporary Security Key *</label>
+                                <div className="relative">
+                                    <input type={showPassword ? 'text' : 'password'} className="w-full bg-slate-50 dark:bg-slate-800 border-none p-4 md:p-5 rounded-xl md:rounded-2xl font-black dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 shadow-inner tracking-widest text-sm" placeholder="Set temporary password" value={staffPassword} onChange={e => setStaffPassword(e.target.value)} />
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
+                                </div>
+                          </div>
+
+                          <div className="bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+                               <div className="absolute top-0 right-0 p-6 md:p-8 opacity-10"><Wallet size={80} /></div>
+                               <h4 className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 md:mb-6 px-1 md:px-2">Remuneration Logic</h4>
+                               <div className="grid grid-cols-2 gap-4 md:gap-6 relative z-10">
                                     <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-2">Gross Monthly Rate ({user?.preferredCurrency})</label>
-                                        <input type="number" className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white font-black outline-none focus:bg-white/10 transition-colors" placeholder="0" onChange={e => setNewStaff({...newStaff, salary: parseFloat(e.target.value)})} />
+                                        <label className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-widest px-1 md:px-2">Gross Rate ({user?.preferredCurrency})</label>
+                                        <input type="number" className="w-full bg-white/5 border border-white/10 p-3 md:p-4 rounded-xl text-white font-black outline-none focus:bg-white/10 transition-colors text-sm" placeholder="0" onChange={e => setNewStaff({...newStaff, salary: parseFloat(e.target.value)})} />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-2">Frequency</label>
-                                        <select className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white font-black text-[10px] uppercase tracking-widest outline-none focus:bg-white/10 transition-colors appearance-none" onChange={e => setNewStaff({...newStaff, frequency: e.target.value as any})}>
-                                            <option value="MONTHLY">Monthly Audit</option>
-                                            <option value="WEEKLY">Weekly Cycle</option>
-                                            <option value="DAILY">Daily Log</option>
+                                        <label className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-widest px-1 md:px-2">Frequency</label>
+                                        <select className="w-full bg-white/5 border border-white/10 p-3 md:p-4 rounded-xl text-white font-black text-[9px] md:text-[10px] uppercase tracking-widest outline-none focus:bg-white/10 transition-colors appearance-none" onChange={e => setNewStaff({...newStaff, frequency: e.target.value as any})}>
+                                            <option value="MONTHLY">Monthly</option>
+                                            <option value="WEEKLY">Weekly</option>
+                                            <option value="DAILY">Daily</option>
                                         </select>
                                     </div>
                                </div>
@@ -341,14 +359,14 @@ export default function Staff() {
                   )}
 
                   {addStep === 'DETAILS' && (
-                      <div className="p-10 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-4 bg-slate-50/50">
-                          <button onClick={closeAddModal} className="px-10 py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-3xl transition-all">Discard Draft</button>
+                      <div className="p-5 md:p-10 border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse md:flex-row justify-end gap-3 md:space-x-4 bg-slate-50/50">
+                          <button onClick={closeAddModal} className="px-8 py-3 md:py-5 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 rounded-xl md:rounded-3xl transition-all text-center text-xs">Discard</button>
                           <button 
                             onClick={handleAddStaff}
                             disabled={isSubmitting || !newStaff.name || !newStaff.email || !staffPassword}
-                            className="px-14 py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-xs disabled:opacity-50 disabled:grayscale"
+                            className="px-10 md:px-14 py-4 md:py-5 bg-emerald-600 text-white rounded-xl md:rounded-3xl font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-[10px] md:text-xs disabled:opacity-50 disabled:grayscale"
                           >
-                            {isSubmitting ? 'Securing Node...' : 'Inject Identifier'}
+                            {isSubmitting ? 'Securing...' : 'Add Staff Member'}
                           </button>
                       </div>
                   )}
