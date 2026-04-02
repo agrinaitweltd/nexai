@@ -325,13 +325,13 @@ export default function Finance() {
     updateFinanceAccount({ ...fromAcct, balance: fromAcct.balance - transferAmount, lastUpdated: new Date().toISOString() });
     // Add to destination
     updateFinanceAccount({ ...toAcct, balance: toAcct.balance + transferAmount, lastUpdated: new Date().toISOString() });
-    // Record transaction
+    // Record as a TRANSFER so it doesn't inflate expenses or deflate net balance
     addTransaction({
       id: crypto.randomUUID(),
-      type: 'EXPENSE',
+      type: 'TRANSFER',
       category: 'Transfer',
       amount: transferAmount,
-      description: transferNote || `Transfer from ${fromAcct.provider} to ${toAcct.provider}`,
+      description: transferNote || `Transfer: ${fromAcct.provider} → ${toAcct.provider}`,
       date: new Date().toISOString(),
       paymentMethod: 'BANK_TRANSFER',
       reference: `TRF-${Date.now()}`,
@@ -659,8 +659,13 @@ export default function Finance() {
                             </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-4">
-                            <span className={`font-black text-xl md:text-2xl tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-600' : tx.type === 'INITIAL_CAPITAL' ? 'text-blue-600' : 'text-red-600'}`}>
-                              {tx.type === 'EXPENSE' ? '−' : '+'}{formatCurrency(tx.amount)}
+                            <span className={`font-black text-xl md:text-2xl tracking-tighter ${
+                              tx.type === 'INCOME' ? 'text-emerald-600' :
+                              tx.type === 'INITIAL_CAPITAL' ? 'text-blue-600' :
+                              tx.type === 'TRANSFER' ? 'text-amber-500' :
+                              'text-red-600'
+                            }`}>
+                              {tx.type === 'EXPENSE' ? '−' : tx.type === 'TRANSFER' ? '⇄' : '+'}{formatCurrency(tx.amount)}
                             </span>
                             {tx.reference && <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest mt-1">REF: {tx.reference}</p>}
                         </div>

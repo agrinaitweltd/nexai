@@ -6,7 +6,7 @@ import { Eye, EyeOff, Search, ChevronDown, ArrowRight, Globe2, Mail, Lock, Build
 import { BUSINESS_CATEGORIES, mapTypeToSector } from '../services/businessCategories';
 import { NexaLogo } from '../components/NexaLogo';
 import { User } from '../types';
-import { getSavedAuth, clearSavedAuth, isMobileDevice, MobileLoginSaveSheet, MobileUnlockPrompt } from '../components/MobileAuth';
+import { getSavedAuth, clearSavedAuth, isMobileDevice, isSessionPinVerified, setSessionPinVerified, MobileLoginSaveSheet, MobileUnlockPrompt } from '../components/MobileAuth';
 
 const AFRICAN_COUNTRIES = [
     "Kenya", "Uganda", "Tanzania", "Nigeria", "Ghana", "South Africa", "Rwanda", "Ethiopia", 
@@ -62,7 +62,7 @@ export default function Login() {
   const [showMobileUnlock, setShowMobileUnlock] = useState(() => {
     const savedAuth = getSavedAuth();
     if (!savedAuth) return false;
-    return !sessionStorage.getItem('nexa_session_pin_ok');
+    return !isSessionPinVerified();
   });
   const [showSaveLoginSheet, setShowSaveLoginSheet] = useState(false);
   const [loggedInUserId, setLoggedInUserId] = useState('');
@@ -312,7 +312,7 @@ export default function Login() {
                 const sbModule = await import('../supabaseClient');
                 const { data: { session } } = await sbModule.supabase.auth.getSession();
                 if (session && session.user) {
-                  sessionStorage.setItem('nexa_session_pin_ok', '1');
+                  setSessionPinVerified();
                   setShowMobileUnlock(false);
                   navigate('/app', { replace: true });
                 } else {

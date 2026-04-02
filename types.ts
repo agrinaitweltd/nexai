@@ -320,7 +320,7 @@ export interface Requisition {
 
 export interface Transaction {
   id: string;
-  type: 'INCOME' | 'EXPENSE' | 'INITIAL_CAPITAL';
+  type: 'INCOME' | 'EXPENSE' | 'INITIAL_CAPITAL' | 'TRANSFER';
   category: string;
   amount: number;
   description: string;

@@ -34,6 +34,12 @@ export function clearSavedAuth(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+// ── In-memory session flag (resets on every page refresh) ────
+// sessionStorage persists through refresh, so we use a module-level var instead.
+let _sessionPinVerified = false;
+export function isSessionPinVerified(): boolean { return _sessionPinVerified; }
+export function setSessionPinVerified(): void { _sessionPinVerified = true; }
+
 // ── Check biometric availability ──────────────────────────────
 
 export async function isBiometricAvailable(): Promise<boolean> {

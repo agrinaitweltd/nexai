@@ -380,6 +380,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const balance = transactions.reduce((acc, curr) => {
     if (curr.type === 'INCOME' || curr.type === 'INITIAL_CAPITAL') return acc + curr.amount;
+    if (curr.type === 'TRANSFER') return acc; // inter-account moves don't affect net balance
     return acc - curr.amount;
   }, 0);
 
@@ -721,6 +722,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const row = { id: harvest.id, user_id: user.id, farm_id: harvest.farmId, crop_id: harvest.cropId, crop_name: harvest.cropName, grade: harvest.grade, quantity: harvest.quantity, unit: harvest.unit, date: harvest.date, status: harvest.status, notes: harvest.notes || null, history: harvest.history || [] };
     await supabase.from('harvests').insert(row);
     setHarvests(prev => [...prev, harvest]);
+
+    // Auto-add harvested yield to inventory
+    const farm = farms.find(f => f.id === harvest.farmId);
+    const invItem: InventoryItem = {
+      id: 'inv-' + crypto.randomUUID().slice(0, 9),
+      productName: harvest.cropName,
+      grade: harvest.grade || 'Standard',
+      quantity: harvest.quantity,
+      unit: harvest.unit,
+      location: farm?.location || 'Farm Store',
+      lastUpdated: new Date().toISOString(),
+    };
+    await addToInventory(invItem);
 
     if (financeOptions && financeOptions.cost > 0) {
       await addTransaction({
