@@ -21,6 +21,7 @@ import Landing from './pages/Landing';
 import Vault from './pages/Vault';
 import Communication from './pages/Communication';
 import AdminPortal from './pages/AdminPortal';
+import AgroAI from './pages/AgroAI';
 import CookiesConsent from './components/CookiesConsent';
 
 const ProtectedRoute = ({ children, requireSuperAdmin = false }: { children?: React.ReactNode, requireSuperAdmin?: boolean }) => {
@@ -72,6 +73,7 @@ export default function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="help" element={<Help />} />
                     <Route path="reports" element={<Reports />} />
+                    <Route path="agro-ai" element={<AgroAI />} />
                 </Route>
 
                 {/* Exclusive Admin Portal */}

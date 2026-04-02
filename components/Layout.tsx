@@ -4,7 +4,7 @@ const { Link, useLocation, useNavigate, Outlet } = ReactRouterDOM as any;
 import { useApp } from '../context/AppContext';
 import { 
   LayoutDashboard, Warehouse, Ship, DollarSign, LogOut, 
-  Menu, Bell, X, Cat, Users, Briefcase, Settings, HelpCircle, FileStack, MessageSquare, BarChart3, Search, Clock, ShieldAlert, ChevronRight, Wallet, CheckCircle2, User as UserIcon, Tractor, FlaskConical, Palette
+  Menu, Bell, X, Cat, Users, Briefcase, Settings, HelpCircle, FileStack, MessageSquare, BarChart3, Search, Clock, ShieldAlert, ChevronRight, Wallet, CheckCircle2, User as UserIcon, Tractor, FlaskConical, Palette, Bot
 } from 'lucide-react';
 import { NexaLogo } from './NexaLogo';
 
@@ -121,6 +121,7 @@ export default function Layout() {
           <NavItem to="/app/staff" icon={Users} label="Staff & Teams" />
           <NavItem to="/app/finance" icon={DollarSign} label="Finance & Audit" />
           <NavItem to="/app/reports" icon={BarChart3} label="Intelligence" />
+          <NavItem to="/app/agro-ai" icon={Bot} label="NexaAI Assistant" />
           
           <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
              <NavItem to="/app/settings" icon={Settings} label="Settings" />
