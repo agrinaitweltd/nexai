@@ -142,9 +142,9 @@ export default function Vault() {
     if ((newDoc.name || selectedFile?.name) && newDoc.type) {
         setIsUploading(true);
         const fileName = newDoc.name || selectedFile?.name || 'Untitled Document';
-        const fileSize = selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) + 'MB' : (Math.random() * 5 + 0.5).toFixed(1) + 'MB';
-        
-        setTimeout(() => {
+        const fileSize = selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) + 'MB' : '0MB';
+
+        const finalize = (url: string) => {
             addDocument({
                 id: crypto.randomUUID(),
                 name: fileName,
@@ -152,14 +152,22 @@ export default function Vault() {
                 category: newDoc.category || 'General',
                 size: fileSize,
                 date: new Date().toISOString(),
-                url: selectedFile ? URL.createObjectURL(selectedFile) : '#',
+                url,
                 uploadedBy: user?.name || 'Authorized Lead'
             } as AppDocument);
             setIsUploading(false);
             setShowUploadModal(false);
             setNewDoc({ type: 'CONTRACT', category: 'General' });
             setSelectedFile(null);
-        }, 1500);
+        };
+
+        if (selectedFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => finalize(e.target?.result as string);
+            reader.readAsDataURL(selectedFile);
+        } else {
+            finalize('#');
+        }
     }
   };
 

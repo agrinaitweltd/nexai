@@ -1,7 +1,74 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Plus, Tractor, Leaf, Users, MapPin, Layers, Check, X, ClipboardList, Info, Calendar, ChevronDown, ChevronUp, FileText, Edit3, History, Building, DollarSign } from 'lucide-react';
+import { Plus, Tractor, Leaf, Users, MapPin, Layers, Check, X, ClipboardList, Info, Calendar, ChevronDown, ChevronUp, FileText, Edit3, History, Building, DollarSign, Clock, TrendingUp } from 'lucide-react';
 import { Farm, Crop, Harvest, CropStatus, FarmingType } from '../types';
+
+// ── Crop commodity catalog ───────────────────────────────────────────────────
+const CROP_CATALOG: Record<string, string[]> = {
+  'Grains & Cereals': ['Maize','Rice','Wheat','Sorghum','Millet','Barley','Teff','Oats','Quinoa','Buckwheat'],
+  'Vegetables': ['Tomatoes','Cabbage','Kale','Onions','Carrots','Spinach','Broccoli','Eggplant','Cucumber','Lettuce','Green Peppers','Chili Peppers','Garlic','Ginger','Pumpkin','Okra','Beetroot','Sweet Potatoes','Irish Potatoes','Cauliflower'],
+  'Fruits': ['Avocado','Hass Avocado','Mango','Bananas','Pineapples','Passion Fruit','Papaya','Oranges','Lemons','Watermelon','Guava','Jackfruit','Strawberries','Grapes','Coconut','Pomegranate','Dragon Fruit'],
+  'Coffee & Tea': ['Arabica Coffee','Robusta Coffee','Green Tea','Black Tea','White Tea','Herbal Tea'],
+  'Nuts & Seeds': ['Macadamia','Cashew Nuts','Groundnuts','Sesame Seeds','Sunflower Seeds','Shea Nuts','Chia Seeds','Flax Seeds'],
+  'Spices & Herbs': ['Vanilla','Cardamom','Cinnamon','Turmeric','Cloves','Black Pepper','Coriander','Rosemary','Basil'],
+  'Cash Crops': ['Sugarcane','Cotton','Tobacco','Sunflower','Soybeans','Cassava','Sweet Cassava'],
+  'Pulses & Legumes': ['Beans','Red Lentils','Chickpeas','Pigeon Peas','Cowpeas','Mung Beans','Black-eyed Peas'],
+};
+
+// ── Crop growth timelines ────────────────────────────────────────────────────
+const CROP_TIMELINE: Record<string, { totalDays: number; stages: { name: string; days: number }[] }> = {
+  'Maize':           { totalDays: 90,   stages: [{name:'Land Prep',days:7},{name:'Planting',days:7},{name:'Germination',days:14},{name:'Vegetative Growth',days:32},{name:'Harvest Ready',days:30}] },
+  'Rice':            { totalDays: 120,  stages: [{name:'Land Prep',days:14},{name:'Planting',days:7},{name:'Tillering',days:30},{name:'Panicle Init.',days:30},{name:'Grain Fill',days:39}] },
+  'Wheat':           { totalDays: 120,  stages: [{name:'Land Prep',days:7},{name:'Sowing',days:7},{name:'Germination',days:10},{name:'Vegetative',days:50},{name:'Grain Fill',days:46}] },
+  'Sorghum':         { totalDays: 110,  stages: [{name:'Land Prep',days:7},{name:'Planting',days:7},{name:'Germination',days:14},{name:'Vegetative',days:42},{name:'Grain Fill',days:40}] },
+  'Millet':          { totalDays: 90,   stages: [{name:'Land Prep',days:7},{name:'Planting',days:7},{name:'Germination',days:10},{name:'Vegetative',days:36},{name:'Grain Fill',days:30}] },
+  'Tomatoes':        { totalDays: 75,   stages: [{name:'Seedbed',days:21},{name:'Transplanting',days:7},{name:'Vegetative',days:21},{name:'Flowering',days:14},{name:'Fruiting',days:12}] },
+  'Cabbage':         { totalDays: 90,   stages: [{name:'Seedbed',days:28},{name:'Transplanting',days:7},{name:'Vegetative',days:30},{name:'Head Formation',days:25}] },
+  'Kale':            { totalDays: 60,   stages: [{name:'Seedbed',days:14},{name:'Transplanting',days:7},{name:'Leafy Growth',days:39}] },
+  'Onions':          { totalDays: 120,  stages: [{name:'Seedbed',days:42},{name:'Transplanting',days:7},{name:'Bulb Dev.',days:50},{name:'Maturation',days:21}] },
+  'Carrots':         { totalDays: 70,   stages: [{name:'Direct Sowing',days:7},{name:'Germination',days:14},{name:'Root Dev.',days:35},{name:'Maturation',days:14}] },
+  'Spinach':         { totalDays: 45,   stages: [{name:'Sowing',days:7},{name:'Germination',days:10},{name:'Leafy Growth',days:28}] },
+  'Avocado':         { totalDays: 1460, stages: [{name:'Nursery',days:180},{name:'Transplanting',days:30},{name:'Establishment',days:365},{name:'1st Flowering',days:365},{name:'Full Fruiting',days:520}] },
+  'Hass Avocado':    { totalDays: 1460, stages: [{name:'Nursery',days:180},{name:'Transplanting',days:30},{name:'Establishment',days:365},{name:'1st Flowering',days:365},{name:'Full Fruiting',days:520}] },
+  'Mango':           { totalDays: 1095, stages: [{name:'Nursery',days:120},{name:'Transplanting',days:30},{name:'Establishment',days:365},{name:'Juvenile Phase',days:365},{name:'Fruiting',days:215}] },
+  'Passion Fruit':   { totalDays: 300,  stages: [{name:'Seedbed',days:42},{name:'Transplanting',days:28},{name:'Vegetative',days:90},{name:'Flowering',days:60},{name:'Fruiting',days:80}] },
+  'Bananas':         { totalDays: 365,  stages: [{name:'Planting Suckers',days:30},{name:'Vegetative',days:120},{name:'Bunch Dev.',days:150},{name:'Maturation',days:65}] },
+  'Pineapples':      { totalDays: 540,  stages: [{name:'Planting Slips',days:30},{name:'Vegetative',days:300},{name:'Flower Init.',days:90},{name:'Fruiting',days:120}] },
+  'Arabica Coffee':  { totalDays: 1095, stages: [{name:'Nursery',days:180},{name:'Transplanting',days:30},{name:'Establishment',days:365},{name:'Pruning Cycle',days:365},{name:'Cherry Fruiting',days:155}] },
+  'Robusta Coffee':  { totalDays: 1095, stages: [{name:'Nursery',days:150},{name:'Transplanting',days:30},{name:'Establishment',days:365},{name:'Pruning Cycle',days:365},{name:'Cherry Fruiting',days:185}] },
+  'Tea':             { totalDays: 1095, stages: [{name:'Nursery',days:90},{name:'Transplanting',days:30},{name:'Establishment',days:730},{name:'Plucking Cycle',days:245}] },
+  'Vanilla':         { totalDays: 1095, stages: [{name:'Cutting Prep.',days:60},{name:'Rooting',days:90},{name:'Establishment',days:365},{name:'Vine Growth',days:365},{name:'Pollination',days:215}] },
+  'Sugarcane':       { totalDays: 365,  stages: [{name:'Planting Setts',days:30},{name:'Germination',days:30},{name:'Tillering',days:90},{name:'Grand Growth',days:150},{name:'Maturation',days:65}] },
+  'Cassava':         { totalDays: 270,  stages: [{name:'Land Prep',days:14},{name:'Planting Cuttings',days:14},{name:'Establishment',days:60},{name:'Root Dev.',days:120},{name:'Maturation',days:62}] },
+  'Beans':           { totalDays: 75,   stages: [{name:'Land Prep',days:7},{name:'Planting',days:7},{name:'Germination',days:7},{name:'Vegetative',days:30},{name:'Pod Fill',days:24}] },
+  'Groundnuts':      { totalDays: 100,  stages: [{name:'Land Prep',days:7},{name:'Planting',days:7},{name:'Germination',days:10},{name:'Vegetative',days:40},{name:'Pod Fill',days:36}] },
+  'Sunflower':       { totalDays: 100,  stages: [{name:'Land Prep',days:7},{name:'Sowing',days:7},{name:'Vegetative',days:40},{name:'Heading',days:25},{name:'Grain Fill',days:21}] },
+  'Soybeans':        { totalDays: 100,  stages: [{name:'Land Prep',days:7},{name:'Planting',days:7},{name:'Vegetative',days:36},{name:'Pod Dev.',days:30},{name:'Grain Fill',days:20}] },
+  'Cotton':          { totalDays: 180,  stages: [{name:'Land Prep',days:14},{name:'Sowing',days:7},{name:'Vegetative',days:50},{name:'Flowering',days:50},{name:'Boll Dev.',days:59}] },
+};
+
+function getCropTracker(cropName: string, plantedDate?: string) {
+  const timeline = CROP_TIMELINE[cropName];
+  if (!timeline || !plantedDate) return null;
+  const planted = new Date(plantedDate).getTime();
+  const now = Date.now();
+  const daysSincePlanted = Math.floor((now - planted) / 86400000);
+  const progressPct = Math.min(100, Math.round((daysSincePlanted / timeline.totalDays) * 100));
+  const daysRemaining = Math.max(0, timeline.totalDays - daysSincePlanted);
+  const harvestDate = new Date(planted + timeline.totalDays * 86400000);
+
+  let stageStart = 0;
+  let currentStage = timeline.stages[timeline.stages.length - 1].name;
+  for (const stage of timeline.stages) {
+    if (daysSincePlanted >= stageStart && daysSincePlanted < stageStart + stage.days) {
+      currentStage = stage.name;
+      break;
+    }
+    stageStart += stage.days;
+  }
+
+  return { daysSincePlanted, progressPct, daysRemaining, harvestDate, currentStage, stages: timeline.stages, totalDays: timeline.totalDays };
+}
 
 export default function Farms() {
   const { farms, addFarm, crops, addCrop, updateCropStatus, user, staff, harvests, addHarvest, updateHarvest } = useApp();
@@ -198,29 +265,77 @@ export default function Farms() {
                         </div>
                         {crops.filter(c => c.farmId === farm.id).length === 0 ? (
                             <p className="text-sm text-slate-400 italic py-2 text-center">No active production lots registered for this unit.</p>
-                        ) : crops.filter(c => c.farmId === farm.id).map(crop => (
-                            <div key={crop.id} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-transparent hover:border-primary-200 dark:hover:border-primary-800 transition-all">
-                                <div className="flex items-center">
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center mr-4 text-primary-600 shadow-sm border border-slate-100 dark:border-slate-600">
-                                        <Leaf size={18} />
+                        ) : crops.filter(c => c.farmId === farm.id).map(crop => {
+                            const tracker = getCropTracker(crop.name, crop.plantedDate);
+                            return (
+                            <div key={crop.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800 transition-all space-y-3">
+                                {/* Header row */}
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center mr-3 text-emerald-600 shadow-sm border border-slate-100 dark:border-slate-600">
+                                            <Leaf size={18} />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-white text-sm">{crop.name}</p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{crop.variety || 'Unspecified Variety'}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-bold text-slate-800 dark:text-white text-sm">{crop.name}</p>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{crop.variety || 'Unspecified Variety'}</p>
-                                    </div>
+                                    <select
+                                        className="px-4 py-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-[10px] rounded-xl font-bold border border-slate-200 dark:border-slate-700 outline-none cursor-pointer shadow-sm focus:ring-2 focus:ring-emerald-500"
+                                        value={crop.status}
+                                        onChange={(e) => updateCropStatus(crop.id, e.target.value as CropStatus)}
+                                    >
+                                        <option value="PLANTED">Planted</option>
+                                        <option value="GROWING">Growing</option>
+                                        <option value="READY">Ready</option>
+                                        <option value="HARVESTED">Harvested</option>
+                                    </select>
                                 </div>
-                                <select 
-                                    className="px-4 py-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 text-[10px] rounded-xl font-bold border border-slate-200 dark:border-slate-700 outline-none cursor-pointer shadow-sm focus:ring-2 focus:ring-emerald-500"
-                                    value={crop.status}
-                                    onChange={(e) => updateCropStatus(crop.id, e.target.value as CropStatus)}
-                                >
-                                    <option value="PLANTED">Planted</option>
-                                    <option value="GROWING">Growing</option>
-                                    <option value="READY">Ready</option>
-                                    <option value="HARVESTED">Harvested</option>
-                                </select>
+                                {/* Growth tracker */}
+                                {tracker && (
+                                  <div className="bg-white dark:bg-slate-900/60 rounded-xl p-3 border border-slate-100 dark:border-slate-700 space-y-2">
+                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                        <span className="flex items-center gap-1"><Clock size={10} /> Day {tracker.daysSincePlanted} of {tracker.totalDays}</span>
+                                        <span className="text-emerald-500">{tracker.currentStage}</span>
+                                    </div>
+                                    {/* Progress bar */}
+                                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all ${tracker.progressPct >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`}
+                                            style={{ width: `${tracker.progressPct}%` }}
+                                        />
+                                    </div>
+                                    {/* Stage pills */}
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        {(() => {
+                                          let acc = 0;
+                                          return tracker.stages.map((s, i) => {
+                                            const stageStart = acc;
+                                            acc += s.days;
+                                            const done = tracker.daysSincePlanted >= acc;
+                                            const active = !done && tracker.daysSincePlanted >= stageStart;
+                                            return (
+                                              <span key={i} className={`px-2 py-0.5 rounded-full text-[9px] font-bold border transition-all ${done ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : active ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'}`}>
+                                                {done ? '✓ ' : active ? '▶ ' : ''}{s.name}
+                                              </span>
+                                            );
+                                          });
+                                        })()}
+                                    </div>
+                                    {/* Harvest date */}
+                                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-700">
+                                        <span className="flex items-center gap-1"><Calendar size={10} /> Harvest: {tracker.harvestDate.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}</span>
+                                        {tracker.daysRemaining > 0 ? (
+                                          <span className="text-amber-500 font-bold">{tracker.daysRemaining} days left</span>
+                                        ) : (
+                                          <span className="text-emerald-500 font-bold">Harvest Ready!</span>
+                                        )}
+                                    </div>
+                                  </div>
+                                )}
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -377,7 +492,18 @@ export default function Farms() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                              <div className="space-y-2">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 block">Commodity Name</label>
-                                <input className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-6 rounded-[2rem] font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" placeholder="e.g. Arabica Coffee" value={newCrop.name || ''} onChange={e => setNewCrop({...newCrop, name: e.target.value})} />
+                                <select
+                                  className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-6 rounded-[2rem] font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm"
+                                  value={newCrop.name || ''}
+                                  onChange={e => setNewCrop({...newCrop, name: e.target.value})}
+                                >
+                                  <option value="">-- Select Commodity --</option>
+                                  {Object.entries(CROP_CATALOG).map(([cat, crops]) => (
+                                    <optgroup key={cat} label={cat}>
+                                      {crops.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </optgroup>
+                                  ))}
+                                </select>
                              </div>
                              <div className="space-y-2">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 block">Genetic Variety</label>

@@ -3,6 +3,17 @@ import { useApp } from '../context/AppContext';
 import { Animal } from '../types';
 import { Plus, Cat, HeartPulse, MapPin } from 'lucide-react';
 
+const ANIMAL_TYPES: Record<string, string[]> = {
+  'Cattle': ['Dairy Cows','Beef Cattle','Zebu (Boran)','Ankole-Watusi','Crossbred Cattle'],
+  'Small Ruminants': ['Goats (Meat)','Goats (Dairy)','Sheep','Hair Sheep'],
+  'Pigs': ['Commercial Pigs','Village Pigs','Breeding Sows'],
+  'Poultry': ['Chickens (Broilers)','Chickens (Layers)','Ducks','Turkeys','Guinea Fowl','Quail','Geese'],
+  'Rabbits & Small Animals': ['Rabbits','Guinea Pigs'],
+  'Aquaculture': ['Tilapia','Catfish','Trout','Carp','Prawns'],
+  'Equine & Pack Animals': ['Horses','Donkeys','Mules'],
+  'Other': ['Honey Bees','Camels','Buffaloes','Ostriches','Alpacas'],
+};
+
 export default function Animals() {
   const { animals, addAnimal, user } = useApp();
   const [showModal, setShowModal] = useState(false);
@@ -79,7 +90,14 @@ export default function Animals() {
             <div className="bg-white p-6 rounded-xl w-full max-w-md">
                 <h3 className="text-lg font-bold mb-4">Register New Animals</h3>
                 <div className="space-y-3">
-                    <input className="w-full border p-2 rounded" placeholder="Type (e.g. Cow)" onChange={e => setNewAnimal({...newAnimal, type: e.target.value})} />
+                    <select className="w-full border p-2 rounded" value={newAnimal.type || ''} onChange={e => setNewAnimal({...newAnimal, type: e.target.value})}>
+                        <option value="">-- Select Animal Type --</option>
+                        {Object.entries(ANIMAL_TYPES).map(([cat, types]) => (
+                          <optgroup key={cat} label={cat}>
+                            {types.map(t => <option key={t} value={t}>{t}</option>)}
+                          </optgroup>
+                        ))}
+                    </select>
                     <input className="w-full border p-2 rounded" placeholder="Breed (e.g. Holstein)" onChange={e => setNewAnimal({...newAnimal, breed: e.target.value})} />
                     <input type="number" className="w-full border p-2 rounded" placeholder="Quantity" onChange={e => setNewAnimal({...newAnimal, quantity: parseInt(e.target.value)})} />
                     <select className="w-full border p-2 rounded" onChange={e => setNewAnimal({...newAnimal, status: e.target.value as any})}>

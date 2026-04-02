@@ -4,7 +4,7 @@ import { InventoryItem, Client } from '../types';
 import { Search, PlusCircle, Truck, DollarSign, Hash, User, Settings2, Trash2, MapPin, AlertTriangle, Check, X, ChevronRight } from 'lucide-react';
 
 export default function Inventory() {
-  const { inventory, addToInventory, bulkUpdateInventory, deleteInventoryItems, user, clients } = useApp();
+  const { inventory, addToInventory, bulkUpdateInventory, deleteInventoryItems, user, clients, financeAccounts } = useApp();
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -23,7 +23,7 @@ export default function Inventory() {
   const [isExpense, setIsExpense] = useState(false);
   const [unitPrice, setUnitPrice] = useState<number>(0);
   const [costAmount, setCostAmount] = useState<number>(0);
-  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
+  const [paymentAccountId, setPaymentAccountId] = useState<string>('');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('');
   const [referenceNum, setReferenceNum] = useState<string>('');
 
@@ -53,7 +53,8 @@ export default function Inventory() {
             costPerUnit: unitPrice > 0 ? unitPrice : undefined
         } as InventoryItem, isExpense ? { 
             cost: costAmount, 
-            method: paymentMethod, 
+            method: paymentAccountId ? (financeAccounts?.find(a => a.id === paymentAccountId)?.name || 'Account') : 'BANK_TRANSFER', 
+            accountId: paymentAccountId || undefined,
             supplierName: supplier?.name, 
             reference: referenceNum 
         } : undefined);
@@ -65,6 +66,7 @@ export default function Inventory() {
         setUnitPrice(0);
         setSelectedSupplierId('');
         setReferenceNum('');
+        setPaymentAccountId('');
     }
   };
 
@@ -449,17 +451,29 @@ export default function Inventory() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Payment Method</label>
-                                    <select 
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Debit Account</label>
+                                    <select
                                         className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm"
-                                        onChange={e => setPaymentMethod(e.target.value)}
-                                        value={paymentMethod}
+                                        value={paymentAccountId}
+                                        onChange={e => setPaymentAccountId(e.target.value)}
                                     >
-                                        <option value="BANK_TRANSFER">Bank Transfer</option>
-                                        <option value="CASH">Petty Cash</option>
-                                        <option value="MOBILE_MONEY">Mobile Money</option>
-                                        <option value="CHEQUE">Cheque</option>
+                                        <option value="">-- Select Account --</option>
+                                        {(financeAccounts || []).map(a => (
+                                            <option key={a.id} value={a.id}>
+                                                {a.name} — {user?.preferredCurrency} {a.balance.toLocaleString()}
+                                            </option>
+                                        ))}
                                     </select>
+                                    {paymentAccountId && (() => {
+                                        const acc = financeAccounts?.find(a => a.id === paymentAccountId);
+                                        if (!acc) return null;
+                                        const shortfall = costAmount - acc.balance;
+                                        return shortfall > 0 ? (
+                                            <p className="text-[10px] text-red-500 font-bold mt-1 px-1">⚠ Insufficient balance. Shortfall: {user?.preferredCurrency} {shortfall.toLocaleString()}</p>
+                                        ) : (
+                                            <p className="text-[10px] text-emerald-500 font-bold mt-1 px-1">✓ Remaining after payment: {user?.preferredCurrency} {(acc.balance - costAmount).toLocaleString()}</p>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}

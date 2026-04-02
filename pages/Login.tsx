@@ -38,7 +38,11 @@ export default function Login() {
 
   // Mobile auth state
   const [savedMobileAuth] = useState(() => getSavedAuth());
-  const [showMobileUnlock, setShowMobileUnlock] = useState(() => isMobileDevice() && !!getSavedAuth());
+  const [showMobileUnlock, setShowMobileUnlock] = useState(() => {
+    const savedAuth = getSavedAuth();
+    if (!savedAuth) return false;
+    return !sessionStorage.getItem('nexa_session_pin_ok');
+  });
   const [showSaveLoginSheet, setShowSaveLoginSheet] = useState(false);
   const [loggedInUserId, setLoggedInUserId] = useState('');
   const [loggedInEmail, setLoggedInEmail] = useState('');
@@ -287,10 +291,11 @@ export default function Login() {
                 const sbModule = await import('../supabaseClient');
                 const { data: { session } } = await sbModule.supabase.auth.getSession();
                 if (session && session.user) {
+                  sessionStorage.setItem('nexa_session_pin_ok', '1');
                   setShowMobileUnlock(false);
                   navigate('/app', { replace: true });
                 } else {
-                  // Session expired — pre-fill email so user can re-enter password
+                  // Session expired — pre-fill email
                   setShowMobileUnlock(false);
                   setEmail(savedEmail);
                   setError('Your session has expired. Please sign in again.');

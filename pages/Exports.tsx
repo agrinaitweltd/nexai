@@ -398,7 +398,13 @@ export default function Exports() {
                                               <select
                                                   className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner text-sm"
                                                   value={newOrder.unit || 'tonnes'}
-                                                  onChange={e => setNewOrder({...newOrder, unit: e.target.value as any})}
+                                                  onChange={e => {
+                                                      const newUnit = e.target.value as any;
+                                                      let qty = newOrder.quantity || 0;
+                                                      if (newUnit === 'tonnes' && newOrder.unit === 'kg') qty = parseFloat((qty / 1000).toFixed(4));
+                                                      else if (newUnit === 'kg' && newOrder.unit === 'tonnes') qty = parseFloat((qty * 1000).toFixed(2));
+                                                      setNewOrder({...newOrder, unit: newUnit, quantity: qty});
+                                                  }}
                                               >
                                                   <option value="kg">kg (Kilograms)</option>
                                                   <option value="tonnes">Tonnes (MT)</option>
