@@ -4,6 +4,83 @@ import { Requisition, Transaction, FinanceAccount } from '../types';
 import { DollarSign, Check, X, Download, TrendingUp, TrendingDown, Wallet, Building, Calendar, Plus, AlertCircle, FileCheck, Sprout, User, ArrowRight, Hash, Filter, FileText, Smartphone, Landmark, CreditCard, Trash2, Pencil } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
+// Bank logo helpers — maps provider display name → public asset path
+const BANK_LOGOS: Record<string, string> = {
+  'Stanbic Bank': '/bank-stanbic.png',
+  'Centenary Bank': '/bank-centenary.png',
+  'DFCU Bank': '/bank-dfcu.png',
+  'Equity Bank Uganda': '/bank-equity.png',
+  'Equity Bank': '/bank-equity.png',
+  'Bank of Africa': '/bank-boa.png',
+  'Pearl Bank': '/bank-postbank.png',
+  'Absa Bank Uganda': '/bank-absa.png',
+  'Absa Bank': '/bank-absa.png',
+  'Standard Chartered Uganda': '/bank-stanchart.png',
+  'Standard Chartered Kenya': '/bank-stanchart.png',
+  'Standard Chartered Bank': '/bank-stanchart.png',
+  'Standard Chartered': '/bank-stanchart.png',
+  'KCB Bank': '/bank-kcb.png',
+  'KCB Bank Uganda': '/bank-kcb.png',
+  'I&M Bank Uganda': '/bank-im.png',
+  'I&M Bank': '/bank-im.png',
+  'Orient Bank': '/bank-orient.png',
+  'Housing Finance Bank': '/bank-hfb.png',
+  'Finance Trust Bank': '/bank-ftb.png',
+  'NC Bank Uganda': '/bank-ncbank.png',
+  'Co-operative Bank': '/bank-cooperative.png',
+  'NCBA Bank': '/bank-ncba.png',
+  'Family Bank': '/bank-familybank.png',
+  'DTB Bank': '/bank-dtb.png',
+  'CRDB Bank': '/bank-crdb.png',
+  'NMB Bank': '/bank-nmb.png',
+  'GTBank': '/bank-gtbank.png',
+  'Access Bank': '/bank-access.png',
+  'First Bank': '/bank-firstbank.png',
+  'UBA': '/bank-uba.png',
+  'Zenith Bank': '/bank-zenith.png',
+  'Fidelity Bank': '/bank-fidelity.png',
+  'Stanbic IBTC': '/bank-stanbic.png',
+  'Polaris Bank': '/bank-polaris.png',
+  'GCB Bank': '/bank-gcb.png',
+  'Ecobank': '/bank-ecobank.png',
+  'Bank of Kigali': '/bank-bk.png',
+  'BPR Bank Rwanda': '/bank-bpr.png',
+  'I&M Bank Rwanda': '/bank-im.png',
+  'Equity Bank Rwanda': '/bank-equity.png',
+  'FNB': '/bank-fnb.png',
+  'Nedbank': '/bank-nedbank.png',
+  'Standard Bank SA': '/bank-stanbic.png',
+  'Capitec': '/bank-capitec.png',
+  'ABSA South Africa': '/bank-absa.png',
+  'Lloyds Bank': '/bank-lloyds.png',
+  'Barclays': '/bank-barclays.png',
+  'HSBC': '/bank-hsbc.png',
+  'NatWest': '/bank-natwest.png',
+  'Santander': '/bank-santander.png',
+  'Halifax': '/bank-halifax.png',
+  'Nationwide': '/bank-nationwide.png',
+  'TSB': '/bank-tsb.png',
+  'Metro Bank': '/bank-metro.png',
+  'Monzo': '/bank-monzo.png',
+  'Revolut': '/bank-revolut.png',
+  'Starling Bank': '/bank-starling.png',
+  'Wise': '/bank-wise.png',
+  'Chase': '/bank-chase.png',
+  'Bank of America': '/bank-bofa.png',
+  'Wells Fargo': '/bank-wellsfargo.png',
+  'Cash App': '/bank-cashapp.png',
+  'MTN Mobile Money': '/bank-mtn-momo.png',
+  'Airtel Money': '/bank-airtel-money.png',
+  'M-Pesa': '/bank-mpesa.png',
+  'Vodacom M-Pesa': '/bank-mpesa.png',
+  'Tigo Pesa': '/bank-tigo.png',
+  'OPay': '/bank-opay.png',
+};
+
+export function getBankLogoUrl(provider: string): string | null {
+  return BANK_LOGOS[provider] || null;
+}
+
 const COUNTRY_PROVIDERS: Record<string, { name: string; type: string; icon: string }[]> = {
   Uganda: [
     { name: 'MTN Mobile Money', type: 'mobile_money', icon: '📱' },
@@ -13,6 +90,15 @@ const COUNTRY_PROVIDERS: Record<string, { name: string; type: string; icon: stri
     { name: 'DFCU Bank', type: 'bank', icon: '🏦' },
     { name: 'Equity Bank Uganda', type: 'bank', icon: '🏦' },
     { name: 'Bank of Africa', type: 'bank', icon: '🏦' },
+    { name: 'Absa Bank Uganda', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Uganda', type: 'bank', icon: '🏦' },
+    { name: 'KCB Bank Uganda', type: 'bank', icon: '🏦' },
+    { name: 'I&M Bank Uganda', type: 'bank', icon: '🏦' },
+    { name: 'Pearl Bank', type: 'bank', icon: '🏦' },
+    { name: 'Orient Bank', type: 'bank', icon: '🏦' },
+    { name: 'Housing Finance Bank', type: 'bank', icon: '🏦' },
+    { name: 'Finance Trust Bank', type: 'bank', icon: '🏦' },
+    { name: 'NC Bank Uganda', type: 'bank', icon: '🏦' },
   ],
   Kenya: [
     { name: 'M-Pesa', type: 'mobile_money', icon: '📱' },
@@ -20,12 +106,36 @@ const COUNTRY_PROVIDERS: Record<string, { name: string; type: string; icon: stri
     { name: 'Equity Bank', type: 'bank', icon: '🏦' },
     { name: 'KCB Bank', type: 'bank', icon: '🏦' },
     { name: 'Co-operative Bank', type: 'bank', icon: '🏦' },
+    { name: 'Absa Bank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Kenya', type: 'bank', icon: '🏦' },
+    { name: 'Stanbic Bank', type: 'bank', icon: '🏦' },
+    { name: 'DTB Bank', type: 'bank', icon: '🏦' },
+    { name: 'I&M Bank', type: 'bank', icon: '🏦' },
+    { name: 'NCBA Bank', type: 'bank', icon: '🏦' },
+    { name: 'Family Bank', type: 'bank', icon: '🏦' },
+    { name: 'Ecobank', type: 'bank', icon: '🏦' },
   ],
   Tanzania: [
     { name: 'Vodacom M-Pesa', type: 'mobile_money', icon: '📱' },
     { name: 'Tigo Pesa', type: 'mobile_money', icon: '📱' },
+    { name: 'Airtel Money', type: 'mobile_money', icon: '📱' },
     { name: 'CRDB Bank', type: 'bank', icon: '🏦' },
     { name: 'NMB Bank', type: 'bank', icon: '🏦' },
+    { name: 'Stanbic Bank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Bank', type: 'bank', icon: '🏦' },
+    { name: 'Absa Bank', type: 'bank', icon: '🏦' },
+    { name: 'Ecobank', type: 'bank', icon: '🏦' },
+    { name: 'DTB Bank', type: 'bank', icon: '🏦' },
+  ],
+  Rwanda: [
+    { name: 'MTN Mobile Money', type: 'mobile_money', icon: '📱' },
+    { name: 'Airtel Money', type: 'mobile_money', icon: '📱' },
+    { name: 'Bank of Kigali', type: 'bank', icon: '🏦' },
+    { name: 'BPR Bank Rwanda', type: 'bank', icon: '🏦' },
+    { name: 'I&M Bank Rwanda', type: 'bank', icon: '🏦' },
+    { name: 'Equity Bank Rwanda', type: 'bank', icon: '🏦' },
+    { name: 'Ecobank', type: 'bank', icon: '🏦' },
+    { name: 'Stanbic Bank', type: 'bank', icon: '🏦' },
   ],
   Nigeria: [
     { name: 'OPay', type: 'mobile_money', icon: '📱' },
@@ -34,27 +144,109 @@ const COUNTRY_PROVIDERS: Record<string, { name: string; type: string; icon: stri
     { name: 'Access Bank', type: 'bank', icon: '🏦' },
     { name: 'First Bank', type: 'bank', icon: '🏦' },
     { name: 'UBA', type: 'bank', icon: '🏦' },
+    { name: 'Zenith Bank', type: 'bank', icon: '🏦' },
+    { name: 'Fidelity Bank', type: 'bank', icon: '🏦' },
+    { name: 'Stanbic IBTC', type: 'bank', icon: '🏦' },
+    { name: 'Polaris Bank', type: 'bank', icon: '🏦' },
+    { name: 'Ecobank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Bank', type: 'bank', icon: '🏦' },
   ],
   Ghana: [
     { name: 'MTN Mobile Money', type: 'mobile_money', icon: '📱' },
     { name: 'Vodafone Cash', type: 'mobile_money', icon: '📱' },
+    { name: 'Airtel Money', type: 'mobile_money', icon: '📱' },
     { name: 'GCB Bank', type: 'bank', icon: '🏦' },
     { name: 'Ecobank', type: 'bank', icon: '🏦' },
+    { name: 'Absa Bank', type: 'bank', icon: '🏦' },
+    { name: 'Fidelity Bank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Bank', type: 'bank', icon: '🏦' },
+    { name: 'Stanbic Bank', type: 'bank', icon: '🏦' },
+  ],
+  'South Africa': [
+    { name: 'FNB', type: 'bank', icon: '🏦' },
+    { name: 'Nedbank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Bank SA', type: 'bank', icon: '🏦' },
+    { name: 'Capitec', type: 'bank', icon: '🏦' },
+    { name: 'ABSA South Africa', type: 'bank', icon: '🏦' },
+    { name: 'Investec', type: 'bank', icon: '🏦' },
+    { name: 'Bidvest Bank', type: 'bank', icon: '🏦' },
   ],
   'United Kingdom': [
     { name: 'Lloyds Bank', type: 'bank', icon: '🏦' },
     { name: 'Barclays', type: 'bank', icon: '🏦' },
     { name: 'HSBC', type: 'bank', icon: '🏦' },
     { name: 'NatWest', type: 'bank', icon: '🏦' },
-    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Santander', type: 'bank', icon: '🏦' },
+    { name: 'Halifax', type: 'bank', icon: '🏦' },
+    { name: 'Nationwide', type: 'bank', icon: '🏦' },
+    { name: 'TSB', type: 'bank', icon: '🏦' },
+    { name: 'Metro Bank', type: 'bank', icon: '🏦' },
+    { name: 'Starling Bank', type: 'digital_wallet', icon: '💳' },
     { name: 'Monzo', type: 'digital_wallet', icon: '💳' },
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Wise', type: 'digital_wallet', icon: '💳' },
+    { name: 'Standard Chartered Bank', type: 'bank', icon: '🏦' },
   ],
   'United States': [
     { name: 'Chase', type: 'bank', icon: '🏦' },
     { name: 'Bank of America', type: 'bank', icon: '🏦' },
     { name: 'Wells Fargo', type: 'bank', icon: '🏦' },
+    { name: 'Citibank', type: 'bank', icon: '🏦' },
+    { name: 'Capital One', type: 'bank', icon: '🏦' },
     { name: 'Venmo', type: 'digital_wallet', icon: '💳' },
     { name: 'Cash App', type: 'digital_wallet', icon: '💳' },
+    { name: 'PayPal', type: 'digital_wallet', icon: '💳' },
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Wise', type: 'digital_wallet', icon: '💳' },
+  ],
+  'European Union': [
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Wise', type: 'digital_wallet', icon: '💳' },
+    { name: 'N26', type: 'digital_wallet', icon: '💳' },
+    { name: 'Deutsche Bank', type: 'bank', icon: '🏦' },
+    { name: 'BNP Paribas', type: 'bank', icon: '🏦' },
+    { name: 'ING', type: 'bank', icon: '🏦' },
+    { name: 'Rabobank', type: 'bank', icon: '🏦' },
+    { name: 'Santander', type: 'bank', icon: '🏦' },
+    { name: 'HSBC', type: 'bank', icon: '🏦' },
+  ],
+  UAE: [
+    { name: 'Emirates NBD', type: 'bank', icon: '🏦' },
+    { name: 'FAB (First Abu Dhabi Bank)', type: 'bank', icon: '🏦' },
+    { name: 'ENBD', type: 'bank', icon: '🏦' },
+    { name: 'Mashreq Bank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Bank', type: 'bank', icon: '🏦' },
+    { name: 'HSBC UAE', type: 'bank', icon: '🏦' },
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Wise', type: 'digital_wallet', icon: '💳' },
+  ],
+  Canada: [
+    { name: 'RBC Royal Bank', type: 'bank', icon: '🏦' },
+    { name: 'TD Bank', type: 'bank', icon: '🏦' },
+    { name: 'Scotiabank', type: 'bank', icon: '🏦' },
+    { name: 'BMO Bank', type: 'bank', icon: '🏦' },
+    { name: 'CIBC', type: 'bank', icon: '🏦' },
+    { name: 'Wise', type: 'digital_wallet', icon: '💳' },
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+  ],
+  Australia: [
+    { name: 'Commonwealth Bank', type: 'bank', icon: '🏦' },
+    { name: 'ANZ Bank', type: 'bank', icon: '🏦' },
+    { name: 'Westpac', type: 'bank', icon: '🏦' },
+    { name: 'NAB', type: 'bank', icon: '🏦' },
+    { name: 'Revolut', type: 'digital_wallet', icon: '💳' },
+    { name: 'Wise', type: 'digital_wallet', icon: '💳' },
+  ],
+  India: [
+    { name: 'PhonePe', type: 'mobile_money', icon: '📱' },
+    { name: 'Paytm', type: 'mobile_money', icon: '📱' },
+    { name: 'GPay', type: 'mobile_money', icon: '📱' },
+    { name: 'State Bank of India', type: 'bank', icon: '🏦' },
+    { name: 'HDFC Bank', type: 'bank', icon: '🏦' },
+    { name: 'ICICI Bank', type: 'bank', icon: '🏦' },
+    { name: 'Axis Bank', type: 'bank', icon: '🏦' },
+    { name: 'Standard Chartered Bank', type: 'bank', icon: '🏦' },
+    { name: 'HSBC India', type: 'bank', icon: '🏦' },
   ],
 };
 
@@ -89,11 +281,13 @@ export default function Finance() {
     const name = fd.get('name') as string || provider;
     const bal = parseFloat(fd.get('balance') as string) || 0;
     const providerMeta = countryProviders.find(p => p.name === provider);
+    const rawType = providerMeta?.type || (fd.get('type') as string) || 'bank';
+    const typeMap: Record<string, FinanceAccount['type']> = { bank: 'BANK', mobile_money: 'MOBILE_MONEY', digital_wallet: 'WALLET', cash: 'CASH', BANK: 'BANK', MOBILE_MONEY: 'MOBILE_MONEY', WALLET: 'WALLET', CASH: 'CASH' };
     const acct: FinanceAccount = {
       id: editingAccount?.id || crypto.randomUUID(),
       name,
       provider,
-      type: providerMeta?.type || (fd.get('type') as string) || 'bank',
+      type: typeMap[rawType] || 'BANK',
       currency: user?.preferredCurrency || 'USD',
       balance: bal,
       country: userCountry,
@@ -317,8 +511,10 @@ export default function Finance() {
                   <button onClick={() => deleteFinanceAccount(acct.id)} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
                 </div>
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${acct.type === 'mobile_money' ? 'bg-yellow-50 dark:bg-yellow-900/20' : acct.type === 'digital_wallet' ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
-                    {acct.type === 'mobile_money' ? <Smartphone size={18} className="text-yellow-600" /> : acct.type === 'digital_wallet' ? <CreditCard size={18} className="text-purple-600" /> : <Landmark size={18} className="text-blue-600" />}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden ${acct.type === 'mobile_money' ? 'bg-yellow-50 dark:bg-yellow-900/20' : acct.type === 'digital_wallet' ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                    {getBankLogoUrl(acct.provider) ? (
+                      <img src={getBankLogoUrl(acct.provider)!} alt={acct.provider} className="w-8 h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
+                    ) : acct.type === 'mobile_money' ? <Smartphone size={18} className="text-yellow-600" /> : acct.type === 'digital_wallet' ? <CreditCard size={18} className="text-purple-600" /> : <Landmark size={18} className="text-blue-600" />}
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{acct.provider}</p>
@@ -645,6 +841,7 @@ export default function Finance() {
                       <option key={p.name} value={p.name}>{p.icon} {p.name}</option>
                     ))}
                   </select>
+                  {/* Logo preview of selected provider */}
                 </div>
               )}
               <div className="space-y-1.5">

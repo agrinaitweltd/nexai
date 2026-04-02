@@ -1,4 +1,11 @@
+import 'dotenv/config' // This loads the .env variables
+import { createClient } from '@supabase/supabase-js'
 
+// Create a Supabase client using your .env variables
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+)
 import { SignIn } from "@clerk/nextjs";
 import { NexaLogo } from "../../../../components/NexaLogo";
 

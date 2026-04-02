@@ -14,7 +14,28 @@ const AFRICAN_COUNTRIES = [
     "United States", "United Kingdom"
 ].sort();
 
-const UG_BANKS = ["Stanbic Bank", "Equity Bank", "Absa Bank", "Centenary Bank", "Standard Chartered", "DFCU Bank", "KCB Bank"];
+const UG_BANKS = [
+  "Stanbic Bank","Equity Bank Uganda","Absa Bank Uganda","Centenary Bank",
+  "Standard Chartered Uganda","DFCU Bank","KCB Bank Uganda","I&M Bank Uganda",
+  "Pearl Bank","Orient Bank","Housing Finance Bank","Finance Trust Bank",
+  "Bank of Africa","NC Bank Uganda",
+  // Kenya
+  "Equity Bank (KE)","KCB Bank (KE)","Co-operative Bank","NCBA Bank","DTB Bank","Family Bank",
+  // Tanzania
+  "CRDB Bank","NMB Bank",
+  // Nigeria
+  "GTBank","Access Bank","First Bank","UBA","Zenith Bank","Stanbic IBTC",
+  // Ghana
+  "GCB Bank","Ecobank","Fidelity Bank (GH)",
+  // South Africa
+  "FNB","Nedbank","Standard Bank SA","Capitec","ABSA South Africa",
+  // Rwanda
+  "Bank of Kigali","BPR Bank Rwanda",
+  // UK
+  "Lloyds Bank","Barclays","HSBC","NatWest","Santander","Halifax","Nationwide","TSB","Metro Bank",
+  // International
+  "Standard Chartered Bank","Revolut","Wise","Monzo","Starling Bank",
+];
 
 type AuthView = 'LOGIN' | 'SIGNUP' | 'PAYMENT' | 'VERIFICATION' | 'AWAITING' | 'REJECTED' | 'LIMIT' | 'FORGOT_PASSWORD' | 'RESET_PASSWORD';
 

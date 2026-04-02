@@ -21,7 +21,7 @@ body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-start-rgb));
 }
-
+npm install -g supabase
 .route-page-shell {
   will-change: transform, opacity;
 }
