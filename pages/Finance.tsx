@@ -261,6 +261,11 @@ export default function Finance() {
   const [newTx, setNewTx] = useState<Partial<Transaction>>({ type: 'INCOME', paymentMethod: 'CASH' });
   const [reportFilter, setReportFilter] = useState<'ALL' | 'TODAY' | 'MONTH' | 'YEAR'>('ALL');
 
+  // Account modal controlled state
+  const [accountFormProvider, setAccountFormProvider] = useState('');
+  const [accountFormCurrency, setAccountFormCurrency] = useState(user?.preferredCurrency || 'UGX');
+  const [showProviderDropdown, setShowProviderDropdown] = useState(false);
+
   const [transferFromId, setTransferFromId] = useState('');
   const [transferToId, setTransferToId] = useState('');
   const [transferAmount, setTransferAmount] = useState(0);
@@ -268,6 +273,7 @@ export default function Finance() {
   const [transferOverdraft, setTransferOverdraft] = useState(false);
   const [transferError, setTransferError] = useState('');
 
+  const COMMON_CURRENCIES = ['UGX','USD','EUR','GBP','KES','TZS','RWF','AED','AUD','CAD','INR','ZAR','NGN','GHS','ETB'];
   const userCountry = user?.location || '';
   const countryProviders = COUNTRY_PROVIDERS[userCountry] || [];
   const allProviderNames = countryProviders.map(p => p.name);
@@ -277,9 +283,10 @@ export default function Finance() {
   const handleAccountSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const provider = fd.get('provider') as string;
+    const provider = accountFormProvider || (fd.get('provider') as string);
     const name = fd.get('name') as string || provider;
     const bal = parseFloat(fd.get('balance') as string) || 0;
+    const currency = accountFormCurrency || fd.get('currency') as string || user?.preferredCurrency || 'UGX';
     const providerMeta = countryProviders.find(p => p.name === provider);
     const rawType = providerMeta?.type || (fd.get('type') as string) || 'bank';
     const typeMap: Record<string, FinanceAccount['type']> = { bank: 'BANK', mobile_money: 'MOBILE_MONEY', digital_wallet: 'WALLET', cash: 'CASH', BANK: 'BANK', MOBILE_MONEY: 'MOBILE_MONEY', WALLET: 'WALLET', CASH: 'CASH' };
@@ -288,7 +295,7 @@ export default function Finance() {
       name,
       provider,
       type: typeMap[rawType] || 'BANK',
-      currency: user?.preferredCurrency || 'USD',
+      currency,
       balance: bal,
       country: userCountry,
       lastUpdated: new Date().toISOString(),
@@ -300,6 +307,8 @@ export default function Finance() {
     }
     setShowAccountModal(false);
     setEditingAccount(null);
+    setAccountFormProvider('');
+    setAccountFormCurrency(user?.preferredCurrency || 'UGX');
   };
 
   const handleTransfer = () => {
@@ -335,6 +344,7 @@ export default function Finance() {
       date: new Date().toISOString(),
       paymentMethod: 'BANK_TRANSFER',
       reference: `TRF-${Date.now()}`,
+      accountId: transferFromId,
     } as Transaction);
 
     setShowTransferModal(false);
@@ -491,7 +501,7 @@ export default function Finance() {
                 <ArrowRight size={14} /> <span>Transfer</span>
               </button>
             )}
-            <button onClick={() => { setEditingAccount(null); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
+            <button onClick={() => { setEditingAccount(null); setAccountFormProvider(''); setAccountFormCurrency(user?.preferredCurrency || 'UGX'); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
               <Plus size={14} /> <span>Add Account</span>
             </button>
           </div>
@@ -507,7 +517,7 @@ export default function Finance() {
             {financeAccounts.map(acct => (
               <div key={acct.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm group relative overflow-hidden hover:shadow-md transition-shadow">
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                  <button onClick={() => { setEditingAccount(acct); setShowAccountModal(true); }} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
+                  <button onClick={() => { setEditingAccount(acct); setAccountFormProvider(acct.provider); setAccountFormCurrency(acct.currency || user?.preferredCurrency || 'UGX'); setShowAccountModal(true); }} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
                   <button onClick={() => deleteFinanceAccount(acct.id)} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
                 </div>
                 <div className="flex items-center space-x-3 mb-4">
@@ -886,7 +896,7 @@ export default function Finance() {
                 <>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Provider / Institution</label>
-                    <input name="provider" defaultValue={editingAccount?.provider || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" placeholder="e.g. Chase, M-Pesa" />
+                    <input name="provider" value={accountFormProvider} onChange={e => setAccountFormProvider(e.target.value)} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" placeholder="e.g. Chase, M-Pesa" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Account Type</label>
@@ -900,21 +910,72 @@ export default function Finance() {
               ) : (
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Financial Provider</label>
-                  <select name="provider" defaultValue={editingAccount?.provider || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm">
-                    <option value="">Select a provider...</option>
-                    {countryProviders.map(p => (
-                      <option key={p.name} value={p.name}>{p.icon} {p.name}</option>
-                    ))}
-                  </select>
-                  {/* Logo preview of selected provider */}
+                  {/* Visual provider picker */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowProviderDropdown(!showProviderDropdown)}
+                      className="w-full border-none bg-slate-50 dark:bg-slate-950 p-3.5 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm flex items-center space-x-3"
+                    >
+                      {accountFormProvider ? (
+                        <>
+                          {(() => { const logo = getBankLogoUrl(accountFormProvider); return logo ? <img src={logo} alt={accountFormProvider} className="w-7 h-7 object-contain rounded-lg" /> : <div className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center"><Landmark size={14} className="text-slate-400" /></div>; })()}
+                          <span className="text-slate-900 dark:text-white font-bold">{accountFormProvider}</span>
+                          <span className="ml-auto text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md">{countryProviders.find(p => p.name === accountFormProvider)?.type?.replace('_', ' ')}</span>
+                        </>
+                      ) : (
+                        <span className="text-slate-400">Select a provider...</span>
+                      )}
+                    </button>
+                    {showProviderDropdown && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-20 max-h-56 overflow-y-auto">
+                        {countryProviders.map(p => {
+                          const logo = getBankLogoUrl(p.name);
+                          return (
+                            <button
+                              key={p.name}
+                              type="button"
+                              onClick={() => { setAccountFormProvider(p.name); setShowProviderDropdown(false); }}
+                              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left"
+                            >
+                              {logo ? (
+                                <img src={logo} alt={p.name} className="w-8 h-8 object-contain rounded-xl flex-shrink-0" />
+                              ) : (
+                                <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0">
+                                  {p.type === 'mobile_money' ? <Smartphone size={14} className="text-yellow-500" /> : <Landmark size={14} className="text-blue-500" />}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{p.name}</p>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{p.type.replace('_', ' ')}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Account Label (optional)</label>
-                <input name="name" defaultValue={editingAccount?.name || ''} className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" placeholder="e.g. Savings, Operations" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Account Label</label>
+                  <input name="name" defaultValue={editingAccount?.name || ''} className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" placeholder="e.g. Savings, Ops" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Currency</label>
+                  <select
+                    name="currency"
+                    value={accountFormCurrency}
+                    onChange={e => setAccountFormCurrency(e.target.value)}
+                    className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm"
+                  >
+                    {COMMON_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Current Balance ({user?.preferredCurrency || 'USD'})</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Current Balance</label>
                 <input name="balance" type="number" step="0.01" defaultValue={editingAccount?.balance || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-5 rounded-[1.5rem] font-black text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" placeholder="0.00" />
               </div>
             </div>

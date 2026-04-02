@@ -193,12 +193,169 @@ const RecentActivityWidget = () => {
     );
 };
 
+const LivestockSummaryWidget = () => {
+    const { animals } = useApp();
+    const byType = animals.reduce((acc: Record<string, number>, a) => {
+        acc[a.type] = (acc[a.type] || 0) + a.quantity;
+        return acc;
+    }, {});
+    const entries = Object.entries(byType).slice(0, 6);
+    const total = animals.reduce((s, a) => s + a.quantity, 0);
+    return (
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><Users size={80}/></div>
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
+                <Briefcase size={16} className="mr-2 text-amber-500"/> Livestock Register
+            </h3>
+            {animals.length === 0 ? (
+                <div className="py-10 text-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl font-bold uppercase tracking-widest">No Animals Registered</div>
+            ) : (
+                <>
+                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 p-4 rounded-2xl mb-4 flex items-center justify-between relative z-10">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Total Heads</span>
+                        <span className="text-2xl font-black text-slate-900 dark:text-white">{total.toLocaleString()}</span>
+                    </div>
+                    <div className="space-y-2.5 relative z-10">
+                        {entries.map(([type, count]) => (
+                            <div key={type} className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{type}</span>
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div className="h-full bg-amber-400 rounded-full" style={{width: `${Math.min((count/total)*100, 100)}%`}} />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-900 dark:text-white w-8 text-right">{count}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+const MissionsTrackerWidget = () => {
+    const { exports, formatCurrency } = useApp();
+    const active = exports.filter(e => e.status !== 'PAID' && e.status !== 'DELIVERED');
+    const statusColor: Record<string, string> = {
+        PENDING: 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
+        PENDING_APPROVAL: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+        IN_TRANSIT: 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+        PAYMENT_PENDING: 'bg-rose-100 text-rose-700 dark:bg-rose-800/30 dark:text-rose-300',
+    };
+    return (
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><Ship size={80}/></div>
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
+                <Globe size={16} className="mr-2 text-indigo-500"/> Active Missions
+            </h3>
+            {active.length === 0 ? (
+                <div className="py-10 text-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl font-bold uppercase tracking-widest">No Active Missions</div>
+            ) : (
+                <div className="space-y-3 relative z-10 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
+                    {active.slice(0, 6).map(m => (
+                        <div key={m.id} className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
+                            <div className="flex justify-between items-start mb-1.5">
+                                <p className="text-xs font-black text-slate-900 dark:text-white truncate pr-2">{m.shipmentNumber}</p>
+                                <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${statusColor[m.status] || 'bg-slate-100 text-slate-600'}`}>{m.status.replace('_', ' ')}</span>
+                            </div>
+                            <p className="text-[10px] text-slate-500 font-bold truncate">{m.productName} → {m.buyerName}</p>
+                            <p className="text-[9px] font-black text-emerald-600 mt-1">{formatCurrency(m.totalValue)}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const StaffOverviewWidget = () => {
+    const { staff } = useApp();
+    const active = staff.filter(s => s.status === 'ACTIVE');
+    const byRole = active.reduce((acc: Record<string, number>, s) => {
+        const key = s.role || 'General';
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+    }, {});
+    const roleEntries = Object.entries(byRole).slice(0, 5);
+    return (
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><Users size={80}/></div>
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
+                <Users size={16} className="mr-2 text-blue-500"/> Workforce Overview
+            </h3>
+            <div className="grid grid-cols-2 gap-3 mb-4 relative z-10">
+                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 p-4 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-blue-600 mb-1">Active</p>
+                    <p className="text-2xl font-black text-slate-900 dark:text-white">{active.length}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Total</p>
+                    <p className="text-2xl font-black text-slate-900 dark:text-white">{staff.length}</p>
+                </div>
+            </div>
+            {roleEntries.length > 0 && (
+                <div className="space-y-2 relative z-10">
+                    {roleEntries.map(([role, count]) => (
+                        <div key={role} className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">{role}</span>
+                            <span className="text-[10px] font-black text-slate-900 dark:text-white ml-2">{count}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const TransactionFeedWidget = () => {
+    const { transactions, formatCurrency } = useApp();
+    const recent = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
+    const typeStyle: Record<string, { color: string; label: string }> = {
+        INCOME:          { color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20', label: '+' },
+        EXPENSE:         { color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/20', label: '-' },
+        TRANSFER:        { color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20', label: '↔' },
+        INITIAL_CAPITAL: { color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20', label: '★' },
+    };
+    return (
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><DollarSign size={80}/></div>
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
+                <History size={16} className="mr-2 text-rose-500"/> Transaction Feed
+            </h3>
+            {recent.length === 0 ? (
+                <div className="py-10 text-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl font-bold uppercase tracking-widest">No Transactions</div>
+            ) : (
+                <div className="space-y-2 relative z-10">
+                    {recent.map(t => {
+                        const style = typeStyle[t.type] || { color: 'text-slate-500 bg-slate-50', label: '?' };
+                        return (
+                            <div key={t.id} className="flex items-center space-x-3">
+                                <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${style.color}`}>{style.label}</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-bold text-slate-800 dark:text-white truncate">{t.description}</p>
+                                    <p className="text-[8px] text-slate-400 font-bold uppercase">{new Date(t.date).toLocaleDateString()}</p>
+                                </div>
+                                <span className={`text-[10px] font-black shrink-0 ${t.type === 'EXPENSE' ? 'text-rose-600' : 'text-emerald-600'}`}>{formatCurrency(t.amount)}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const AVAILABLE_WIDGETS: { type: WidgetType, title: string, defaultTitle: string, desc: string }[] = [
     { type: 'FINANCIAL_STATS', title: 'Financials', defaultTitle: 'Financial Overview', desc: 'Cash flow tracking' },
     { type: 'PRODUCTION_OVERVIEW', title: 'Stock Distribution', defaultTitle: 'Stock Health', desc: 'Inventory visualization' },
     { type: 'RECENT_ACTIVITY', title: 'Activity Logs', defaultTitle: 'Recent Activity', desc: 'Sync of all operations' },
     { type: 'QUICK_ACTIONS', title: 'Toolbox', defaultTitle: 'Quick Actions', desc: 'Workflow navigation' },
     { type: 'ACTIVATION_REQUESTS', title: 'Pending Audits', defaultTitle: 'Activation Pipeline', desc: 'Account verification audit' },
+    { type: 'LIVESTOCK_SUMMARY', title: 'Livestock', defaultTitle: 'Livestock Register', desc: 'Heads count by species' },
+    { type: 'MISSIONS_TRACKER', title: 'Missions', defaultTitle: 'Active Missions', desc: 'Live export & domestic missions' },
+    { type: 'STAFF_OVERVIEW', title: 'Workforce', defaultTitle: 'Workforce Overview', desc: 'Headcount & role breakdown' },
+    { type: 'TRANSACTION_FEED', title: 'Ledger Feed', defaultTitle: 'Transaction Feed', desc: 'Latest financial movements' },
 ];
 
 const THEME_OPTIONS: { id: DashboardTheme, color: string }[] = [
@@ -277,6 +434,10 @@ export default function Dashboard() {
           case 'ACTIVATION_REQUESTS': return <ActivationRequestsWidget />;
           case 'PRODUCTION_OVERVIEW': return <StockDistributionWidget />;
           case 'RECENT_ACTIVITY': return <RecentActivityWidget />;
+          case 'LIVESTOCK_SUMMARY': return <LivestockSummaryWidget />;
+          case 'MISSIONS_TRACKER': return <MissionsTrackerWidget />;
+          case 'STAFF_OVERVIEW': return <StaffOverviewWidget />;
+          case 'TRANSACTION_FEED': return <TransactionFeedWidget />;
           default: return <div className="p-12 text-center text-slate-400 font-bold uppercase tracking-widest bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-dashed border-slate-100 dark:border-slate-800">{type} Module (Empty)</div>;
       }
   };

@@ -21,7 +21,11 @@ export type WidgetType =
   | 'WEATHER_FORECAST'
   | 'DOCUMENT_PREVIEW'
   | 'INBOX_PREVIEW'
-  | 'ACTIVATION_REQUESTS';
+  | 'ACTIVATION_REQUESTS'
+  | 'LIVESTOCK_SUMMARY'
+  | 'MISSIONS_TRACKER'
+  | 'STAFF_OVERVIEW'
+  | 'TRANSACTION_FEED';
 
 export interface DashboardWidget {
   id: string;

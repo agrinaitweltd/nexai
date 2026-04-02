@@ -7,12 +7,37 @@ import {
   Menu, Bell, X, Cat, Users, Briefcase, Settings, HelpCircle, FileStack, MessageSquare, BarChart3, Search, Clock, ShieldAlert, ChevronRight, Wallet, CheckCircle2, User as UserIcon, Tractor, FlaskConical, Palette, Bot
 } from 'lucide-react';
 import { NexaLogo } from './NexaLogo';
+import { getSavedAuth, isSessionPinVerified, setSessionPinVerified, MobileUnlockPrompt, clearSavedAuth } from './MobileAuth';
 
 export default function Layout() {
   const { user, logout, notifications, markNotificationRead, markAllNotificationsRead, theme, requisitions, balance, formatCurrency, messages } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // ── Lock screen: show on every page load/refresh if savedAuth exists ──
+  const [savedMobileAuth] = useState(() => getSavedAuth());
+  const [showLockScreen, setShowLockScreen] = useState(() => {
+    const saved = getSavedAuth();
+    return !!saved && !isSessionPinVerified();
+  });
+
+  const handleLockSuccess = async (email: string) => {
+    setSessionPinVerified();
+    setShowLockScreen(false);
+  };
+
+  const handleLockFallback = () => {
+    // Let them through via password — just hide and let Supabase session handle it
+    setSessionPinVerified();
+    setShowLockScreen(false);
+  };
+
+  const handleLockDifferentAccount = () => {
+    clearSavedAuth();
+    setShowLockScreen(false);
+    logout();
+  };
   const [showNotifications, setShowNotifications] = useState(false);
   const [isPageEntering, setIsPageEntering] = useState(false);
   const mainContentRef = useRef<HTMLElement | null>(null);
@@ -86,6 +111,20 @@ export default function Layout() {
 
   return (
     <div className={`flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors ${theme}`}>
+      {/* Passcode / Face ID lock screen — shown on every browser refresh */}
+      {showLockScreen && savedMobileAuth && (
+        <div className="fixed inset-0 bg-white dark:bg-slate-950 z-[500] flex flex-col items-center justify-center p-6">
+          <div className="mb-8"><NexaLogo className="h-10" /></div>
+          <div className="w-full max-w-sm">
+            <MobileUnlockPrompt
+              savedAuth={savedMobileAuth}
+              onSuccess={handleLockSuccess}
+              onFallback={handleLockFallback}
+              onDifferentAccount={handleLockDifferentAccount}
+            />
+          </div>
+        </div>
+      )}
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />
@@ -111,9 +150,7 @@ export default function Layout() {
           {(isAdmin || hasPermission('LOG_HARVEST')) && (
              <NavItem to="/app/farms" icon={Tractor} label="Crops & Farms" />
           )}
-          {isLivestock && (
-             <NavItem to="/app/animals" icon={Cat} label="Livestock & Animals" />
-          )}
+          <NavItem to="/app/animals" icon={Cat} label="Livestock & Animals" />
           <NavItem to="/app/inventory" icon={Warehouse} label="Inventory" />
           <NavItem to="/app/exports" icon={Ship} label="Mission Control" />
           <NavItem to="/app/vault" icon={FileStack} label="Vault & Documents" />

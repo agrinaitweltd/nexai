@@ -313,182 +313,230 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* Stock In Modal */}
+      {/* Stock In Modal — Mission Builder Style */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transition-colors">
-                <div className="bg-slate-50 dark:bg-slate-700/50 px-8 py-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-6 backdrop-blur-md overflow-y-auto">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2rem] w-full max-w-4xl shadow-2xl border border-white/5 my-auto flex flex-col max-h-[95vh]">
+                {/* Header */}
+                <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
                     <div>
-                        <h3 className="font-bold text-xl text-slate-800 dark:text-white">Restock Inventory</h3>
-                        <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">Manual Acquisition Entry</p>
+                        <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Stock Acquisition Builder</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-xs md:text-sm mt-1">Record incoming stock and link it to your finance ledger.</p>
                     </div>
-                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-2xl">&times;</button>
+                    <button onClick={() => setShowModal(false)} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
                 </div>
-                
-                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-thin">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Category</label>
-                            <select 
-                                className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none"
-                                value={selectedCategory}
-                                onChange={e => { setSelectedCategory(e.target.value); setNewItem({...newItem, productName: ''}); }}
-                            >
-                                <option value="">All Categories</option>
-                                {Object.keys(PRODUCT_CATALOG).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Product</label>
-                            <select 
-                                className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none"
-                                value={newItem.productName || ''}
-                                onChange={e => setNewItem({...newItem, productName: e.target.value})}
-                            >
-                                <option value="">Select Product</option>
-                                {getProductOptions().map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Grade / Quality</label>
-                            <input 
-                                type="text" 
-                                className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none"
-                                placeholder="e.g. Premium Grade A"
-                                onChange={e => setNewItem({...newItem, grade: e.target.value})}
-                            />
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Restock Quantity</label>
-                            <div className="flex">
-                                <input 
-                                    type="number" 
-                                    className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-l-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none font-bold"
-                                    placeholder="0.00"
-                                    onChange={e => setNewItem({...newItem, quantity: parseFloat(e.target.value)})}
-                                />
-                                <span className="bg-slate-100 dark:bg-slate-700 border border-l-0 border-slate-200 dark:border-slate-600 rounded-r-xl px-4 py-3 text-slate-500 dark:text-slate-300 font-bold text-sm flex items-center">
-                                    {newItem.unit}
-                                </span>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Storage</label>
-                            <input 
-                                 type="text" 
-                                 className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 outline-none"
-                                 placeholder="Location"
-                                 onChange={e => setNewItem({...newItem, location: e.target.value})}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Expense Tracking Section */}
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-bold text-slate-700 dark:text-white flex items-center">
-                                <DollarSign size={16} className="mr-1 text-emerald-500" /> Link to Finance Module
-                            </h4>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" checked={isExpense} onChange={e => setIsExpense(e.target.checked)} className="sr-only peer" />
-                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                                <span className="ml-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Record Expense</span>
-                            </label>
-                        </div>
-
-                        {isExpense && (
-                            <div className="space-y-4 pt-2 animate-in fade-in duration-300">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center">
-                                            <User size={10} className="mr-1"/> Supplier
-                                        </label>
-                                        <select 
-                                            className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm"
-                                            value={selectedSupplierId}
-                                            onChange={e => setSelectedSupplierId(e.target.value)}
+                <div className="p-5 md:p-8 space-y-6 overflow-y-auto scrollbar-thin">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                        {/* LEFT: Product + Stock */}
+                        <div className="space-y-6">
+                            <section className="space-y-4">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center border-b dark:border-slate-800 pb-2">
+                                    <Truck size={13} className="mr-2 text-blue-500" /> Product Allocation
+                                </h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Category</label>
+                                        <select
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                            value={selectedCategory}
+                                            onChange={e => { setSelectedCategory(e.target.value); setNewItem({...newItem, productName: ''}); }}
                                         >
-                                            <option value="">-- Choose Supplier --</option>
-                                            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                            <option value="">All Categories</option>
+                                            {Object.keys(PRODUCT_CATALOG).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                         </select>
                                     </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center">
-                                            <Hash size={10} className="mr-1"/> Invoice / Ref #
-                                        </label>
-                                        <input 
-                                            type="text"
-                                            className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm"
-                                            placeholder="INV-XXXX"
-                                            value={referenceNum}
-                                            onChange={e => setReferenceNum(e.target.value)}
-                                        />
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Product</label>
+                                        <select
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                            value={newItem.productName || ''}
+                                            onChange={e => setNewItem({...newItem, productName: e.target.value})}
+                                        >
+                                            <option value="">Select Product</option>
+                                            {getProductOptions().map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Unit Price ({user?.preferredCurrency})</label>
-                                        <input 
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Grade / Quality</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                        placeholder="e.g. Premium Grade A"
+                                        value={newItem.grade || ''}
+                                        onChange={e => setNewItem({...newItem, grade: e.target.value})}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Quantity</label>
+                                        <input
                                             type="number"
-                                            className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm font-bold"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                             placeholder="0.00"
-                                            value={unitPrice || ''}
-                                            onChange={e => setUnitPrice(parseFloat(e.target.value))}
+                                            value={newItem.quantity || ''}
+                                            onChange={e => setNewItem({...newItem, quantity: parseFloat(e.target.value) || 0})}
                                         />
                                     </div>
-                                    <div className="md:col-span-2">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Total Acquisition Cost ({user?.preferredCurrency})</label>
-                                        <input 
-                                            type="number"
-                                            className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-100 dark:text-slate-900 rounded-lg px-3 py-2 text-sm font-bold text-emerald-600"
-                                            value={costAmount || ''}
-                                            readOnly={unitPrice > 0}
-                                            onChange={e => setCostAmount(parseFloat(e.target.value))}
-                                        />
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Unit</label>
+                                        <select
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                            value={newItem.unit || 'kg'}
+                                            onChange={e => setNewItem({...newItem, unit: e.target.value as any})}
+                                        >
+                                            <option value="kg">kg</option>
+                                            <option value="tonnes">tonnes</option>
+                                            <option value="bags">bags</option>
+                                            <option value="liters">liters</option>
+                                            <option value="pieces">pieces</option>
+                                            <option value="heads">heads</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Debit Account</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Storage Location</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                        placeholder="e.g. Main Warehouse, Cold Store"
+                                        value={newItem.location || ''}
+                                        onChange={e => setNewItem({...newItem, location: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Low Stock Alert Threshold</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                        placeholder="e.g. 100"
+                                        value={newItem.lowStockThreshold || ''}
+                                        onChange={e => setNewItem({...newItem, lowStockThreshold: parseFloat(e.target.value) || undefined})}
+                                    />
+                                </div>
+                            </section>
+                        </div>
+
+                        {/* RIGHT: Supplier + Finance */}
+                        <div className="space-y-6">
+                            <section className="space-y-4">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center border-b dark:border-slate-800 pb-2">
+                                    <User size={13} className="mr-2 text-emerald-500" /> Supplier Details
+                                </h3>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Supplier</label>
                                     <select
-                                        className="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm"
-                                        value={paymentAccountId}
-                                        onChange={e => setPaymentAccountId(e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-emerald-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                        value={selectedSupplierId}
+                                        onChange={e => setSelectedSupplierId(e.target.value)}
                                     >
-                                        <option value="">-- Select Account --</option>
-                                        {(financeAccounts || []).map(a => (
-                                            <option key={a.id} value={a.id}>
-                                                {a.name} — {user?.preferredCurrency} {a.balance.toLocaleString()}
-                                            </option>
-                                        ))}
+                                        <option value="">-- Choose Supplier (optional) --</option>
+                                        {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
-                                    {paymentAccountId && (() => {
-                                        const acc = financeAccounts?.find(a => a.id === paymentAccountId);
-                                        if (!acc) return null;
-                                        const shortfall = costAmount - acc.balance;
-                                        return shortfall > 0 ? (
-                                            <p className="text-[10px] text-red-500 font-bold mt-1 px-1">⚠ Insufficient balance. Shortfall: {user?.preferredCurrency} {shortfall.toLocaleString()}</p>
-                                        ) : (
-                                            <p className="text-[10px] text-emerald-500 font-bold mt-1 px-1">✓ Remaining after payment: {user?.preferredCurrency} {(acc.balance - costAmount).toLocaleString()}</p>
-                                        );
-                                    })()}
                                 </div>
-                            </div>
-                        )}
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Invoice / Reference #</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-emerald-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                        placeholder="INV-XXXX"
+                                        value={referenceNum}
+                                        onChange={e => setReferenceNum(e.target.value)}
+                                    />
+                                </div>
+                            </section>
+
+                            <section className="space-y-4">
+                                <div className="flex items-center justify-between border-b dark:border-slate-800 pb-2">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center">
+                                        <DollarSign size={13} className="mr-2 text-amber-500" /> Finance Linkage
+                                    </h3>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked={isExpense} onChange={e => setIsExpense(e.target.checked)} className="sr-only peer" />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                        <span className="ml-2 text-[9px] font-black text-slate-500 uppercase tracking-widest">Record Expense</span>
+                                    </label>
+                                </div>
+
+                                {isExpense && (
+                                    <div className="space-y-4 animate-in fade-in duration-300">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Unit Price</label>
+                                                <input
+                                                    type="number"
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                                    placeholder="0.00"
+                                                    value={unitPrice || ''}
+                                                    onChange={e => setUnitPrice(parseFloat(e.target.value) || 0)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Total Cost</label>
+                                                <input
+                                                    type="number"
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-black text-emerald-600 shadow-inner text-sm"
+                                                    value={costAmount || ''}
+                                                    readOnly={unitPrice > 0}
+                                                    onChange={e => setCostAmount(parseFloat(e.target.value) || 0)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Debit Account</label>
+                                            <select
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                                value={paymentAccountId}
+                                                onChange={e => setPaymentAccountId(e.target.value)}
+                                            >
+                                                <option value="">-- Select Account (optional) --</option>
+                                                {(financeAccounts || []).map(a => (
+                                                    <option key={a.id} value={a.id}>{a.provider} — {a.currency || user?.preferredCurrency} {a.balance.toLocaleString()}</option>
+                                                ))}
+                                            </select>
+                                            {paymentAccountId && (() => {
+                                                const acc = financeAccounts?.find(a => a.id === paymentAccountId);
+                                                if (!acc) return null;
+                                                const shortfall = costAmount - acc.balance;
+                                                return shortfall > 0 ? (
+                                                    <p className="text-[10px] text-red-500 font-bold mt-1 px-2 flex items-center"><AlertTriangle size={10} className="mr-1" /> Shortfall: {(acc.currency || user?.preferredCurrency)} {shortfall.toLocaleString()}</p>
+                                                ) : (
+                                                    <p className="text-[10px] text-emerald-500 font-bold mt-1 px-2 flex items-center"><Check size={10} className="mr-1" /> Remaining: {(acc.currency || user?.preferredCurrency)} {(acc.balance - costAmount).toLocaleString()}</p>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!isExpense && (
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-dashed border-slate-200 dark:border-slate-700 text-center">
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Toggle to record this as a financial expense</p>
+                                    </div>
+                                )}
+                            </section>
+                        </div>
                     </div>
                 </div>
-                
-                <div className="bg-slate-50 dark:bg-slate-700/50 px-8 py-6 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700 rounded-b-3xl">
-                    <button onClick={() => setShowModal(false)} className="px-6 py-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-bold transition-colors">Cancel</button>
-                    <button onClick={handleStockIn} className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
-                        Confirm Acquisition
-                    </button>
+
+                {/* Footer */}
+                <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+                    <div className="text-sm">
+                        {newItem.productName && newItem.quantity ? (
+                            <span className="font-bold text-slate-900 dark:text-white">{newItem.quantity} {newItem.unit} of {newItem.productName}</span>
+                        ) : (
+                            <span className="text-slate-400 text-xs font-medium">Fill in product details above</span>
+                        )}
+                    </div>
+                    <div className="flex space-x-3">
+                        <button onClick={() => setShowModal(false)} className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all text-sm">Cancel</button>
+                        <button onClick={handleStockIn} className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">
+                            Confirm Acquisition
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-      )}
     </div>
   );
 }

@@ -123,7 +123,7 @@ export default function Exports() {
         setMissionType(null);
         setNewOrder({ unit: 'tonnes', status: 'PENDING', amountPaid: 0, pricePerUnit: 0, shippingCost: 0, transportMethod: 'SEA', tradeTerms: 'FOB' });
 
-        if (confirm(`${missionType === 'EXPORT' ? 'Export' : 'Supply'} mission launched! Download manifest/invoice?`)) {
+        if (confirm(`${missionType === 'EXPORT' ? 'Export' : 'Domestic Sale'} mission launched! Download manifest/invoice?`)) {
             generateMissionPDF(order);
         }
     }
@@ -145,7 +145,7 @@ export default function Exports() {
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Local Supply'} Manifest`, 15, 33);
+doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic Sale'} Manifest`, 15, 33);
     
     doc.setFontSize(12);
     doc.text(`REF: ${order.shipmentNumber}`, pageWidth - 15, 25, { align: 'right' });
@@ -308,7 +308,7 @@ export default function Exports() {
               <div className="w-full max-w-3xl space-y-6 md:space-y-8">
                   <div className="text-center space-y-2 md:space-y-3">
                       <h2 className="text-2xl md:text-4xl font-black text-white tracking-tighter">Mission Scoping</h2>
-                      <p className="text-slate-400 text-sm md:text-base font-medium">Create an Export Plan or a Local Supply Plan?</p>
+                      <p className="text-slate-400 text-sm md:text-base font-medium">Create an Export Plan or a Domestic Sale Plan?</p>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -329,8 +329,8 @@ export default function Exports() {
                       >
                           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Truck size={100}/></div>
                           <div className="w-12 h-12 bg-nexa-green rounded-xl flex items-center justify-center text-white mb-4 shadow-xl"><Box size={24}/></div>
-                          <h3 className="text-xl md:text-2xl font-black text-white mb-2">Local Supply Plan</h3>
-                          <p className="text-slate-400 font-medium text-sm mb-4 leading-relaxed">Domestic fulfillment for regional clients with ground transport.</p>
+                          <h3 className="text-xl md:text-2xl font-black text-white mb-2">Domestic Sale Plan</h3>
+                          <p className="text-slate-400 font-medium text-sm mb-4 leading-relaxed">Sell directly to buyers inside the country — no customs or export logistics required.</p>
                           <div className="flex items-center text-nexa-green font-black uppercase text-[10px] tracking-widest">Initialize <ArrowRight size={14} className="ml-2 group-hover:translate-x-2 transition-transform" /></div>
                       </button>
                   </div>
@@ -348,7 +348,7 @@ export default function Exports() {
               <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2rem] w-full max-w-4xl shadow-2xl transition-all border border-white/5 my-auto flex flex-col max-h-[95vh]">
                   <div className="p-5 md:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
                       <div>
-                          <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{missionType === 'EXPORT' ? 'Export' : 'Supply'} Mission Builder</h2>
+                          <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{missionType === 'EXPORT' ? 'Export' : 'Domestic Sale'} Mission Builder</h2>
                           <p className="text-slate-500 dark:text-slate-400 font-medium text-xs md:text-sm mt-1">Define routing and stock allocation.</p>
                       </div>
                       <button onClick={() => {setShowModal(false); setMissionType(null);}} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm shrink-0"><X size={20}/></button>
