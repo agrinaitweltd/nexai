@@ -313,7 +313,7 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* Stock In Modal — Mission Builder Style */}
+      {/* Stock In Modal - Mission Builder Style */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-6 backdrop-blur-md overflow-y-auto">
             <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2rem] w-full max-w-4xl shadow-2xl border border-white/5 my-auto flex flex-col max-h-[95vh]">
@@ -492,7 +492,7 @@ export default function Inventory() {
                                             >
                                                 <option value="">-- Select Account (optional) --</option>
                                                 {(financeAccounts || []).map(a => (
-                                                    <option key={a.id} value={a.id}>{a.provider} — {a.currency || user?.preferredCurrency} {a.balance.toLocaleString()}</option>
+                                                    <option key={a.id} value={a.id}>{a.provider} ({a.currency || user?.preferredCurrency}) {a.balance.toLocaleString()}</option>
                                                 ))}
                                             </select>
                                             {paymentAccountId && (() => {
@@ -537,6 +537,7 @@ export default function Inventory() {
                 </div>
             </div>
         </div>
+      )}
     </div>
   );
 }
