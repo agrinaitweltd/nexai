@@ -412,11 +412,10 @@ export default function Exports() {
                                           <input 
                                               type="number"
                                               className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="0.00"
-                                                  value={newOrder.pricePerUnit || ''}
-                                                  onChange={e => setNewOrder({...newOrder, pricePerUnit: parseFloat(e.target.value)})}
-                                              />
-                                          </div>
+                                              placeholder="0.00"
+                                              value={newOrder.pricePerUnit || ''}
+                                              onChange={e => setNewOrder({...newOrder, pricePerUnit: parseFloat(e.target.value)})}
+                                          />
                                       </div>
                                   </div>
                               </section>
