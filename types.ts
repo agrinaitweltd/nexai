@@ -276,6 +276,10 @@ export interface ExportOrder {
   transportProvider?: string;
   transportMethod?: 'SEA' | 'AIR' | 'ROAD' | 'RAIL';
   portOfExit?: string;
+  tradeTerms?: 'FOB' | 'CIF' | 'CFR' | 'EXW' | 'DAP' | 'DDP' | 'CIP' | 'CPT' | 'FCA';
+  departureDate?: string;
+  arrivalDate?: string;
+  paymentAccountId?: string;
 }
 
 export interface PurchaseOrder {

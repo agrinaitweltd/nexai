@@ -331,9 +331,10 @@ interface UnlockProps {
   savedAuth: SavedAuth;
   onSuccess: (email: string) => void;
   onFallback: () => void;
+  onDifferentAccount: () => void;
 }
 
-export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback }: UnlockProps) {
+export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback, onDifferentAccount }: UnlockProps) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -495,6 +496,9 @@ export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback }: UnlockP
       <button onClick={onFallback} className="w-full py-3 flex items-center justify-center space-x-2 text-slate-400 border border-slate-200 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all">
         <RefreshCw size={14} />
         <span>Sign in with password instead</span>
+      </button>
+      <button onClick={onDifferentAccount} className="w-full py-2 text-slate-400 text-xs font-bold uppercase tracking-wider hover:text-slate-600 transition-colors">
+        Use a different account
       </button>
     </div>
   );

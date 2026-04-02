@@ -257,7 +257,31 @@ export default function Vault() {
                             {new Date(doc.date).toLocaleDateString()}
                         </p>
                       </div>
-                      <button className="bg-slate-900 dark:bg-white text-white dark:text-black p-2.5 rounded-lg hover:scale-110 active:scale-90 transition-all shadow-lg">
+                      <button
+                        className="bg-slate-900 dark:bg-white text-white dark:text-black p-2.5 rounded-lg hover:scale-110 active:scale-90 transition-all shadow-lg"
+                        title="Download"
+                        onClick={() => {
+                          if (doc.url && doc.url !== '#') {
+                            const a = document.createElement('a');
+                            a.href = doc.url;
+                            a.download = doc.name;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          } else {
+                            const content = `Document: ${doc.name}\nType: ${doc.type}\nCategory: ${doc.category}\nDate: ${new Date(doc.date).toLocaleDateString()}\nUploaded by: ${doc.uploadedBy}`;
+                            const blob = new Blob([content], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${doc.name}.txt`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }
+                        }}
+                      >
                           <Download size={14} />
                       </button>
                   </div>

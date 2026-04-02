@@ -145,44 +145,60 @@ export default function Landing() {
       `}</style>
 
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-md border-b border-slate-100 py-3 shadow-sm' : 'bg-transparent py-5 md:py-8'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled ? 'bg-white/96 backdrop-blur-xl border-b border-slate-100/80 py-3 shadow-[0_2px_40px_-12px_rgba(0,0,0,0.12)]' : 'bg-transparent py-5 md:py-8'}`}>
         <div className="max-w-7xl mx-auto px-5 md:px-12 flex items-center justify-between">
-          <div className="flex items-center cursor-pointer" onClick={scrollToTop}>
-            <NexaLogo className="h-7 md:h-9" />
+          <div className="flex items-center cursor-pointer group" onClick={scrollToTop}>
+            <NexaLogo className="h-7 md:h-9 transition-transform group-hover:scale-105 duration-300" />
           </div>
 
-          <div className="hidden md:flex items-center space-x-10">
-            <a href="#top" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Home</a>
-            <a href="#features" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Features</a>
-            <a href="#mission" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">Mission</a>
-            <a href="#audience" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-emerald-600 transition-colors">About</a>
-            <div className="flex items-center space-x-4 ml-6 border-l border-slate-200 pl-8">
-                <Link to="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 hover:text-emerald-600 transition-colors">Sign In</Link>
+          <div className="hidden md:flex items-center">
+            <div className="flex items-center space-x-1 bg-slate-50/80 backdrop-blur-sm px-3 py-2 rounded-2xl border border-slate-100 shadow-sm">
+              <a href="#top" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">Home</a>
+              <a href="#features" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">Features</a>
+              <a href="#pricing" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">Pricing</a>
+              <a href="#audience" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">About</a>
+            </div>
+            <div className="flex items-center space-x-3 ml-4">
+                <Link to="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 hover:text-slate-900 transition-colors px-4 py-2 rounded-xl hover:bg-slate-100">Sign In</Link>
                 <Link 
                     to="/login" 
-                    className="bg-emerald-600 text-white px-7 py-3 rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition-all active:scale-95"
+                    className="relative overflow-hidden bg-slate-950 text-white px-7 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 active:translate-y-0 group"
                 >
-                    Get Started
+                    <span className="relative z-10 flex items-center">Get Started <ArrowRight size={12} className="ml-2 group-hover:translate-x-1 transition-transform" /></span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </Link>
             </div>
           </div>
 
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2.5 text-slate-900 bg-slate-50 rounded-xl border border-slate-100 transition-all active:scale-95">
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden relative w-10 h-10 flex items-center justify-center text-slate-900 bg-white rounded-xl border border-slate-200 shadow-sm transition-all active:scale-95 hover:shadow-md">
+            <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}><X size={18} /></div>
+            <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'}`}><Menu size={18} /></div>
           </button>
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-100 shadow-2xl animate-in slide-in-from-top-2 duration-300">
-            <div className="px-5 pt-4 pb-2 space-y-1">
-                <a href="#top" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl bg-slate-50 text-sm font-black uppercase tracking-widest text-slate-900 active:scale-95 transition-all">Home <ArrowRight size={14} className="text-slate-400" /></a>
-                <a href="#features" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-95 transition-all">Features <ArrowRight size={14} className="text-slate-400" /></a>
-                <a href="#audience" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-95 transition-all">About <ArrowRight size={14} className="text-slate-400" /></a>
-                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-95 transition-all">Pricing <ArrowRight size={14} className="text-slate-400" /></a>
+          <div className="md:hidden bg-white/98 backdrop-blur-md border-b border-slate-100 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)] animate-in slide-in-from-top-3 duration-300">
+            <div className="px-5 py-4 space-y-1.5">
+                <a href="#top" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl bg-slate-50 text-[11px] font-black uppercase tracking-widest text-slate-900 active:scale-[0.98] transition-all hover:bg-emerald-50 hover:text-emerald-700 group">
+                  <span>Home</span>
+                  <div className="w-7 h-7 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><ArrowRight size={12} /></div>
+                </a>
+                <a href="#features" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all group">
+                  <span>Features</span>
+                  <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all"><ArrowRight size={12} /></div>
+                </a>
+                <a href="#audience" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all group">
+                  <span>About</span>
+                  <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all"><ArrowRight size={12} /></div>
+                </a>
+                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all group">
+                  <span>Pricing</span>
+                  <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all"><ArrowRight size={12} /></div>
+                </a>
             </div>
-            <div className="px-5 pt-3 pb-6 space-y-3 border-t border-slate-100">
-                <Link to="/login" className="flex items-center justify-center w-full border border-slate-200 bg-white text-slate-900 text-center py-3.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-all">Sign In</Link>
-                <Link to="/login" className="flex items-center justify-center gap-2 w-full bg-emerald-600 text-white text-center py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Get Started <ArrowRight size={14} /></Link>
+            <div className="px-5 pb-6 pt-2 grid grid-cols-2 gap-3 border-t border-slate-100">
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center w-full border-2 border-slate-200 bg-white text-slate-900 text-center py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95 transition-all hover:border-slate-300 hover:shadow-md">Sign In</Link>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-2 w-full bg-slate-950 text-white text-center py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black">Get Started <ArrowRight size={12} /></Link>
             </div>
           </div>
         )}

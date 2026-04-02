@@ -283,12 +283,26 @@ export default function Login() {
             <MobileUnlockPrompt
               savedAuth={savedMobileAuth}
               onSuccess={async (savedEmail) => {
-                // Silently attempt to restore session or ask for password
-                setShowMobileUnlock(false);
-                setEmail(savedEmail);
-                // Focus password so user can complete sign-in if session expired
+                // Check if Supabase session is still active — go directly to dashboard
+                const sbModule = await import('../supabaseClient');
+                const { data: { session } } = await sbModule.supabase.auth.getSession();
+                if (session && session.user) {
+                  setShowMobileUnlock(false);
+                  navigate('/app', { replace: true });
+                } else {
+                  // Session expired — pre-fill email so user can re-enter password
+                  setShowMobileUnlock(false);
+                  setEmail(savedEmail);
+                  setError('Your session has expired. Please sign in again.');
+                }
               }}
               onFallback={() => {
+                // Stay on same account but use password
+                setShowMobileUnlock(false);
+                setEmail(savedMobileAuth?.email || '');
+              }}
+              onDifferentAccount={() => {
+                // Clear saved auth and show blank login form
                 clearSavedAuth();
                 setShowMobileUnlock(false);
               }}

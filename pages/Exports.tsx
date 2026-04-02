@@ -5,7 +5,7 @@ import { FileText, Ship, CheckCircle, AlertCircle, Plus, UploadCloud, User, Doll
 import { jsPDF } from 'jspdf';
 
 export default function Exports() {
-  const { exports, createExport, updateExportPayment, updateExportStatus, inventory, clients, user, formatCurrency } = useApp();
+  const { exports, createExport, updateExportPayment, updateExportStatus, inventory, clients, user, formatCurrency, financeAccounts, updateFinanceAccount } = useApp();
   
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -17,6 +17,9 @@ export default function Exports() {
 
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
+  const [paymentAccountId, setPaymentAccountId] = useState('');
+  const [paymentOverdraft, setPaymentOverdraft] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   const [newOrder, setNewOrder] = useState<Partial<ExportOrder>>({
     unit: 'tonnes',
@@ -29,11 +32,14 @@ export default function Exports() {
     originLocation: '',
     portOfExit: '',
     destinationPort: '',
-    destinationCountry: ''
+    destinationCountry: '',
+    tradeTerms: 'FOB',
   });
 
   const [initialPayment, setInitialPayment] = useState<number>(0);
   const [selectedStockId, setSelectedStockId] = useState<string>('');
+  const [initialPaymentAccountId, setInitialPaymentAccountId] = useState('');
+  const [initialPaymentOverdraft, setInitialPaymentOverdraft] = useState(false);
 
   const calculateTotal = (qty: number, price: number, ship: number) => {
       return (qty * price) + ship;
@@ -76,6 +82,16 @@ export default function Exports() {
     }
 
     const totalValue = calculateTotal(newOrder.quantity || 0, newOrder.pricePerUnit || 0, newOrder.shippingCost || 0);
+
+    // Validate initial payment account balance
+    if (initialPaymentAccountId && initialPayment > 0) {
+      const acct = financeAccounts.find(a => a.id === initialPaymentAccountId);
+      if (acct && acct.balance < initialPayment && !initialPaymentOverdraft) {
+        setError(`Insufficient funds in ${acct.provider}. Balance: ${formatCurrency(acct.balance)}. Check "Allow overdraft" to proceed.`);
+        return;
+      }
+    }
+
     const order = {
         ...newOrder,
         id: crypto.randomUUID(),
@@ -85,16 +101,27 @@ export default function Exports() {
         date: new Date().toISOString(),
         totalValue,
         amountPaid: initialPayment,
+        paymentAccountId: initialPaymentAccountId || undefined,
         shipmentNumber: `${missionType === 'EXPORT' ? 'EXP' : 'LOC'}-${Math.floor(Math.random() * 900000) + 100000}`
     } as ExportOrder;
 
     const success = await createExport(order, initialPayment, paymentMethod);
     
     if (success) {
+        // Deduct from payment account if selected
+        if (initialPaymentAccountId && initialPayment > 0) {
+          const acct = financeAccounts.find(a => a.id === initialPaymentAccountId);
+          if (acct) {
+            updateFinanceAccount({ ...acct, balance: acct.balance - initialPayment, lastUpdated: new Date().toISOString() });
+          }
+        }
+
         setShowModal(false);
         setInitialPayment(0);
+        setInitialPaymentAccountId('');
+        setInitialPaymentOverdraft(false);
         setMissionType(null);
-        setNewOrder({ unit: 'tonnes', status: 'PENDING', amountPaid: 0, pricePerUnit: 0, shippingCost: 0, transportMethod: 'SEA' });
+        setNewOrder({ unit: 'tonnes', status: 'PENDING', amountPaid: 0, pricePerUnit: 0, shippingCost: 0, transportMethod: 'SEA', tradeTerms: 'FOB' });
 
         if (confirm(`${missionType === 'EXPORT' ? 'Export' : 'Supply'} mission launched! Download manifest/invoice?`)) {
             generateMissionPDF(order);
@@ -363,14 +390,28 @@ export default function Exports() {
                                                   className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="0.00"
                                                   value={newOrder.quantity || ''}
-                                                  onChange={e => setNewOrder({...newOrder, quantity: parseFloat(e.target.value)})}
+                                                  onChange={e => setNewOrder({...newOrder, quantity: parseFloat(e.target.value) || 0})}
                                               />
                                           </div>
                                           <div className="space-y-1.5">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Rate/Unit ({user?.preferredCurrency || '$'})</label>
-                                              <input 
-                                                  type="number"
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Unit</label>
+                                              <select
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                                  value={newOrder.unit || 'tonnes'}
+                                                  onChange={e => setNewOrder({...newOrder, unit: e.target.value as any})}
+                                              >
+                                                  <option value="kg">kg (Kilograms)</option>
+                                                  <option value="tonnes">Tonnes (MT)</option>
+                                                  <option value="bags">Bags</option>
+                                                  <option value="units">Units</option>
+                                              </select>
+                                          </div>
+                                      </div>
+                                      <div className="space-y-1.5">
+                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Rate per {newOrder.unit || 'tonne'} ({user?.preferredCurrency || '$'})</label>
+                                          <input 
+                                              type="number"
+                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-primary-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="0.00"
                                                   value={newOrder.pricePerUnit || ''}
                                                   onChange={e => setNewOrder({...newOrder, pricePerUnit: parseFloat(e.target.value)})}
@@ -424,10 +465,38 @@ export default function Exports() {
                                       <Navigation size={13} className="mr-2 text-blue-500" /> Route & Logistics
                                   </h3>
                                   <div className="space-y-3">
+                                      {/* Transport Mode (first — drives all field labels) */}
                                       <div className="grid grid-cols-2 gap-3">
                                           <div className="space-y-1.5">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Origin</label>
-                                              <input 
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Transport Mode</label>
+                                              <select
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner uppercase tracking-widest text-xs"
+                                                  value={newOrder.transportMethod}
+                                                  onChange={e => setNewOrder({...newOrder, transportMethod: e.target.value as any, portOfExit: '', transitPorts: '', destinationPort: ''})}
+                                              >
+                                                  <option value="SEA">🚢  Maritime (Sea)</option>
+                                                  <option value="AIR">✈️  Aviation (Air)</option>
+                                                  <option value="ROAD">🚛  Ground (Road)</option>
+                                                  <option value="RAIL">🚂  Ground (Rail)</option>
+                                              </select>
+                                          </div>
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Logistics Cost ({user?.preferredCurrency || '$'})</label>
+                                              <input
+                                                  type="number"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
+                                                  placeholder="0.00"
+                                                  value={newOrder.shippingCost || ''}
+                                                  onChange={e => setNewOrder({...newOrder, shippingCost: parseFloat(e.target.value) || 0})}
+                                              />
+                                          </div>
+                                      </div>
+
+                                      {/* Origin + Departure Hub */}
+                                      <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1.5">
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Origin / Warehouse</label>
+                                              <input
                                                   className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="e.g. Masaka Hub"
                                                   value={newOrder.originLocation || ''}
@@ -435,37 +504,47 @@ export default function Exports() {
                                               />
                                           </div>
                                           <div className="space-y-1.5">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Port of Exit</label>
-                                              <input 
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                                                  {newOrder.transportMethod === 'AIR' ? 'Airport of Departure' : newOrder.transportMethod === 'ROAD' ? 'Border / Hub' : 'Port of Exit'}
+                                              </label>
+                                              <input
                                                   className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="e.g. Mombasa"
+                                                  placeholder={newOrder.transportMethod === 'AIR' ? 'e.g. Entebbe International' : newOrder.transportMethod === 'ROAD' ? 'e.g. Malaba Border' : 'e.g. Mombasa'}
                                                   value={newOrder.portOfExit || ''}
                                                   onChange={e => setNewOrder({...newOrder, portOfExit: e.target.value})}
                                               />
                                           </div>
                                       </div>
+
+                                      {/* Transit */}
                                       <div className="space-y-1.5">
-                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Transit Ports</label>
-                                          <input 
+                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                                              {newOrder.transportMethod === 'AIR' ? 'Transit Airports' : newOrder.transportMethod === 'ROAD' ? 'Route / Checkpoints' : 'Transit Ports'}
+                                          </label>
+                                          <input
                                               className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
-                                              placeholder="e.g. Dubai, Rotterdam"
+                                              placeholder={newOrder.transportMethod === 'AIR' ? 'e.g. Nairobi, Dubai' : newOrder.transportMethod === 'ROAD' ? 'e.g. Nairobi, Dar es Salaam' : 'e.g. Dubai, Rotterdam'}
                                               value={newOrder.transitPorts || ''}
                                               onChange={e => setNewOrder({...newOrder, transitPorts: e.target.value})}
                                           />
                                       </div>
+
+                                      {/* Destination */}
                                       <div className="grid grid-cols-2 gap-3">
                                           <div className="space-y-1.5">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Destination Port</label>
-                                              <input 
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                                                  {newOrder.transportMethod === 'AIR' ? 'Destination Airport' : newOrder.transportMethod === 'ROAD' ? 'Delivery Point' : 'Destination Port'}
+                                              </label>
+                                              <input
                                                   className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="e.g. Antwerp"
+                                                  placeholder={newOrder.transportMethod === 'AIR' ? 'e.g. Heathrow' : newOrder.transportMethod === 'ROAD' ? 'e.g. Kampala Warehouse' : 'e.g. Antwerp'}
                                                   value={newOrder.destinationPort || ''}
                                                   onChange={e => setNewOrder({...newOrder, destinationPort: e.target.value})}
                                               />
                                           </div>
                                           <div className="space-y-1.5">
                                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Destination Country</label>
-                                              <input 
+                                              <input
                                                   className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
                                                   placeholder="e.g. Belgium"
                                                   value={newOrder.destinationCountry || ''}
@@ -473,33 +552,79 @@ export default function Exports() {
                                               />
                                           </div>
                                       </div>
+
+                                      {/* Departure & Arrival dates */}
                                       <div className="grid grid-cols-2 gap-3">
                                           <div className="space-y-1.5">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Transport Mode</label>
-                                              <select 
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner uppercase tracking-widest text-xs"
-                                                  value={newOrder.transportMethod}
-                                                  onChange={e => setNewOrder({...newOrder, transportMethod: e.target.value as any})}
-                                              >
-                                                  <option value="SEA">Maritime (Sea)</option>
-                                                  <option value="AIR">Aviation (Air)</option>
-                                                  <option value="ROAD">Ground (Road)</option>
-                                                  <option value="RAIL">Ground (Rail)</option>
-                                              </select>
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                                                  {newOrder.transportMethod === 'AIR' ? 'Departure Date' : 'Set-Off Date'}
+                                              </label>
+                                              <input
+                                                  type="date"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                                  value={newOrder.departureDate || ''}
+                                                  onChange={e => setNewOrder({...newOrder, departureDate: e.target.value})}
+                                              />
                                           </div>
                                           <div className="space-y-1.5">
-                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Logistics Cost ({user?.preferredCurrency || '$'})</label>
-                                              <input 
-                                                  type="number"
-                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner"
-                                                  placeholder="0.00"
-                                                  value={newOrder.shippingCost || ''}
-                                                  onChange={e => setNewOrder({...newOrder, shippingCost: parseFloat(e.target.value)})}
+                                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                                                  {newOrder.transportMethod === 'AIR' ? 'Landing Date (ETA)' : 'Arrival / ETA'}
+                                              </label>
+                                              <input
+                                                  type="date"
+                                                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                                  value={newOrder.arrivalDate || ''}
+                                                  onChange={e => setNewOrder({...newOrder, arrivalDate: e.target.value})}
                                               />
                                           </div>
                                       </div>
+
+                                      {/* Trade Terms (Incoterms) */}
+                                      <div className="space-y-1.5">
+                                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Trade Terms (Incoterms)</label>
+                                          <select
+                                              className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 md:p-4 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/20 font-bold dark:text-white shadow-inner text-xs uppercase tracking-widest"
+                                              value={newOrder.tradeTerms || 'FOB'}
+                                              onChange={e => setNewOrder({...newOrder, tradeTerms: e.target.value as any})}
+                                          >
+                                              <option value="FOB">FOB — Free On Board (seller delivers to port)</option>
+                                              <option value="CIF">CIF — Cost, Insurance & Freight</option>
+                                              <option value="CFR">CFR — Cost & Freight</option>
+                                              <option value="EXW">EXW — Ex Works (buyer collects)</option>
+                                              <option value="DAP">DAP — Delivered At Place</option>
+                                              <option value="DDP">DDP — Delivered Duty Paid</option>
+                                              <option value="CIP">CIP — Carriage & Insurance Paid</option>
+                                              <option value="CPT">CPT — Carriage Paid To</option>
+                                              <option value="FCA">FCA — Free Carrier</option>
+                                          </select>
+                                      </div>
                                   </div>
                               </section>
+
+                              {/* Unit Calculation Preview */}
+                              {(newOrder.quantity || 0) > 0 && (newOrder.pricePerUnit || 0) > 0 && (
+                                <section className="space-y-2">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center border-b dark:border-slate-800 pb-2">
+                                        <DollarSign size={13} className="mr-2 text-emerald-500" /> Calculation Breakdown
+                                    </h3>
+                                    <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                                        <div className="flex justify-between">
+                                            <span>{newOrder.quantity} {newOrder.unit || 'tonnes'} × {formatCurrency(newOrder.pricePerUnit || 0)} / {newOrder.unit || 'tonne'}</span>
+                                            <span className="font-black text-slate-800 dark:text-white">{formatCurrency((newOrder.quantity || 0) * (newOrder.pricePerUnit || 0))}</span>
+                                        </div>
+                                        {(newOrder.shippingCost || 0) > 0 && (
+                                            <div className="flex justify-between text-blue-600">
+                                                <span>+ Logistics / Freight</span>
+                                                <span>{formatCurrency(newOrder.shippingCost || 0)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2 text-emerald-600">
+                                            <span className="font-black uppercase tracking-widest text-[10px]">Total</span>
+                                            <span className="font-black text-base">{formatCurrency(calculateTotal(newOrder.quantity || 0, newOrder.pricePerUnit || 0, newOrder.shippingCost || 0))}</span>
+                                        </div>
+                                    </div>
+                                </section>
+                              )}
                           </div>
                       </div>
 
@@ -511,19 +636,51 @@ export default function Exports() {
                                   <div className="space-y-1">
                                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Value</p>
                                       <p className="text-3xl md:text-4xl font-black tracking-tighter leading-none">{formatCurrency(calculateTotal(newOrder.quantity || 0, newOrder.pricePerUnit || 0, newOrder.shippingCost || 0))}</p>
+                                      <p className="text-[9px] text-slate-500">{newOrder.quantity || 0} {newOrder.unit} × {formatCurrency(newOrder.pricePerUnit || 0)} + {formatCurrency(newOrder.shippingCost || 0)} logistics</p>
                                   </div>
                               </div>
-                              <div className="bg-white/5 backdrop-blur-xl p-5 md:p-6 rounded-2xl border border-white/10 w-full md:w-auto">
-                                  <label className="text-[10px] font-black text-primary-500 uppercase tracking-widest block mb-2">Initial Payment</label>
+                              <div className="bg-white/5 backdrop-blur-xl p-5 md:p-6 rounded-2xl border border-white/10 w-full md:w-auto space-y-3">
+                                  <label className="text-[10px] font-black text-primary-500 uppercase tracking-widest block">Initial Payment</label>
                                   <div className="flex items-center bg-white/10 rounded-xl px-4 py-3 shadow-inner">
                                       <span className="text-lg font-black text-white/40 mr-3">{user?.preferredCurrency || '$'}</span>
-                                      <input 
-                                          type="number" 
-                                          className="w-full md:w-40 bg-transparent border-none font-black text-white text-2xl outline-none" 
-                                          value={initialPayment} 
-                                          onChange={e => setInitialPayment(parseFloat(e.target.value))} 
+                                      <input
+                                          type="number"
+                                          className="w-full md:w-40 bg-transparent border-none font-black text-white text-2xl outline-none"
+                                          value={initialPayment || ''}
+                                          onChange={e => setInitialPayment(parseFloat(e.target.value) || 0)}
                                       />
                                   </div>
+                                  {financeAccounts.length > 0 && (
+                                      <div className="space-y-1.5">
+                                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pay from Account</label>
+                                          <select
+                                              className="w-full bg-white/10 border-none text-white p-3 rounded-xl font-bold text-xs outline-none"
+                                              value={initialPaymentAccountId}
+                                              onChange={e => { setInitialPaymentAccountId(e.target.value); setInitialPaymentOverdraft(false); }}
+                                          >
+                                              <option value="">Cash / Unlinked</option>
+                                              {financeAccounts.map(a => (
+                                                  <option key={a.id} value={a.id}>{a.provider}: {formatCurrency(a.balance)}</option>
+                                              ))}
+                                          </select>
+                                          {initialPaymentAccountId && initialPayment > 0 && (() => {
+                                              const acct = financeAccounts.find(a => a.id === initialPaymentAccountId);
+                                              if (acct && acct.balance < initialPayment) return (
+                                                  <div className="space-y-2">
+                                                      <p className="text-[9px] font-bold text-red-400">⚠ Insufficient funds ({formatCurrency(acct.balance)} available)</p>
+                                                      <button
+                                                          type="button"
+                                                          onClick={() => setInitialPaymentOverdraft(!initialPaymentOverdraft)}
+                                                          className={`w-full py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${initialPaymentOverdraft ? 'border-amber-400 text-amber-300 bg-amber-500/20' : 'border-white/20 text-white/50'}`}
+                                                      >
+                                                          {initialPaymentOverdraft ? 'Overdraft ON — will go negative' : 'Allow overdraft'}
+                                                      </button>
+                                                  </div>
+                                              );
+                                              return null;
+                                          })()}
+                                      </div>
+                                  )}
                               </div>
                           </div>
                       </div>
@@ -566,14 +723,20 @@ export default function Exports() {
                             </div>
                         </div>
 
+                        {paymentError && (
+                          <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl text-sm font-bold flex items-center space-x-2 border border-red-100">
+                            <AlertCircle size={16}/><span>{paymentError}</span>
+                          </div>
+                        )}
+
                         <div className="space-y-4">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] px-2 block">Amount ({user?.preferredCurrency || '$'})</label>
                                 <input 
                                     type="number" 
                                     className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 md:p-5 rounded-xl md:rounded-2xl font-black text-2xl md:text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" 
-                                    value={paymentAmount} 
-                                    onChange={e => setPaymentAmount(parseFloat(e.target.value))} 
+                                    value={paymentAmount || ''} 
+                                    onChange={e => { setPaymentAmount(parseFloat(e.target.value) || 0); setPaymentError(''); setPaymentOverdraft(false); }} 
                                 />
                                 <div className="flex justify-between px-2">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max: {formatCurrency(selectedExport.totalValue - selectedExport.amountPaid)}</span>
@@ -599,13 +762,61 @@ export default function Exports() {
                                     <option value="CHEQUE">Corporate Cheque</option>
                                 </select>
                             </div>
+
+                            {financeAccounts.length > 0 && (
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] px-2 block">Pay from Account</label>
+                                <select
+                                  className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-xl md:rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm appearance-none"
+                                  value={paymentAccountId}
+                                  onChange={e => { setPaymentAccountId(e.target.value); setPaymentOverdraft(false); setPaymentError(''); }}
+                                >
+                                  <option value="">No linked account (cash/external)</option>
+                                  {financeAccounts.map(a => (
+                                    <option key={a.id} value={a.id}>{a.provider}{a.name !== a.provider ? ` — ${a.name}` : ''} · Balance: {formatCurrency(a.balance)}</option>
+                                  ))}
+                                </select>
+                                {paymentAccountId && paymentAmount > 0 && (() => {
+                                  const acct = financeAccounts.find(a => a.id === paymentAccountId);
+                                  if (acct && acct.balance < paymentAmount) return (
+                                    <div className="space-y-2 px-1">
+                                      <p className="text-[10px] font-bold text-red-500">⚠ Insufficient — {formatCurrency(acct.balance)} available</p>
+                                      <button
+                                        type="button"
+                                        onClick={() => setPaymentOverdraft(!paymentOverdraft)}
+                                        className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${paymentOverdraft ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-500'}`}
+                                      >
+                                        {paymentOverdraft ? '✓ Overdraft enabled — account will go negative' : 'Allow overdraft to proceed'}
+                                      </button>
+                                    </div>
+                                  );
+                                  return null;
+                                })()}
+                              </div>
+                            )}
                         </div>
                   </div>
 
                   <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
-                      <button onClick={() => setShowPayModal(false)} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl md:rounded-2xl transition-all text-[10px]">Cancel</button>
+                      <button onClick={() => { setShowPayModal(false); setPaymentError(''); setPaymentOverdraft(false); setPaymentAccountId(''); }} className="px-6 md:px-8 py-3 md:py-4 text-slate-500 font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl md:rounded-2xl transition-all text-[10px]">Cancel</button>
                       <button 
-                        onClick={() => { updateExportPayment(selectedExport.id, paymentAmount, paymentMethod); setShowPayModal(false); }} 
+                        onClick={() => {
+                          setPaymentError('');
+                          if (paymentAccountId && paymentAmount > 0) {
+                            const acct = financeAccounts.find(a => a.id === paymentAccountId);
+                            if (acct && acct.balance < paymentAmount && !paymentOverdraft) {
+                              setPaymentError(`Insufficient funds. Balance: ${formatCurrency(acct.balance)}`);
+                              return;
+                            }
+                            if (acct) {
+                              updateFinanceAccount({ ...acct, balance: acct.balance - paymentAmount, lastUpdated: new Date().toISOString() });
+                            }
+                          }
+                          updateExportPayment(selectedExport.id, paymentAmount, paymentMethod);
+                          setShowPayModal(false);
+                          setPaymentAccountId('');
+                          setPaymentOverdraft(false);
+                        }}
                         className="px-8 md:px-10 py-3 md:py-4 bg-emerald-600 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl hover:bg-emerald-700 active:scale-95 transition-all text-[10px] flex items-center"
                       >
                           Confirm <RefreshCw size={16} className="ml-2" />

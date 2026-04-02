@@ -63,10 +63,18 @@ export default function Finance() {
   const [showReqModal, setShowReqModal] = useState(false);
   const [showTxModal, setShowTxModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<FinanceAccount | null>(null);
   const [newReq, setNewReq] = useState<Partial<Requisition>>({ category: 'OTHER', priority: 'STANDARD' });
   const [newTx, setNewTx] = useState<Partial<Transaction>>({ type: 'INCOME', paymentMethod: 'CASH' });
   const [reportFilter, setReportFilter] = useState<'ALL' | 'TODAY' | 'MONTH' | 'YEAR'>('ALL');
+
+  const [transferFromId, setTransferFromId] = useState('');
+  const [transferToId, setTransferToId] = useState('');
+  const [transferAmount, setTransferAmount] = useState(0);
+  const [transferNote, setTransferNote] = useState('');
+  const [transferOverdraft, setTransferOverdraft] = useState(false);
+  const [transferError, setTransferError] = useState('');
 
   const userCountry = user?.location || '';
   const countryProviders = COUNTRY_PROVIDERS[userCountry] || [];
@@ -98,6 +106,50 @@ export default function Finance() {
     }
     setShowAccountModal(false);
     setEditingAccount(null);
+  };
+
+  const handleTransfer = () => {
+    setTransferError('');
+    if (!transferFromId || !transferToId || !transferAmount || transferAmount <= 0) {
+      setTransferError('Please fill in all transfer fields with a valid amount.');
+      return;
+    }
+    if (transferFromId === transferToId) {
+      setTransferError('Source and destination accounts must be different.');
+      return;
+    }
+    const fromAcct = financeAccounts.find(a => a.id === transferFromId);
+    const toAcct = financeAccounts.find(a => a.id === transferToId);
+    if (!fromAcct || !toAcct) return;
+
+    if (fromAcct.balance < transferAmount && !transferOverdraft) {
+      setTransferError(`Insufficient funds. Balance: ${formatCurrency(fromAcct.balance)}. Enable overdraft to proceed.`);
+      return;
+    }
+
+    // Deduct from source
+    updateFinanceAccount({ ...fromAcct, balance: fromAcct.balance - transferAmount, lastUpdated: new Date().toISOString() });
+    // Add to destination
+    updateFinanceAccount({ ...toAcct, balance: toAcct.balance + transferAmount, lastUpdated: new Date().toISOString() });
+    // Record transaction
+    addTransaction({
+      id: crypto.randomUUID(),
+      type: 'EXPENSE',
+      category: 'Transfer',
+      amount: transferAmount,
+      description: transferNote || `Transfer from ${fromAcct.provider} to ${toAcct.provider}`,
+      date: new Date().toISOString(),
+      paymentMethod: 'BANK_TRANSFER',
+      reference: `TRF-${Date.now()}`,
+    } as Transaction);
+
+    setShowTransferModal(false);
+    setTransferFromId('');
+    setTransferToId('');
+    setTransferAmount(0);
+    setTransferNote('');
+    setTransferOverdraft(false);
+    setTransferError('');
   };
 
   const filteredTransactions = transactions.filter(tx => {
@@ -239,9 +291,16 @@ export default function Finance() {
           <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center">
             <Landmark size={14} className="mr-2 text-blue-500" /> Financial Accounts {userCountry && <span className="ml-2 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[8px]">{userCountry}</span>}
           </h3>
-          <button onClick={() => { setEditingAccount(null); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
-            <Plus size={14} /> <span>Add Account</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            {financeAccounts.length >= 2 && (
+              <button onClick={() => { setTransferFromId(''); setTransferToId(''); setTransferAmount(0); setTransferNote(''); setTransferError(''); setTransferOverdraft(false); setShowTransferModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors">
+                <ArrowRight size={14} /> <span>Transfer</span>
+              </button>
+            )}
+            <button onClick={() => { setEditingAccount(null); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
+              <Plus size={14} /> <span>Add Account</span>
+            </button>
+          </div>
         </div>
         {financeAccounts.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 text-center border border-dashed border-slate-200 dark:border-slate-800">
@@ -451,6 +510,106 @@ export default function Finance() {
                   </div>
               </div>
           </div>
+      )}
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-[150] p-4 backdrop-blur-xl animate-in zoom-in duration-300">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-[3.5rem] w-full max-w-lg shadow-2xl border border-white/10">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Account Transfer</h3>
+                <p className="text-slate-400 text-xs font-medium mt-1">Move funds between your linked accounts</p>
+              </div>
+              <button onClick={() => setShowTransferModal(false)} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={20}/></button>
+            </div>
+
+            {transferError && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-2xl text-sm font-bold flex items-center space-x-3 border border-red-100 dark:border-red-800/40">
+                <AlertCircle size={18} />
+                <span>{transferError}</span>
+              </div>
+            )}
+
+            <div className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">From Account</label>
+                <select
+                  className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm"
+                  value={transferFromId}
+                  onChange={e => { setTransferFromId(e.target.value); setTransferError(''); }}
+                >
+                  <option value="">Select source account...</option>
+                  {financeAccounts.map(a => (
+                    <option key={a.id} value={a.id}>{a.provider} {a.name !== a.provider ? `— ${a.name}` : ''} · {formatCurrency(a.balance)}</option>
+                  ))}
+                </select>
+                {transferFromId && (
+                  <p className="text-[10px] font-black text-slate-400 px-2">
+                    Available: <span className={`${financeAccounts.find(a => a.id === transferFromId)?.balance! >= transferAmount ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {formatCurrency(financeAccounts.find(a => a.id === transferFromId)?.balance || 0)}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">To Account</label>
+                <select
+                  className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm"
+                  value={transferToId}
+                  onChange={e => { setTransferToId(e.target.value); setTransferError(''); }}
+                >
+                  <option value="">Select destination account...</option>
+                  {financeAccounts.filter(a => a.id !== transferFromId).map(a => (
+                    <option key={a.id} value={a.id}>{a.provider} {a.name !== a.provider ? `— ${a.name}` : ''} · {formatCurrency(a.balance)}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Amount ({user?.preferredCurrency || 'USD'})</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-5 rounded-[1.5rem] font-black text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner"
+                  placeholder="0.00"
+                  value={transferAmount || ''}
+                  onChange={e => { setTransferAmount(parseFloat(e.target.value) || 0); setTransferError(''); }}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Reference / Note (optional)</label>
+                <input
+                  className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm"
+                  placeholder="e.g. Monthly ops transfer"
+                  value={transferNote}
+                  onChange={e => setTransferNote(e.target.value)}
+                />
+              </div>
+
+              {transferFromId && transferAmount > 0 && financeAccounts.find(a => a.id === transferFromId)?.balance! < transferAmount && (
+                <button
+                  onClick={() => setTransferOverdraft(!transferOverdraft)}
+                  className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest border-2 transition-all flex items-center justify-center space-x-2 ${transferOverdraft ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-500'}`}
+                >
+                  <AlertCircle size={14} />
+                  <span>{transferOverdraft ? 'Overdraft enabled — funds will go negative' : 'Allow overdraft to proceed'}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-4 mt-10">
+              <button onClick={() => setShowTransferModal(false)} className="px-8 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancel</button>
+              <button onClick={handleTransfer} className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl text-xs active:scale-95 transition-all flex items-center space-x-2">
+                <ArrowRight size={16} />
+                <span>Transfer Funds</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Finance Account Modal */}
