@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Bot, Send, ImagePlus, X, Leaf, AlertTriangle, CheckCircle2,
   Clock, Lightbulb, CloudRain, TrendingUp, Sprout, Microscope,
-  Camera, ChevronRight, RefreshCw, RotateCcw, Copy, ThumbsUp,
-  ThumbsDown, AlertCircle, Info, Key, Settings2, Upload, Zap
+  Camera, ChevronRight, RefreshCw, RotateCcw, Copy,
+  AlertCircle, Info, Upload
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -194,13 +194,12 @@ export default function AgroAI() {
     }
   ]);
 
+  const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+
   const [input, setInput]       = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey]     = useState(() => localStorage.getItem('nexa_ai_key') || '');
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [keyInput, setKeyInput] = useState('');
   const [isDragging, setIsDragging]   = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -237,7 +236,6 @@ export default function AgroAI() {
   const handleSend = async () => {
     const text = input.trim();
     if (!text && !imageFile) return;
-    if (!apiKey) { setShowKeyModal(true); return; }
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -287,7 +285,7 @@ export default function AgroAI() {
             : (m.structured?.raw || m.text),
         }));
 
-      const aiText = await callOpenAI([...historyMsgs, { role: 'user', content: userContent }], apiKey);
+      const aiText = await callOpenAI([...historyMsgs, { role: 'user', content: userContent }], API_KEY);
       const structured = parseStructuredResponse(aiText);
 
       setMessages(prev => prev.map(m =>
@@ -320,21 +318,6 @@ export default function AgroAI() {
     inputRef.current?.focus();
   };
 
-  const handleSaveKey = () => {
-    const trimmed = keyInput.trim();
-    if (trimmed) {
-      localStorage.setItem('nexa_ai_key', trimmed);
-      setApiKey(trimmed);
-    }
-    setShowKeyModal(false);
-    setKeyInput('');
-  };
-
-  const handleClearKey = () => {
-    localStorage.removeItem('nexa_ai_key');
-    setApiKey('');
-  };
-
   const handleClearChat = () => {
     setMessages([messages[0]]);
   };
@@ -358,22 +341,13 @@ export default function AgroAI() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
+        <button
             onClick={handleClearChat}
             title="Clear chat"
             className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
           >
             <RotateCcw size={15} />
           </button>
-          <button
-            onClick={() => { setKeyInput(apiKey); setShowKeyModal(true); }}
-            title="Configure API key"
-            className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all active:scale-95 ${apiKey ? 'border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-700' : 'border-red-200 bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/20 dark:border-red-700 animate-pulse'}`}
-          >
-            <Key size={15} />
-          </button>
-        </div>
       </div>
 
       {/* Chat Messages */}
@@ -438,11 +412,6 @@ export default function AgroAI() {
                       <div>
                         <p className="text-[11px] font-black uppercase tracking-widest mb-1">Error</p>
                         <p className="text-sm">{msg.error}</p>
-                        {msg.error.includes('API key') || msg.error.includes('401') ? (
-                          <button onClick={() => setShowKeyModal(true)} className="mt-2 text-[10px] font-black uppercase tracking-widest underline">
-                            Update API Key
-                          </button>
-                        ) : null}
                       </div>
                     </div>
                   ) : msg.role === 'user' ? (
@@ -520,15 +489,6 @@ export default function AgroAI() {
 
       {/* Input Bar */}
       <div className="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 md:px-8 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        {!apiKey && (
-          <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-3 py-2 mb-3">
-            <Key size={13} className="text-amber-600 shrink-0" />
-            <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 flex-1">OpenAI API key required to use NexaAI.</p>
-            <button onClick={() => setShowKeyModal(true)} className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 hover:underline shrink-0">
-              Add Key
-            </button>
-          </div>
-        )}
         <div className="flex items-end gap-2">
           <input
             type="file"
@@ -568,68 +528,6 @@ export default function AgroAI() {
         </p>
       </div>
 
-      {/* API Key Modal */}
-      {showKeyModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowKeyModal(false)} />
-          <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6 border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                <Key size={18} className="text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white">Configure AI Key</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">OpenAI API Credentials</p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-4 mb-4">
-              <div className="flex items-start gap-2">
-                <Info size={14} className="text-blue-600 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                  <p className="font-bold">How to get your key:</p>
-                  <ol className="list-decimal list-inside space-y-0.5 font-medium">
-                    <li>Visit platform.openai.com</li>
-                    <li>Sign in or create a free account</li>
-                    <li>Go to API Keys &rarr; Create new key</li>
-                    <li>Copy and paste it below</li>
-                  </ol>
-                  <p className="mt-2 text-[10px] opacity-80">Your key is stored only in this browser. It is never sent to NexaAgri servers.</p>
-                </div>
-              </div>
-            </div>
-
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">API Key</label>
-            <input
-              type="password"
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSaveKey()}
-              placeholder="sk-..."
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/40 font-mono"
-              autoFocus
-            />
-
-            <div className="flex gap-3 mt-5">
-              <button onClick={() => { setShowKeyModal(false); setKeyInput(''); }} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95">
-                Cancel
-              </button>
-              {apiKey && (
-                <button onClick={handleClearKey} className="py-3 px-4 rounded-xl border border-red-200 text-[11px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all active:scale-95">
-                  Remove
-                </button>
-              )}
-              <button
-                onClick={handleSaveKey}
-                disabled={!keyInput.trim()}
-                className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 dark:disabled:bg-slate-700 text-white disabled:text-slate-400 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 disabled:shadow-none transition-all active:scale-95 disabled:cursor-not-allowed"
-              >
-                Save Key
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

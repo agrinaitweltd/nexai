@@ -135,32 +135,16 @@ export function MobileLoginSaveSheet({ userEmail, userId, onDone }: Props) {
   const [confirmPin, setConfirmPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
     isBiometricAvailable().then(setBiometricAvailable);
   }, []);
-
-  const handlePinDigit = (
-    index: number,
-    value: string,
-    currentPin: string,
-    setCurrentPin: (v: string) => void
-  ) => {
-    if (!/^\d?$/.test(value)) return;
-    const digits = currentPin.split('');
-    digits[index] = value;
-    const newPin = digits.join('').slice(0, 4);
-    setCurrentPin(newPin);
-    if (value && index < 3) inputRefs[index + 1]?.current?.focus();
-  };
 
   const handlePickPasscode = () => {
     setPin('');
     setConfirmPin('');
     setPinError('');
     setStep('passcode');
-    setTimeout(() => inputRefs[0]?.current?.focus(), 100);
   };
 
   const handlePasscodeNext = async () => {
@@ -168,7 +152,6 @@ export function MobileLoginSaveSheet({ userEmail, userId, onDone }: Props) {
     setPinError('');
     setStep('passcode-confirm');
     setConfirmPin('');
-    setTimeout(() => inputRefs[0]?.current?.focus(), 100);
   };
 
   const handlePasscodeConfirm = async () => {
@@ -185,23 +168,33 @@ export function MobileLoginSaveSheet({ userEmail, userId, onDone }: Props) {
     else setStep('choose');
   };
 
-  const PinGrid = ({ value, setValue }: { value: string; setValue: (v: string) => void }) => (
-    <div className="flex justify-center space-x-3 my-6">
+  const PinDots = ({ value }: { value: string }) => (
+    <div className="flex justify-center space-x-5 my-8">
       {[0, 1, 2, 3].map(i => (
-        <input
+        <div
           key={i}
-          ref={inputRefs[i]}
-          type="password"
-          inputMode="numeric"
-          maxLength={1}
-          value={value[i] || ''}
-          onChange={e => handlePinDigit(i, e.target.value, value, setValue)}
-          onKeyDown={e => {
-            if (e.key === 'Backspace' && !value[i] && i > 0) inputRefs[i - 1]?.current?.focus();
-          }}
-          className="w-14 h-14 text-center text-2xl font-black border-2 border-slate-200 rounded-2xl bg-slate-50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 outline-none transition-all"
+          className={`w-5 h-5 rounded-full border-[2.5px] transition-all duration-150 ${
+            value.length > i ? 'bg-slate-900 border-slate-900 scale-110 shadow-[0_0_0_4px_rgba(15,23,42,0.08)]' : 'bg-transparent border-slate-300'
+          }`}
         />
       ))}
+    </div>
+  );
+
+  const NumPad = ({ onDigit, onDelete }: { onDigit: (d: string) => void; onDelete: () => void }) => (
+    <div className="grid grid-cols-3 gap-2.5 mt-2">
+      {['1','2','3','4','5','6','7','8','9'].map(d => (
+        <button key={d} type="button" onClick={() => onDigit(d)}
+          className="h-[58px] bg-slate-100 hover:bg-slate-200 active:scale-95 active:bg-slate-300 rounded-2xl text-xl font-black text-slate-900 transition-all duration-100 select-none"
+        >{d}</button>
+      ))}
+      <div />
+      <button type="button" onClick={() => onDigit('0')}
+        className="h-[58px] bg-slate-100 hover:bg-slate-200 active:scale-95 active:bg-slate-300 rounded-2xl text-xl font-black text-slate-900 transition-all duration-100 select-none"
+      >0</button>
+      <button type="button" onClick={onDelete}
+        className="h-[58px] bg-slate-100 hover:bg-slate-200 active:scale-95 active:bg-slate-300 rounded-2xl flex items-center justify-center text-slate-700 transition-all duration-100 select-none"
+      ><span className="text-2xl font-medium">⌫</span></button>
     </div>
   );
 
@@ -256,19 +249,24 @@ export function MobileLoginSaveSheet({ userEmail, userId, onDone }: Props) {
             {isConfirm ? 'Re-enter your 4-digit PIN to confirm' : 'Choose a 4-digit PIN for quick access'}
           </p>
 
-          <PinGrid value={currentPin} setValue={setCurrentPin} />
+          <PinDots value={currentPin} />
 
           {pinError && (
-            <p className="text-center text-red-500 text-xs font-bold mb-4">{pinError}</p>
+            <p className="text-center text-red-500 text-xs font-bold mb-3 animate-in slide-in-from-top-2">{pinError}</p>
           )}
 
-          <button
-            onClick={isConfirm ? handlePasscodeConfirm : handlePasscodeNext}
-            disabled={currentPin.length !== 4}
-            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {isConfirm ? 'Save PIN' : 'Next'}
-          </button>
+          <NumPad
+            onDigit={d => {
+              if (currentPin.length >= 4) return;
+              const next = currentPin + d;
+              setCurrentPin(next);
+              if (next.length === 4) {
+                setPinError('');
+                setTimeout(isConfirm ? handlePasscodeConfirm : handlePasscodeNext, 200);
+              }
+            }}
+            onDelete={() => { setCurrentPin(currentPin.slice(0, -1)); setPinError(''); }}
+          />
         </div>
       </div>
     );
@@ -341,13 +339,10 @@ export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback, onDiffere
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState(savedAuth.email);
   const [resetSent, setResetSent] = useState(false);
-  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
     if (savedAuth.type === 'biometric') {
       handleBiometric();
-    } else {
-      setTimeout(() => inputRefs[0]?.current?.focus(), 100);
     }
   }, []);
 
@@ -363,14 +358,16 @@ export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback, onDiffere
     }
   };
 
-  const handlePinDigit = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
-    const digits = pin.split('');
-    digits[index] = value;
-    const newPin = digits.join('').slice(0, 4);
+  const addDigit = (d: string) => {
+    if (isLoading || pin.length >= 4) return;
+    const newPin = pin + d;
     setPin(newPin);
-    if (value && index < 3) inputRefs[index + 1]?.current?.focus();
     if (newPin.length === 4) handleVerify(newPin);
+  };
+
+  const deleteDigit = () => {
+    setPin(pin.slice(0, -1));
+    setError('');
   };
 
   const handleVerify = async (code: string) => {
@@ -382,7 +379,6 @@ export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback, onDiffere
     } else {
       setError('Incorrect PIN. Try again.');
       setPin('');
-      inputRefs[0]?.current?.focus();
     }
     setIsLoading(false);
   };
@@ -462,32 +458,34 @@ export function MobileUnlockPrompt({ savedAuth, onSuccess, onFallback, onDiffere
           <h3 className="text-xl font-black text-slate-900 tracking-tight">Enter PIN</h3>
           <p className="text-slate-500 text-sm font-medium">Welcome back, <strong>{savedAuth.email.split('@')[0]}</strong></p>
 
-          <div className="flex justify-center space-x-3">
-            {[0, 1, 2, 3].map(i => (
-              <input
+          <div className="flex justify-center space-x-5 my-4">
+            {[0,1,2,3].map(i => (
+              <div
                 key={i}
-                ref={inputRefs[i]}
-                type="password"
-                inputMode="numeric"
-                maxLength={1}
-                value={pin[i] || ''}
-                onChange={e => handlePinDigit(i, e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Backspace' && !pin[i] && i > 0) {
-                    const newPin = pin.slice(0, i);
-                    setPin(newPin);
-                    inputRefs[i - 1]?.current?.focus();
-                  }
-                }}
-                disabled={isLoading}
-                className="w-14 h-14 text-center text-2xl font-black border-2 border-slate-200 rounded-2xl bg-slate-50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 outline-none transition-all disabled:opacity-50"
+                className={`w-5 h-5 rounded-full border-[2.5px] transition-all duration-150 ${
+                  pin.length > i ? 'bg-slate-900 border-slate-900 scale-110 shadow-[0_0_0_4px_rgba(15,23,42,0.08)]' : 'bg-transparent border-slate-300'
+                }`}
               />
             ))}
           </div>
 
-          {error && <p className="text-red-500 text-xs font-bold">{error}</p>}
-          {isLoading && <div className="flex justify-center"><div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>}
-          <button onClick={() => setShowReset(true)} className="text-emerald-600 text-xs font-bold uppercase tracking-wider">
+          {error && <p className="text-red-500 text-xs font-bold animate-in slide-in-from-top-2">{error}</p>}
+
+          <div className="grid grid-cols-3 gap-2.5 mt-3">
+            {['1','2','3','4','5','6','7','8','9'].map(d => (
+              <button key={d} type="button" onClick={() => addDigit(d)} disabled={isLoading}
+                className="h-[58px] bg-slate-100 hover:bg-slate-200 active:scale-95 active:bg-slate-300 rounded-2xl text-xl font-black text-slate-900 transition-all duration-100 disabled:opacity-50 select-none"
+              >{d}</button>
+            ))}
+            <div />
+            <button type="button" onClick={() => addDigit('0')} disabled={isLoading}
+              className="h-[58px] bg-slate-100 hover:bg-slate-200 active:scale-95 active:bg-slate-300 rounded-2xl text-xl font-black text-slate-900 transition-all duration-100 disabled:opacity-50 select-none"
+            >0</button>
+            <button type="button" onClick={deleteDigit} disabled={isLoading}
+              className="h-[58px] bg-slate-100 hover:bg-slate-200 active:scale-95 active:bg-slate-300 rounded-2xl flex items-center justify-center text-slate-700 transition-all duration-100 disabled:opacity-50 select-none"
+            ><span className="text-2xl font-medium">⌫</span></button>
+          </div>
+          <button onClick={() => setShowReset(true)} className="text-emerald-600 text-xs font-bold uppercase tracking-wider mt-2">
             Forgot PIN?
           </button>
         </>
