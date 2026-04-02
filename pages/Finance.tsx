@@ -580,33 +580,93 @@ export default function Finance() {
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
-        <div className="p-8 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <h2 className="font-black text-slate-900 dark:text-white text-xl tracking-tight uppercase tracking-widest flex items-center">
-                <FileText size={22} className="mr-3 text-primary-500" /> Global Fiscal Ledger
-            </h2>
-            <div className="flex items-center space-x-4">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-[0.2em]">{filteredTransactions.length} Audit Items Found</span>
+        <div className="p-6 md:p-8 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="font-black text-slate-900 dark:text-white text-xl tracking-tight uppercase tracking-widest flex items-center">
+                  <FileText size={22} className="mr-3 text-blue-500" /> Global Fiscal Ledger
+              </h2>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1 pl-9">Full audit trail of all monetary activity</p>
+            </div>
+            <div className="flex items-center space-x-3 pl-9 sm:pl-0">
+                <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+                  <Hash size={10} className="mr-1.5" />{filteredTransactions.length} entries
+                </span>
+                {filteredTransactions.length > 0 && (
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-[10px] font-black uppercase tracking-[0.15em] text-emerald-600">
+                    +{formatCurrency(filteredTransactions.filter(t => t.type === 'INCOME').reduce((a, b) => a + b.amount, 0))}
+                  </span>
+                )}
             </div>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto scrollbar-thin">
-            {filteredTransactions.length === 0 ? <div className="p-20 text-center text-slate-300 italic font-medium uppercase tracking-widest">No ledger data found for this period.</div> :
-                filteredTransactions.map(tx => (
-                    <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
-                        <div className="flex items-center space-x-6">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 ${tx.type === 'INCOME' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-red-50 dark:bg-red-900/20 text-red-600'}`}>
-                                {tx.type === 'INCOME' ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
+        <div className="divide-y divide-slate-50 dark:divide-slate-800/80 max-h-[700px] overflow-y-auto">
+            {filteredTransactions.length === 0 ? (
+              <div className="p-20 text-center">
+                <FileText size={36} className="mx-auto text-slate-200 dark:text-slate-700 mb-4" />
+                <p className="text-slate-300 dark:text-slate-600 font-black text-sm uppercase tracking-widest">No ledger data for this period.</p>
+              </div>
+            ) :
+                filteredTransactions.map(tx => {
+                    const linkedAcct = tx.accountId ? financeAccounts.find(a => a.id === tx.accountId) : null;
+                    const logoUrl = linkedAcct ? getBankLogoUrl(linkedAcct.provider) : null;
+                    return (
+                    <div key={tx.id} className="px-5 md:px-8 py-4 md:py-5 flex items-center justify-between hover:bg-slate-50/80 dark:hover:bg-slate-800/20 transition-colors group">
+                        <div className="flex items-center space-x-4 min-w-0 flex-1">
+                            {/* Type indicator */}
+                            <div className={`w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0 transition-transform group-hover:scale-105 ${tx.type === 'INCOME' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : tx.type === 'INITIAL_CAPITAL' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'bg-red-50 dark:bg-red-900/20 text-red-600'}`}>
+                                {tx.type === 'INCOME' ? <TrendingUp size={18} /> : tx.type === 'INITIAL_CAPITAL' ? <Wallet size={18} /> : <TrendingDown size={18} />}
                             </div>
-                            <div>
-                                <p className="font-bold text-slate-900 dark:text-white text-base leading-tight mb-1">{tx.description}</p>
-                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center"><Calendar size={10} className="mr-1.5"/> {new Date(tx.date).toLocaleDateString()} • {tx.paymentMethod.replace('_', ' ')} • <span className="text-emerald-600 ml-1.5">{tx.category}</span></p>
+
+                            {/* Account logo badge (if linked) */}
+                            {linkedAcct && (
+                              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm" title={linkedAcct.provider}>
+                                {logoUrl ? (
+                                  <img src={logoUrl} alt={linkedAcct.provider} className="w-6 h-6 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>'; }} />
+                                ) : linkedAcct.type === 'MOBILE_MONEY' ? (
+                                  <Smartphone size={14} className="text-yellow-600" />
+                                ) : linkedAcct.type === 'WALLET' ? (
+                                  <CreditCard size={14} className="text-purple-600" />
+                                ) : (
+                                  <Landmark size={14} className="text-blue-500" />
+                                )}
+                              </div>
+                            )}
+
+                            {/* Main text */}
+                            <div className="min-w-0 flex-1">
+                                <p className="font-bold text-slate-900 dark:text-white text-sm leading-tight truncate">{tx.description}</p>
+                                <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1">
+                                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center">
+                                    <Calendar size={9} className="mr-1"/>{new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  </span>
+                                  <span className="text-slate-200 dark:text-slate-700">·</span>
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-md">{tx.category}</span>
+                                  {linkedAcct && (
+                                    <>
+                                      <span className="text-slate-200 dark:text-slate-700">·</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center">
+                                        {linkedAcct.type === 'MOBILE_MONEY' ? <Smartphone size={8} className="mr-1 text-yellow-500" /> : linkedAcct.type === 'WALLET' ? <CreditCard size={8} className="mr-1 text-purple-500" /> : <Landmark size={8} className="mr-1 text-blue-500" />}
+                                        {linkedAcct.provider}
+                                      </span>
+                                    </>
+                                  )}
+                                  {!linkedAcct && tx.paymentMethod !== 'CASH' && (
+                                    <>
+                                      <span className="text-slate-200 dark:text-slate-700">·</span>
+                                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{tx.paymentMethod.replace(/_/g, ' ')}</span>
+                                    </>
+                                  )}
+                                </div>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <span className={`font-black text-2xl tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'}`}>{tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}</span>
-                            {tx.reference && <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1">REF: {tx.reference}</p>}
+                        <div className="text-right flex-shrink-0 ml-4">
+                            <span className={`font-black text-xl md:text-2xl tracking-tighter ${tx.type === 'INCOME' ? 'text-emerald-600' : tx.type === 'INITIAL_CAPITAL' ? 'text-blue-600' : 'text-red-600'}`}>
+                              {tx.type === 'EXPENSE' ? '−' : '+'}{formatCurrency(tx.amount)}
+                            </span>
+                            {tx.reference && <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest mt-1">REF: {tx.reference}</p>}
                         </div>
                     </div>
-                ))
+                    );
+                })
             }
         </div>
       </div>
