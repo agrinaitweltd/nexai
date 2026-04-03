@@ -568,6 +568,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Call the admin-create-user Edge Function to provision the auth account
     const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      addNotification('Session expired. Please refresh the page and try again.', 'ALERT');
+      return;
+    }
     const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || 'https://vlxfwcdnsdqgcqkdnpav.supabase.co';
 
     try {
@@ -594,13 +598,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const rejectSignup = async (signupId: string) => {
     const signup = pendingSignups.find(s => s.id === signupId);
     if (!signup) return;
-    // Increment rejection count, mark as rejected
-    await supabase.from('pending_registrations').update({
-      status: 'REJECTED',
-      rejection_count: (signup as any).rejectionCount + 1 || 1,
-    }).eq('id', signupId);
+    // DELETE the row entirely so the email is freed and the user can re-register
+    await supabase.from('pending_registrations').delete().eq('id', signupId);
     setPendingSignups(prev => prev.filter(s => s.id !== signupId));
-    addNotification(`Registration for ${signup.userName} rejected.`, 'ALERT');
+    addNotification(`Registration for ${signup.userName} purged. They may re-apply.`, 'ALERT');
   };
 
   const deleteUser = async (userId: string) => {
@@ -632,6 +633,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetUserStatus = async (email: string) => {
+    // Delete any pending_registration row to free the unique email constraint for re-registration
+    await supabase.from('pending_registrations').delete().eq('email', email);
+    // Also reset profile status in case they have an existing profile
     await supabase.from('profiles').update({ activation_status: 'PENDING' }).eq('email', email);
   };
 

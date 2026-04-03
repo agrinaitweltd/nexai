@@ -27,6 +27,19 @@ export default function AdminPortal() {
         role: 'ADMIN' as 'ADMIN' | 'STAFF'
     });
     const [isProvisioning, setIsProvisioning] = useState(false);
+    const [processingId, setProcessingId] = useState<string | null>(null);
+
+    const handleApprove = async (id: string) => {
+        setProcessingId(id);
+        await approveSignup(id);
+        setProcessingId(null);
+    };
+
+    const handlePurge = async (id: string) => {
+        setProcessingId(id);
+        await rejectSignup(id);
+        setProcessingId(null);
+    };
 
     useEffect(() => {
         getAllUsers().then(setUsers);
@@ -251,14 +264,18 @@ export default function AdminPortal() {
 
                                 <div className="flex space-x-3 md:space-x-4 relative z-10 pt-4 md:pt-6 border-t border-white/5">
                                     <button 
-                                        onClick={() => approveSignup(req.id)}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shadow-xl shadow-emerald-500/10 flex items-center justify-center active:scale-95"
+                                        onClick={() => handleApprove(req.id)}
+                                        disabled={processingId === req.id}
+                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shadow-xl shadow-emerald-500/10 flex items-center justify-center active:scale-95"
                                     >
-                                        <CheckCircle2 size={15} className="mr-2" /> Authorize
+                                        {processingId === req.id
+                                            ? <><RefreshCw size={13} className="mr-2 animate-spin" /> Authorizing...</>
+                                            : <><CheckCircle2 size={15} className="mr-2" /> Authorize</>}
                                     </button>
                                     <button 
-                                        onClick={() => rejectSignup(req.id)}
-                                        className="px-5 md:px-10 bg-white/5 hover:bg-red-500/20 text-slate-600 hover:text-red-500 py-3 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all border border-white/5"
+                                        onClick={() => handlePurge(req.id)}
+                                        disabled={processingId === req.id}
+                                        className="px-5 md:px-10 bg-white/5 hover:bg-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed text-slate-600 hover:text-red-500 py-3 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all border border-white/5"
                                     >
                                         Purge
                                     </button>
