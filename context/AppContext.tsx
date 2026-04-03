@@ -318,6 +318,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       paymentMethod: r.payment_method || 'MTN',
       bankName: r.bank_name,
       accountName: r.account_name,
+      country: r.country || '',
       date: r.created_at,
     })));
   }, []);

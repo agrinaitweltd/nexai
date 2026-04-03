@@ -39,6 +39,100 @@ const UG_BANKS = [
 
 type AuthView = 'LOGIN' | 'SIGNUP' | 'PAYMENT' | 'VERIFICATION' | 'AWAITING' | 'REJECTED' | 'LIMIT' | 'FORGOT_PASSWORD' | 'RESET_PASSWORD';
 
+type ActivationMethod = 'MTN' | 'AIRTEL' | 'MPESA' | 'BANK';
+
+interface CountryPayCfg {
+  methods: ActivationMethod[];
+  currency: string;
+  amount: string;
+  momoNumbers: Partial<Record<ActivationMethod, { number: string; name: string }>>;
+  banks: string[];
+  bankDetails?: { accountName: string; bank: string; accountNumber: string; note?: string };
+}
+
+const COUNTRY_PAYMENT_CFG: Record<string, CountryPayCfg> = {
+  Uganda: {
+    methods: ['MTN', 'AIRTEL', 'BANK'],
+    currency: 'UGX', amount: '15,000/mo',
+    momoNumbers: {
+      MTN: { number: '+256 768 638225', name: 'Nexa Intelligence Hub' },
+      AIRTEL: { number: '+256 758 762690', name: 'Nexa Intelligence Hub' },
+    },
+    banks: ['Stanbic Bank','Equity Bank Uganda','Absa Bank Uganda','Centenary Bank','Standard Chartered Uganda','DFCU Bank','KCB Bank Uganda','I&M Bank Uganda','Pearl Bank','Orient Bank','Finance Trust Bank','Bank of Africa'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Stanbic Bank Uganda', accountNumber: '9030005XXXXXXX', note: 'Use your registration email as reference.' },
+  },
+  Kenya: {
+    methods: ['MPESA', 'BANK'],
+    currency: 'KES', amount: '500/mo',
+    momoNumbers: { MPESA: { number: 'Paybill: 891300  |  Acc: Your Email', name: 'Nexa Intelligence Hub' } },
+    banks: ['Equity Bank (KE)','KCB Bank (KE)','Co-operative Bank','NCBA Bank','DTB Bank','Family Bank','Standard Chartered Bank'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Equity Bank Kenya', accountNumber: 'billing@nexaagri.com', note: 'Contact us for account number. Use your email as reference.' },
+  },
+  Tanzania: {
+    methods: ['MPESA', 'AIRTEL', 'BANK'],
+    currency: 'TZS', amount: '12,000/mo',
+    momoNumbers: {
+      MPESA: { number: 'billing@nexaagri.com', name: 'Nexa Intelligence Hub' },
+      AIRTEL: { number: 'billing@nexaagri.com', name: 'Nexa Intelligence Hub' },
+    },
+    banks: ['CRDB Bank','NMB Bank','Stanbic Bank','Standard Chartered Bank'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'CRDB Bank', accountNumber: 'billing@nexaagri.com', note: 'Contact us for local TZS account details.' },
+  },
+  Rwanda: {
+    methods: ['MTN', 'AIRTEL', 'BANK'],
+    currency: 'RWF', amount: '6,000/mo',
+    momoNumbers: {
+      MTN: { number: 'billing@nexaagri.com', name: 'Nexa Intelligence Hub' },
+      AIRTEL: { number: 'billing@nexaagri.com', name: 'Nexa Intelligence Hub' },
+    },
+    banks: ['Bank of Kigali','BPR Bank Rwanda','Equity Bank Rwanda'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Bank of Kigali', accountNumber: 'billing@nexaagri.com', note: 'Contact us for RWF account details.' },
+  },
+  Nigeria: {
+    methods: ['BANK'],
+    currency: 'NGN', amount: '4,500/mo',
+    momoNumbers: {},
+    banks: ['GTBank','Access Bank','First Bank','UBA','Zenith Bank','Stanbic IBTC'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Wise (wise.com)', accountNumber: 'billing@nexaagri.com', note: 'Bank transfer via Wise. Use email as reference.' },
+  },
+  Ghana: {
+    methods: ['MTN', 'BANK'],
+    currency: 'GHS', amount: '70/mo',
+    momoNumbers: { MTN: { number: 'billing@nexaagri.com', name: 'Nexa Intelligence Hub (Ghana)' } },
+    banks: ['GCB Bank','Ecobank Ghana','Fidelity Bank (GH)','Absa Ghana','Standard Chartered Ghana'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Ecobank Ghana', accountNumber: 'billing@nexaagri.com', note: 'Contact us for GHS account details.' },
+  },
+  'South Africa': {
+    methods: ['BANK'],
+    currency: 'ZAR', amount: '90/mo',
+    momoNumbers: {},
+    banks: ['FNB','Nedbank','Standard Bank SA','Capitec','ABSA South Africa'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Wise / International Wire', accountNumber: 'billing@nexaagri.com', note: 'EFT or Wise transfer accepted.' },
+  },
+  'United Kingdom': {
+    methods: ['BANK'],
+    currency: 'GBP', amount: '3.99/mo',
+    momoNumbers: {},
+    banks: ['Lloyds Bank','Barclays','HSBC','NatWest','Santander','Halifax','Nationwide','Monzo','Starling Bank','Revolut','Wise'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Wise (wise.com)', accountNumber: 'billing@nexaagri.com', note: 'UK bank transfer or Wise accepted.' },
+  },
+  'United States': {
+    methods: ['BANK'],
+    currency: 'USD', amount: '4.99/mo',
+    momoNumbers: {},
+    banks: ['Chase','Bank of America','Wells Fargo','Citibank','Wise','Revolut'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Wise (wise.com)', accountNumber: 'billing@nexaagri.com', note: 'ACH or Wise transfer accepted.' },
+  },
+};
+const getPayCfg = (country: string): CountryPayCfg =>
+  COUNTRY_PAYMENT_CFG[country] ?? {
+    methods: ['BANK'],
+    currency: 'USD', amount: '4.99/mo',
+    momoNumbers: {},
+    banks: ['Wise','Revolut'],
+    bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Wise (wise.com)', accountNumber: 'billing@nexaagri.com', note: 'International wire or Wise accepted.' },
+  };
+
 export default function Login() {
   const { login, register, submitVerification, resetUserStatus, requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery } = useApp();
   const navigate = useNavigate();
@@ -102,14 +196,26 @@ export default function Login() {
   // Verification Form State
   const [txId, setTxId] = useState('');
   const [paymentPhone, setPaymentPhone] = useState('');
-  const [payMethod, setPayMethod] = useState<'MTN' | 'AIRTEL' | 'BANK'>('MTN');
+  const [payMethod, setPayMethod] = useState<ActivationMethod>('MTN');
   const [selectedBank, setSelectedBank] = useState(UG_BANKS[0]);
   const [accountName, setAccountName] = useState('');
-  const [selectedActivationProvider, setSelectedActivationProvider] = useState<'MTN' | 'AIRTEL'>('MTN');
+  const [selectedActivationProvider, setSelectedActivationProvider] = useState<ActivationMethod>('MTN');
+
+  // Reset payment method when country changes
+  useEffect(() => {
+    const cfg = getPayCfg(selectedCountry);
+    setSelectedActivationProvider(cfg.methods[0]);
+    setPayMethod(cfg.methods[0]);
+    setSelectedBank(cfg.banks[0] || '');
+  }, [selectedCountry]);
 
   useEffect(() => {
       calculateStrength(newPassword);
   }, [newPassword]);
+
+  const payConfig = getPayCfg(selectedCountry);
+  const isMoMoProvider = selectedActivationProvider !== 'BANK';
+  const momoInfo = payConfig.momoNumbers[selectedActivationProvider];
 
   const calculateStrength = (pass: string) => {
     let score = 0;
@@ -755,94 +861,100 @@ export default function Login() {
                         <LockIcon size={32} />
                     </div>
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter mb-4 leading-none">Account Activation</h2>
-                    <p className="text-slate-500 font-medium mb-8 max-w-sm text-sm md:text-base">Initialization of your secure agricultural hub requires an activation fee. Choose your provider below.</p>
-                    
-                    {/* Provider Toggle */}
-                    <div className="flex p-1.5 bg-slate-100 rounded-2xl mb-8 w-full max-w-sm">
-                        <button 
-                            type="button"
-                            onClick={() => setSelectedActivationProvider('MTN')}
-                            className={`flex-1 flex items-center justify-center space-x-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'MTN' ? 'bg-[#ffcc00] text-[#003366] shadow-lg' : 'text-slate-400'}`}
-                        >
-                            <span>MTN MoMo</span>
-                        </button>
-                        <button 
-                            type="button"
-                            onClick={() => setSelectedActivationProvider('AIRTEL')}
-                            className={`flex-1 flex items-center justify-center space-x-2 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'AIRTEL' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400'}`}
-                        >
-                            <span>Airtel Money</span>
-                        </button>
+                    <p className="text-slate-500 font-medium mb-8 max-w-sm text-sm md:text-base">
+                        Activate your hub for <span className="font-black text-slate-900">{payConfig.currency} {payConfig.amount}</span>. Choose your payment method.
+                    </p>
+
+                    {/* Country-aware Provider Toggle */}
+                    <div className="flex p-1.5 bg-slate-100 rounded-2xl mb-8 w-full max-w-sm gap-1">
+                        {payConfig.methods.map(method => (
+                            <button
+                                key={method}
+                                type="button"
+                                onClick={() => setSelectedActivationProvider(method)}
+                                className={`flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                                    selectedActivationProvider === method
+                                        ? method === 'MTN' ? 'bg-[#ffcc00] text-[#003366] shadow-lg'
+                                            : method === 'AIRTEL' ? 'bg-red-600 text-white shadow-lg'
+                                            : method === 'MPESA' ? 'bg-green-600 text-white shadow-lg'
+                                            : 'bg-slate-900 text-white shadow-lg'
+                                        : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                            >
+                                {method === 'MPESA' ? 'M-Pesa' : method}
+                            </button>
+                        ))}
                     </div>
 
                     {/* Payment Card */}
-                    <div className="w-full perspective-1000 group">
-                        <div className={`w-full rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border text-left overflow-hidden relative transition-all duration-500 ${selectedActivationProvider === 'MTN' ? 'bg-gradient-to-br from-[#ffcc00] to-[#e6b800] border-[#cc9900]/30 text-[#003366]' : 'bg-gradient-to-br from-slate-900 to-black border-white/10 text-white'}`}>
-                            
-                            <div className="flex justify-between items-start mb-8 md:mb-12">
-                                <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/60' : 'text-nexa-blue'}`}>Activation ID #9912</p>
-                                <Globe2 size={24} className={selectedActivationProvider === 'MTN' ? 'text-[#003366]/30' : 'text-nexa-blue opacity-50'} />
-                            </div>
-                            
-                            <div className="space-y-8 md:space-y-12 relative z-10">
-                                {selectedActivationProvider === 'MTN' ? (
+                    <div className="w-full max-w-sm">
+                        {isMoMoProvider && momoInfo ? (
+                            <div className={`w-full rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] border text-left overflow-hidden relative transition-all duration-500 ${
+                                selectedActivationProvider === 'MTN' ? 'bg-gradient-to-br from-[#ffcc00] to-[#e6b800] border-[#cc9900]/30 text-[#003366]'
+                                : selectedActivationProvider === 'MPESA' ? 'bg-gradient-to-br from-green-600 to-green-800 border-green-900/30 text-white'
+                                : 'bg-gradient-to-br from-slate-900 to-black border-white/10 text-white'
+                            }`}>
+                                <div className="flex justify-between items-start mb-8">
+                                    <p className={`text-[9px] font-black uppercase tracking-[0.4em] opacity-60`}>Activation ID #9912</p>
+                                    <Globe2 size={24} className="opacity-30" />
+                                </div>
+                                <div className="space-y-8">
                                     <div>
-                                        <p className="text-[10px] md:text-[11px] font-black text-[#003366]/60 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
-                                        <div className="flex items-center space-x-4 md:space-x-6">
-                                            {/* MTN MoMo Logo */}
-                                            <div className="w-14 h-14 md:w-16 md:h-16 bg-[#003366] rounded-2xl md:rounded-3xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden">
-                                                <svg viewBox="0 0 60 60" className="w-10 h-10 md:w-12 md:h-12">
-                                                    <rect width="60" height="60" fill="#003366" rx="8"/>
-                                                    <rect x="8" y="25" width="44" height="22" rx="4" fill="#ffcc00"/>
-                                                    <text x="30" y="41" textAnchor="middle" fill="#003366" fontSize="14" fontWeight="900" fontFamily="Arial, sans-serif">MoMo</text>
-                                                    <text x="30" y="18" textAnchor="middle" fill="#ffcc00" fontSize="9" fontWeight="900" fontFamily="Arial, sans-serif">MTN</text>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p className="text-xl md:text-3xl font-black text-[#003366] tracking-tighter leading-none">+256 768 638225</p>
-                                                <p className="text-[10px] md:text-[11px] font-bold text-[#003366]/50 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
-                                            </div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-60">
+                                            {selectedActivationProvider === 'MPESA' ? 'M-Pesa Recipient' : 'Mobile Money Recipient'}
+                                        </p>
+                                        <p className="text-xl md:text-2xl font-black tracking-tighter leading-none mb-2">{momoInfo.number}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-50">{momoInfo.name}</p>
+                                    </div>
+                                    <div className={`flex justify-between items-end border-t pt-6 ${selectedActivationProvider === 'MTN' ? 'border-[#003366]/10' : 'border-white/10'}`}>
+                                        <div>
+                                            <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Amount</p>
+                                            <p className="font-bold text-emerald-500 text-xs">{payConfig.currency} {payConfig.amount}</p>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <p className="text-[10px] md:text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Mobile Money Recipient</p>
-                                        <div className="flex items-center space-x-4 md:space-x-6">
-                                            {/* Airtel Money Logo */}
-                                            <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden p-1">
-                                                <svg viewBox="0 0 60 60" className="w-10 h-10 md:w-12 md:h-12">
-                                                    <rect width="60" height="60" fill="white" rx="8"/>
-                                                    <path d="M15 28C15 28 20 18 30 18C38 18 42 28 42 28" fill="none" stroke="#ED1C24" strokeWidth="5" strokeLinecap="round"/>
-                                                    <circle cx="18" cy="26" r="4" fill="#ED1C24"/>
-                                                    <text x="30" y="44" textAnchor="middle" fill="#ED1C24" fontSize="10" fontWeight="900" fontFamily="Arial, sans-serif">airtel</text>
-                                                    <text x="30" y="54" textAnchor="middle" fill="#F7941D" fontSize="7" fontWeight="700" fontFamily="Arial, sans-serif">money</text>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p className="text-xl md:text-3xl font-black text-white tracking-tighter leading-none">+256 758 762690</p>
-                                                <p className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2">Nexa Intelligence Hub</p>
-                                            </div>
+                                        <div className="text-right">
+                                            <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Status</p>
+                                            <p className="font-black uppercase text-xs animate-pulse">Awaiting Signal</p>
                                         </div>
-                                    </div>
-                                )}
-                                
-                                <div className={`flex justify-between items-end border-t pt-6 md:pt-8 ${selectedActivationProvider === 'MTN' ? 'border-[#003366]/10' : 'border-white/5'}`}>
-                                    <div>
-                                        <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/40' : 'text-slate-500'}`}>Routing</p>
-                                        <p className="font-bold text-nexa-green uppercase text-xs">Direct Activation</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/40' : 'text-slate-500'}`}>Status</p>
-                                        <p className={`font-black uppercase text-xs animate-pulse ${selectedActivationProvider === 'MTN' ? 'text-[#003366]' : 'text-white'}`}>Awaiting Signal</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            /* Bank Transfer Card */
+                            <div className="w-full rounded-2xl p-8 bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 text-white shadow-2xl text-left">
+                                <div className="flex items-center space-x-3 mb-6">
+                                    <Landmark size={28} className="text-emerald-500" />
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Bank Transfer</p>
+                                        <p className="font-black text-white">{payConfig.bankDetails?.bank || 'Contact Support'}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 bg-black/30 p-4 rounded-xl">
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Account Name</p>
+                                        <p className="font-bold text-white text-sm">{payConfig.bankDetails?.accountName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Account / Ref</p>
+                                        <p className="font-bold text-emerald-400 text-sm">{payConfig.bankDetails?.accountNumber}</p>
+                                    </div>
+                                    {payConfig.bankDetails?.note && (
+                                        <p className="text-[10px] text-slate-400 italic border-t border-white/5 pt-3">{payConfig.bankDetails.note}</p>
+                                    )}
+                                </div>
+                                <div className="flex justify-between items-center mt-6 border-t border-white/10 pt-4">
+                                    <div>
+                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Amount</p>
+                                        <p className="font-bold text-emerald-400 text-xs">{payConfig.currency} {payConfig.amount}</p>
+                                    </div>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">Pending</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <button 
+                    <button
                         onClick={() => setView('VERIFICATION')}
-                        className="w-full mt-8 md:mt-10 bg-nexa-dark text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black uppercase tracking-[0.4em] shadow-xl hover:bg-emerald-600 transition-all hover:scale-[1.02] active:scale-95 text-[10px] md:text-xs"
+                        className="w-full mt-8 md:mt-10 bg-nexa-dark text-white py-5 md:py-6 rounded-2xl md:rounded-[2.5rem] font-black uppercase tracking-[0.4em] shadow-xl hover:bg-emerald-600 transition-all hover:scale-[1.02] active:scale-95 text-[10px] md:text-xs max-w-sm"
                     >
                         Continue
                     </button>
@@ -859,15 +971,15 @@ export default function Login() {
 
                     <form onSubmit={handleVerificationSubmit} className="space-y-6">
                         <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-3 p-1.5 bg-slate-100 rounded-[1.5rem]">
-                                {['MTN', 'AIRTEL', 'BANK'].map(m => (
-                                    <button 
+                            <div className="grid gap-2 p-1.5 bg-slate-100 rounded-[1.5rem]" style={{gridTemplateColumns: `repeat(${payConfig.methods.length}, 1fr)`}}>
+                                {payConfig.methods.map(m => (
+                                    <button
                                         key={m}
                                         type="button"
-                                        onClick={() => setPayMethod(m as any)}
+                                        onClick={() => setPayMethod(m)}
                                         className={`py-3 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all ${payMethod === m ? 'bg-white text-nexa-dark shadow-md' : 'text-slate-400'}`}
                                     >
-                                        {m}
+                                        {m === 'MPESA' ? 'M-Pesa' : m}
                                     </button>
                                 ))}
                             </div>
@@ -898,7 +1010,7 @@ export default function Login() {
                                     <div className="space-y-1.5">
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest px-6">Select Bank</label>
                                         <select value={selectedBank} onChange={e => setSelectedBank(e.target.value)} className="w-full border-none bg-white rounded-2xl px-8 py-4 font-bold shadow-sm outline-none">
-                                            {UG_BANKS.map(b => <option key={b} value={b}>{b}</option>)}
+                                            {payConfig.banks.map(b => <option key={b} value={b}>{b}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-1.5">

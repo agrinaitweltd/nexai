@@ -201,23 +201,53 @@ export default function AdminPortal() {
                                         <h3 className="text-xl md:text-3xl font-black text-white tracking-tighter leading-none mb-1 md:mb-2 truncate">{req.userName}</h3>
                                         <p className="text-slate-500 font-bold uppercase text-[9px] md:text-[10px] tracking-widest truncate">{req.userEmail}</p>
                                     </div>
-                                    <span className="self-start text-[7px] md:text-[8px] font-black px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full uppercase tracking-widest shrink-0">Audit Required</span>
+                                    <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
+                                        <span className="text-[7px] md:text-[8px] font-black px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full uppercase tracking-widest">Audit Required</span>
+                                        {req.country && <span className="text-[7px] font-black px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full uppercase tracking-widest">{req.country}</span>}
+                                        {!req.transactionId && <span className="text-[7px] font-black px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full uppercase tracking-widest animate-pulse">Not Verified Yet</span>}
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6 mb-5 md:mb-12 relative z-10">
-                                    <div className="bg-black/50 p-3 md:p-6 rounded-xl md:rounded-[1.5rem] border border-white/5">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mb-5 md:mb-8 relative z-10">
+                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
                                         <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Gate Token</p>
-                                        <p className="text-[10px] md:text-xs font-black text-slate-300 font-mono tracking-tighter truncate">{req.transactionId}</p>
+                                        <p className="text-[9px] md:text-[10px] font-black text-slate-300 font-mono tracking-tighter truncate">{req.transactionId || <span className="text-slate-700 italic">Pending</span>}</p>
                                     </div>
-                                    <div className="bg-black/50 p-3 md:p-6 rounded-xl md:rounded-[1.5rem] border border-white/5">
+                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
                                         <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Origin Phone</p>
-                                        <p className="text-[10px] md:text-xs font-black text-slate-300 truncate">{req.paymentPhone}</p>
+                                        <p className="text-[9px] md:text-[10px] font-black text-slate-300 truncate">{req.paymentPhone || <span className="text-slate-700 italic">Pending</span>}</p>
                                     </div>
-                                    <div className="bg-black/50 p-3 md:p-6 rounded-xl md:rounded-[1.5rem] border border-white/5">
+                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
+                                        <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Method</p>
+                                        <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-wider ${
+                                            req.paymentMethod === 'MTN' ? 'text-yellow-400' :
+                                            req.paymentMethod === 'AIRTEL' ? 'text-red-400' :
+                                            req.paymentMethod === 'MPESA' ? 'text-green-400' :
+                                            'text-blue-400'
+                                        }`}>{req.paymentMethod || 'N/A'}</p>
+                                    </div>
+                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
                                         <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Log Date</p>
-                                        <p className="text-[10px] md:text-xs font-black text-slate-500 uppercase">{new Date(req.date).toLocaleDateString()}</p>
+                                        <p className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase">{new Date(req.date).toLocaleDateString()}</p>
                                     </div>
                                 </div>
+
+                                {req.paymentMethod === 'BANK' && (req.bankName || req.accountName) && (
+                                    <div className="flex gap-3 mb-5 md:mb-6 relative z-10">
+                                        {req.bankName && (
+                                            <div className="flex-1 bg-blue-500/5 border border-blue-500/10 p-3 md:p-4 rounded-xl">
+                                                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Bank</p>
+                                                <p className="text-[10px] font-bold text-blue-300 truncate">{req.bankName}</p>
+                                            </div>
+                                        )}
+                                        {req.accountName && (
+                                            <div className="flex-1 bg-blue-500/5 border border-blue-500/10 p-3 md:p-4 rounded-xl">
+                                                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Account Name</p>
+                                                <p className="text-[10px] font-bold text-blue-300 truncate">{req.accountName}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="flex space-x-3 md:space-x-4 relative z-10 pt-4 md:pt-6 border-t border-white/5">
                                     <button 

@@ -85,9 +85,10 @@ export interface PendingSignup {
   userEmail: string;
   transactionId: string;
   paymentPhone: string;
-  paymentMethod: 'MTN' | 'AIRTEL' | 'BANK';
+  paymentMethod: 'MTN' | 'AIRTEL' | 'MPESA' | 'BANK';
   bankName?: string;
   accountName?: string;
+  country?: string;
   date: string;
 }
 
