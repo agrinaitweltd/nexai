@@ -24,6 +24,8 @@ create table if not exists public.pending_registrations (
   payment_method text default 'MTN',
   bank_name text,
   account_name text,
+  -- Temp password (optional, used during registration flow)
+  _tmp_password text,
   -- Status
   status text default 'PENDING', -- PENDING | APPROVED | REJECTED
   rejection_count integer default 0,

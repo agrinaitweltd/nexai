@@ -516,8 +516,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const { error: insertErr } = await supabase.from('pending_registrations').insert({
       ...pendingRow,
-      // Store encrypted temp password reference so admin create-user Edge Fn can send reset email
-      _tmp_password: data.password,
     });
 
     if (insertErr) {
