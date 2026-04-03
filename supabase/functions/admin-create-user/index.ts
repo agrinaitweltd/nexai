@@ -45,11 +45,15 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Pending registration not found' }), { status: 404, headers: corsHeaders });
     }
 
-    // Create the auth user with a temporary password; user will set their own via email
-    const tempPassword = crypto.randomUUID().slice(0, 12) + 'Ax1!';
+
+
+    // Use the _tmp_password from pending_registrations to create the user
+    if (!pending._tmp_password) {
+      return new Response(JSON.stringify({ error: 'No password found for this registration.' }), { status: 400, headers: corsHeaders });
+    }
     const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: pending.email,
-      password: tempPassword,
+      password: pending._tmp_password,
       email_confirm: true,
       user_metadata: {
         full_name: pending.full_name,
@@ -64,12 +68,11 @@ Deno.serve(async (req) => {
         activation_status: 'ACTIVE',
       }
     });
-
     if (createErr || !newUser.user) {
       return new Response(JSON.stringify({ error: createErr?.message || 'Failed to create user' }), { status: 500, headers: corsHeaders });
     }
 
-    // Activate the profile (trigger should create it, but ensure status is ACTIVE)
+    // Upsert profile to ensure activation status and metadata
     await supabaseAdmin
       .from('profiles')
       .upsert({
@@ -89,12 +92,6 @@ Deno.serve(async (req) => {
         activation_status: 'ACTIVE',
         rejection_count: 0,
       }, { onConflict: 'id' });
-
-    // Send password reset email so user can set their own password
-    await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: pending.email,
-    });
 
     // Delete the pending registration
     await supabaseAdmin.from('pending_registrations').delete().eq('id', pendingId);
