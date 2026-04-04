@@ -369,6 +369,18 @@ const THEME_OPTIONS: { id: DashboardTheme, color: string }[] = [
 ];
 
 export default function Dashboard() {
+            // TEST BANNER FOR DEBUGGING
+            if (typeof window !== 'undefined') {
+                window.__NEXA_DASHBOARD_RENDERED = true;
+            }
+
+            // TEMP: Add a visible banner for debugging
+            const debugBanner = (
+                <div style={{ background: '#f43f5e', color: 'white', fontWeight: 'bold', padding: '16px', textAlign: 'center', zIndex: 9999 }}>
+                    DASHBOARD COMPONENT RENDERED (DEBUG BANNER)
+                </div>
+            );
+
     // ...existing code...
     // (all state, handlers, and widget logic remain unchanged)
 
@@ -382,7 +394,9 @@ export default function Dashboard() {
 
     // --- MODERNIZED LAYOUT ---
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
+        <>
+          {debugBanner}
+          <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Sidebar */}
             <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 py-8 px-6 space-y-8 shadow-xl z-20">
                 <div className="flex items-center mb-8">
@@ -450,7 +464,8 @@ export default function Dashboard() {
                     </div>
                 </main>
             </div>
-        </div>
+          </div>
+        </>
     );
 }
 
