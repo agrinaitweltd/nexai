@@ -429,9 +429,17 @@ export default function Dashboard() {
 
                 {/* Dashboard Widgets Grid */}
                 <main className="flex-1 p-4 md:p-10 space-y-8 bg-slate-50 dark:bg-slate-900">
-                    {/* ...existing widget editing and grid logic... */}
-                    {/* (Paste your widget editing, grid, and tour overlay code here, unchanged) */}
-                    {/* ...existing code... */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <FinancialStatsWidget />
+                        <StockDistributionWidget />
+                        <QuickActionsWidget />
+                        <RecentActivityWidget />
+                        <LivestockSummaryWidget />
+                        <MissionsTrackerWidget />
+                        <StaffOverviewWidget />
+                        <TransactionFeedWidget />
+                        <ActivationRequestsWidget />
+                    </div>
                 </main>
             </div>
         </div>
