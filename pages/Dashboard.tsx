@@ -372,6 +372,14 @@ export default function Dashboard() {
     // ...existing code...
     // (all state, handlers, and widget logic remain unchanged)
 
+    const { user, loading } = useApp();
+    if (loading) {
+        return <div className="flex items-center justify-center min-h-screen text-xl font-bold text-slate-500">Loading dashboard...</div>;
+    }
+    if (!user) {
+        return <div className="flex items-center justify-center min-h-screen text-xl font-bold text-rose-500">User not found. Please log in.</div>;
+    }
+
     // --- MODERNIZED LAYOUT ---
     return (
         <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -418,10 +426,10 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl">
-                            <img src={user?.avatarUrl || '/avatar.png'} alt="avatar" className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500" />
+                            <img src={user.avatarUrl || '/avatar.png'} alt="avatar" className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500" />
                             <div className="min-w-0">
-                                <p className="font-black text-xs text-slate-900 dark:text-white truncate">{user?.name || 'User'}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
+                                <p className="font-black text-xs text-slate-900 dark:text-white truncate">{user.name || 'User'}</p>
+                                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
                             </div>
                         </div>
                     </div>
