@@ -33,7 +33,8 @@ import {
   MapPin,
   Zap,
   Package,
-  Lock
+  Lock,
+  ChevronUp
 } from 'lucide-react';
 import { NexaLogo } from '../components/NexaLogo';
 
@@ -59,14 +60,25 @@ function useScrollProgress(ref: React.RefObject<HTMLDivElement>, steps: number) 
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const totalHeight = el.offsetHeight - window.innerHeight;
+      if (totalHeight <= 0) {
+        setProgress(0);
+        setStep(0);
+        return;
+      }
       const scrolled = -rect.top;
       const raw = Math.max(0, Math.min(1, scrolled / totalHeight));
-      setProgress(raw);
-      setStep(Math.min(steps - 1, Math.floor(raw * steps)));
+      const safeRaw = Number.isFinite(raw) ? raw : 0;
+      const nextStep = Math.min(steps - 1, Math.floor(safeRaw * steps));
+      setProgress(safeRaw);
+      setStep(Number.isFinite(nextStep) ? nextStep : 0);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, [ref, steps]);
   return { step, progress };
 }
@@ -76,6 +88,8 @@ const ROTATING_WORDS = ['Farms', 'Finance', 'Livestock', 'Crops'];
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const [activeMenuTab, setActiveMenuTab] = useState('industries');
   const [wordIndex, setWordIndex] = useState(0);
   const [wordVisible, setWordVisible] = useState(true);
 
@@ -146,6 +160,62 @@ export default function Landing() {
   const scrollStoryRef = useRef<HTMLDivElement>(null);
   const { step: storyStep } = useScrollProgress(scrollStoryRef as React.RefObject<HTMLDivElement>, 4);
 
+  const megaMenuTabs = [
+    {
+      key: 'industries',
+      label: 'Industries',
+      links: ['Aerospace and Defence', 'Energy Utilities and Resources', 'Construction and Engineering', 'Manufacturing', 'Service Industries', 'Telecommunications']
+    },
+    {
+      key: 'products',
+      label: 'Products',
+      links: ['IFS Cloud', 'Enterprise Resource Planning', 'Enterprise Asset Management', 'Field Service Management', 'Enterprise Service Management']
+    },
+    {
+      key: 'facts',
+      label: 'Fast Facts',
+      links: ['Why Nexa Platform', 'Deployment Models', 'Security and Privacy', 'Customer Impact', 'Roadmap Highlights']
+    },
+    {
+      key: 'stories',
+      label: 'Customer Stories',
+      links: ['Exporters', 'Commercial Farms', 'Livestock Producers', 'Logistics Operators', 'Global Partners']
+    },
+    {
+      key: 'sustainability',
+      label: 'Sustainability',
+      links: ['Farm to Market Transparency', 'Regenerative Practices', 'Carbon and Waste Tracking', 'Ethical Supply Chains', 'Community Programs']
+    },
+    {
+      key: 'news',
+      label: 'News and Updates',
+      links: ['Product Releases', 'Platform Updates', 'Events', 'Press Kit', 'Nexa Insights']
+    }
+  ];
+
+  const footerGroups = [
+    {
+      title: 'Industries',
+      links: ['Aerospace and Defence', 'Energy Utilities and Resources', 'Construction and Engineering', 'Manufacturing', 'Service Industries', 'Telecommunications']
+    },
+    {
+      title: 'Products',
+      links: ['IFS Cloud', 'Enterprise Resource Planning', 'Enterprise Asset Management', 'Field Service Management', 'Enterprise Service Management']
+    },
+    {
+      title: 'About',
+      links: ['About Nexa', 'Careers at Nexa', 'News', 'Contact Us', 'Financial Information', 'Trust Center', 'Accessibility']
+    },
+    {
+      title: 'Customers and Partners',
+      links: ['Customer Stories', 'Find a Nexa Partner', 'Become a Partner']
+    },
+    {
+      title: 'Legal and Privacy',
+      links: ['Legal', 'Modern Slavery Act', 'Privacy', 'Cookie Settings', 'Report a Concern']
+    }
+  ];
+
   const storyChapters = [
     {
       tag: 'Farm Operations',
@@ -197,6 +267,9 @@ export default function Landing() {
     },
   ];
 
+  const safeStoryStep = Number.isFinite(storyStep) && storyStep >= 0 && storyStep < storyChapters.length ? storyStep : 0;
+  const currentChapter = storyChapters[safeStoryStep];
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
@@ -240,67 +313,120 @@ export default function Landing() {
       `}</style>
 
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled ? 'bg-white/96 backdrop-blur-xl border-b border-slate-100/80 py-3 shadow-[0_2px_40px_-12px_rgba(0,0,0,0.12)]' : 'bg-transparent py-5 md:py-8'}`}>
-        <div className="max-w-7xl mx-auto px-5 md:px-12 flex items-center justify-between">
-          <div className="flex items-center cursor-pointer group" onClick={scrollToTop}>
-            <NexaLogo className="h-7 md:h-9 transition-transform group-hover:scale-105 duration-300" />
-          </div>
-
-          <div className="hidden md:flex items-center">
-            <div className="flex items-center space-x-1 bg-slate-50/80 backdrop-blur-sm px-3 py-2 rounded-2xl border border-slate-100 shadow-sm">
-              <a href="#top" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">Home</a>
-              <a href="#features" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">Features</a>
-              <a href="#pricing" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">Pricing</a>
-              <a href="#audience" className="relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 transition-all duration-200 rounded-xl hover:bg-white hover:shadow-sm">About</a>
+      <header
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${scrolled ? 'shadow-[0_12px_38px_-20px_rgba(0,0,0,0.8)]' : ''}`}
+        onMouseLeave={() => setIsMegaMenuOpen(false)}
+      >
+        <nav className="bg-[#170038] border-b border-white/10">
+          <div className="max-w-[1320px] mx-auto px-5 md:px-12 h-[86px] flex items-center justify-between gap-4">
+            <div className="flex items-center cursor-pointer" onClick={scrollToTop}>
+              <NexaLogo className="h-8 md:h-10" light />
             </div>
-            <div className="flex items-center space-x-3 ml-4">
-                <Link to="/login" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 hover:text-slate-900 transition-colors px-4 py-2 rounded-xl hover:bg-slate-100">Sign In</Link>
-                <Link 
-                    to="/login" 
-                    className="relative overflow-hidden bg-slate-950 text-white px-7 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 active:translate-y-0 group"
+
+            <div className="hidden lg:flex items-center h-full">
+              {megaMenuTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`relative h-full px-5 text-[13px] font-bold transition-colors ${activeMenuTab === tab.key ? 'text-white' : 'text-indigo-100/85 hover:text-white'}`}
+                  onMouseEnter={() => {
+                    setActiveMenuTab(tab.key);
+                    setIsMegaMenuOpen(true);
+                  }}
                 >
-                    <span className="relative z-10 flex items-center">Get Started <ArrowRight size={12} className="ml-2 group-hover:translate-x-1 transition-transform" /></span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </Link>
+                  {tab.label}
+                  {activeMenuTab === tab.key && (
+                    <span className="absolute left-3 right-3 bottom-0 h-[3px] bg-cyan-300 rounded-full" />
+                  )}
+                </button>
+              ))}
             </div>
+
+            <div className="hidden lg:flex items-center gap-3">
+              <a href="#features" className="px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-indigo-100/90 hover:text-white transition-colors">Features</a>
+              <Link to="/login" className="px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-indigo-100/90 hover:text-white transition-colors">Sign In</Link>
+              <Link to="/login" className="px-5 py-3 rounded-xl bg-cyan-300 text-[#120030] text-[11px] font-black uppercase tracking-[0.18em] hover:bg-cyan-200 transition-colors">Get Started</Link>
+            </div>
+
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden relative w-10 h-10 flex items-center justify-center text-white bg-white/10 rounded-xl border border-white/20 transition-all active:scale-95">
+              <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}><X size={18} /></div>
+              <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'}`}><Menu size={18} /></div>
+            </button>
           </div>
 
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden relative w-10 h-10 flex items-center justify-center text-slate-900 bg-white rounded-xl border border-slate-200 shadow-sm transition-all active:scale-95 hover:shadow-md">
-            <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}><X size={18} /></div>
-            <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'}`}><Menu size={18} /></div>
-          </button>
-        </div>
+          <div className="hidden lg:block h-2 bg-[#240054]">
+            <div className="h-full w-[180px] bg-cyan-300 transition-all duration-300" />
+          </div>
+        </nav>
 
-        {isMenuOpen && (
-          <div className="md:hidden bg-white/98 backdrop-blur-md border-b border-slate-100 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)] animate-in slide-in-from-top-3 duration-300">
-            <div className="px-5 py-4 space-y-1.5">
-                <a href="#top" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl bg-slate-50 text-[11px] font-black uppercase tracking-widest text-slate-900 active:scale-[0.98] transition-all hover:bg-emerald-50 hover:text-emerald-700 group">
-                  <span>Home</span>
-                  <div className="w-7 h-7 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><ArrowRight size={12} /></div>
-                </a>
-                <a href="#features" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all group">
-                  <span>Features</span>
-                  <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all"><ArrowRight size={12} /></div>
-                </a>
-                <a href="#audience" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all group">
-                  <span>About</span>
-                  <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all"><ArrowRight size={12} /></div>
-                </a>
-                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all group">
-                  <span>Pricing</span>
-                  <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all"><ArrowRight size={12} /></div>
-                </a>
-            </div>
-            <div className="px-5 pb-6 pt-2 grid grid-cols-2 gap-3 border-t border-slate-100">
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center w-full border-2 border-slate-200 bg-white text-slate-900 text-center py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95 transition-all hover:border-slate-300 hover:shadow-md">Sign In</Link>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-2 w-full bg-slate-950 text-white text-center py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black">Get Started <ArrowRight size={12} /></Link>
+        {isMegaMenuOpen && (
+          <div className="hidden lg:block bg-[#240054] border-b border-white/10 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="max-w-[1320px] mx-auto px-6 md:px-12 py-12 grid grid-cols-12 gap-10">
+              <div className="col-span-3">
+                <NexaLogo className="h-10 mb-8" light />
+                <p className="text-5xl font-black tracking-tight leading-[1.05] text-white/85 max-w-[280px]">
+                  Industrial <span className="text-cyan-300">AI</span> that matters.
+                </p>
+              </div>
+
+              <div className="col-span-9 grid grid-cols-5 gap-8">
+                {footerGroups.map((group) => (
+                  <div key={group.title} className="space-y-4">
+                    <h4 className="text-indigo-100 text-[13px] font-semibold tracking-wide">{group.title}</h4>
+                    <ul className="space-y-3">
+                      {group.links.slice(0, 5).map((item) => (
+                        <li key={item}>
+                          <a href="#top" className="text-white font-semibold text-[17px] leading-tight hover:text-cyan-300 transition-colors">
+                            {item}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
-      </nav>
+
+        {isMenuOpen && (
+          <div className="lg:hidden bg-[#240054] border-t border-white/10 border-b border-white/10">
+            <div className="px-5 py-5 space-y-2">
+              {megaMenuTabs.map((tab) => (
+                <div key={tab.key} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between text-left text-white text-[13px] font-bold"
+                    onClick={() => setActiveMenuTab(activeMenuTab === tab.key ? '' : tab.key)}
+                  >
+                    <span>{tab.label}</span>
+                    <ArrowRight size={14} className={`transition-transform ${activeMenuTab === tab.key ? 'rotate-90' : ''}`} />
+                  </button>
+                  {activeMenuTab === tab.key && (
+                    <ul className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                      {tab.links.slice(0, 4).map((item) => (
+                        <li key={item}>
+                          <a href="#top" onClick={() => setIsMenuOpen(false)} className="text-white/80 text-[12px] font-medium hover:text-cyan-300 transition-colors block">
+                            {item}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+
+              <div className="grid grid-cols-2 gap-3 pt-3">
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center rounded-xl py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white border border-white/30">Sign In</Link>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center rounded-xl py-3 text-[11px] font-black uppercase tracking-[0.16em] bg-cyan-300 text-[#120030]">Get Started</Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
 
       {/* Hero */}
-      <section ref={heroAnim.ref} className="relative pt-28 pb-16 md:pt-48 md:pb-32 px-5 md:px-12 bg-gradient-to-b from-emerald-50/50 to-white overflow-hidden">
+      <section ref={heroAnim.ref} className="relative pt-32 pb-16 md:pt-52 md:pb-32 px-5 md:px-12 bg-gradient-to-b from-emerald-50/50 to-white overflow-hidden">
         <div className="absolute top-20 right-10 w-72 h-72 bg-emerald-200/20 rounded-full blur-3xl anim-float" />
         <div className="absolute bottom-10 left-0 w-96 h-96 bg-emerald-100/30 rounded-full blur-3xl anim-float" style={{ animationDelay: '3s' }} />
         
@@ -352,11 +478,11 @@ export default function Landing() {
         <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
           {/* Background glow */}
           <div
-            key={`glow-${storyStep}`}
+            key={`glow-${safeStoryStep}`}
             className={`absolute inset-0 pointer-events-none transition-all duration-700`}
           >
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[160px] anim-glow
-              ${storyStep === 0 ? 'bg-emerald-500/20' : storyStep === 1 ? 'bg-blue-500/20' : storyStep === 2 ? 'bg-amber-500/20' : 'bg-slate-400/15'}`}
+              ${safeStoryStep === 0 ? 'bg-emerald-500/20' : safeStoryStep === 1 ? 'bg-blue-500/20' : safeStoryStep === 2 ? 'bg-amber-500/20' : 'bg-slate-400/15'}`}
             />
           </div>
 
@@ -364,7 +490,7 @@ export default function Landing() {
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/5 z-20">
             <div
               className="h-full bg-gradient-to-r from-emerald-400 to-emerald-300 story-progress-bar"
-              style={{ width: `${((storyStep + 1) / 4) * 100}%` }}
+              style={{ width: `${((safeStoryStep + 1) / 4) * 100}%` }}
             />
           </div>
 
@@ -373,7 +499,7 @@ export default function Landing() {
             {storyChapters.map((_, i) => (
               <div
                 key={i}
-                className={`rounded-full transition-all duration-500 ${i === storyStep ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/25'}`}
+                className={`rounded-full transition-all duration-500 ${i === safeStoryStep ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/25'}`}
               />
             ))}
           </div>
@@ -381,17 +507,17 @@ export default function Landing() {
           {/* Chapter tag */}
           <div className="absolute top-8 left-6 md:left-12 z-20">
             <div
-              key={`tag-${storyStep}`}
+              key={`tag-${safeStoryStep}`}
               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-[0.2em] anim-fade-in
-                ${storyStep === 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                  storyStep === 1 ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                  storyStep === 2 ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                ${safeStoryStep === 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                  safeStoryStep === 1 ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                  safeStoryStep === 2 ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
                   'bg-white/10 border-white/20 text-white/70'}`}
             >
               <div className={`w-1.5 h-1.5 rounded-full animate-pulse
-                ${storyStep === 0 ? 'bg-emerald-400' : storyStep === 1 ? 'bg-blue-400' : storyStep === 2 ? 'bg-amber-400' : 'bg-white/70'}`}
+                ${safeStoryStep === 0 ? 'bg-emerald-400' : safeStoryStep === 1 ? 'bg-blue-400' : safeStoryStep === 2 ? 'bg-amber-400' : 'bg-white/70'}`}
               />
-              {storyChapters[storyStep].tag}
+              {currentChapter.tag}
             </div>
           </div>
 
@@ -400,23 +526,23 @@ export default function Landing() {
 
             {/* Left: Text panel */}
             <div className="lg:w-2/5 w-full text-center lg:text-left">
-              <div key={`text-${storyStep}`} className="space-y-5">
+              <div key={`text-${safeStoryStep}`} className="space-y-5">
                 <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/30 anim-text-slide cd1">
-                  {String(storyStep + 1).padStart(2, '0')} / 04
+                  {String(safeStoryStep + 1).padStart(2, '0')} / 04
                 </p>
                 <h2 className={`text-3xl md:text-5xl lg:text-[3.2rem] font-black tracking-tighter leading-[0.95] text-white anim-text-slide cd2`}>
-                  {storyChapters[storyStep].headline}
+                  {currentChapter.headline}
                 </h2>
                 <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed max-w-md anim-text-slide cd3">
-                  {storyChapters[storyStep].body}
+                  {currentChapter.body}
                 </p>
                 <div className="pt-2 anim-text-slide cd4">
                   <Link
                     to="/login"
                     className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 bg-gradient-to-r text-white shadow-lg
-                      ${storyStep === 0 ? 'from-emerald-600 to-emerald-500 shadow-emerald-500/20' :
-                        storyStep === 1 ? 'from-blue-600 to-blue-500 shadow-blue-500/20' :
-                        storyStep === 2 ? 'from-amber-600 to-amber-500 shadow-amber-500/20' :
+                      ${safeStoryStep === 0 ? 'from-emerald-600 to-emerald-500 shadow-emerald-500/20' :
+                        safeStoryStep === 1 ? 'from-blue-600 to-blue-500 shadow-blue-500/20' :
+                        safeStoryStep === 2 ? 'from-amber-600 to-amber-500 shadow-amber-500/20' :
                         'from-slate-700 to-slate-600 shadow-slate-500/20'}`}
                   >
                     Explore feature <ArrowRight size={12} />
@@ -427,10 +553,10 @@ export default function Landing() {
 
             {/* Right: Cards grid */}
             <div className="lg:w-3/5 w-full">
-              <div key={`cards-${storyStep}`} className="grid grid-cols-2 gap-3 md:gap-4">
-                {storyChapters[storyStep].cards.map((card, i) => (
+              <div key={`cards-${safeStoryStep}`} className="grid grid-cols-2 gap-3 md:gap-4">
+                {currentChapter.cards.map((card, i) => (
                   <div
-                    key={`${storyStep}-${i}`}
+                    key={`${safeStoryStep}-${i}`}
                     className={`anim-card-enter cd${i + 1} bg-white/5 backdrop-blur-sm border border-white/8 rounded-2xl p-5 md:p-6 hover:bg-white/10 hover:border-white/15 transition-all duration-300 group`}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -449,7 +575,7 @@ export default function Landing() {
           </div>
 
           {/* Scroll hint (only step 0) */}
-          {storyStep === 0 && (
+          {safeStoryStep === 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20 anim-fade-in">
               <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/25">Scroll to explore</p>
               <div className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent" />
@@ -692,42 +818,57 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-14 md:py-20 bg-slate-50 border-t border-slate-100 px-5 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-14 mb-12">
-            <div className="col-span-1 md:col-span-2 space-y-5">
-                <NexaLogo className="h-8" />
-                <p className="text-slate-500 text-base max-w-sm font-medium leading-relaxed">
-                    The modern management architecture for agricultural exports, value addition, and commercial production — built for the global market.
-                </p>
-                <div className="flex items-center space-x-3">
-                  <a href="#" className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Linkedin size={16} /></a>
-                  <a href="#" className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Mail size={16} /></a>
-                  <a href="#" className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"><Globe2 size={16} /></a>
+      <footer className="relative py-14 md:py-20 bg-[#1a003d] border-t border-white/10 px-5 md:px-12 overflow-hidden">
+        <div className="absolute -bottom-24 left-[8%] w-[260px] h-[260px] bg-white/5 rounded-[38%] blur-[2px]" />
+        <div className="absolute -bottom-14 left-[22%] w-[220px] h-[220px] bg-white/5 rounded-[38%] blur-[2px]" />
+        <div className="absolute -bottom-20 left-[38%] w-[280px] h-[280px] bg-white/5 rounded-[38%] blur-[2px]" />
+        <div className="absolute -bottom-24 right-[8%] w-[150px] h-[150px] bg-white/5 rounded-[38%] blur-[1px]" />
+
+        <div className="relative z-10 max-w-[1320px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 mb-12">
+            <div className="lg:col-span-4 space-y-8">
+              <NexaLogo className="h-12" light />
+              <h3 className="text-white/90 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] max-w-md">
+                Industrial <span className="text-cyan-300">AI</span> that matters.
+              </h3>
+            </div>
+
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+              {footerGroups.map((group) => (
+                <div key={group.title} className="space-y-5">
+                  <h5 className="text-[15px] font-semibold tracking-wide text-indigo-100">{group.title}</h5>
+                  <ul className="space-y-2.5">
+                    {group.links.map((item) => (
+                      <li key={`${group.title}-${item}`}>
+                        <a href="#top" className="text-white text-[22px] md:text-[20px] leading-tight font-semibold hover:text-cyan-300 transition-colors">
+                          {item}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-            </div>
-            <div className="space-y-5">
-                <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Platform</h5>
-                <ul className="space-y-3 text-sm font-medium text-slate-600">
-                    <li><Link to="/login" className="hover:text-emerald-600 transition-colors">Sign In</Link></li>
-                    <li><Link to="/login" className="hover:text-emerald-600 transition-colors">Create Account</Link></li>
-                    <li><a href="#features" className="hover:text-emerald-600 transition-colors">Features</a></li>
-                </ul>
-            </div>
-            <div className="space-y-5">
-                <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Legal</h5>
-                <ul className="space-y-3 text-sm font-medium text-slate-600">
-                    <li><Link to="/app/help" className="hover:text-emerald-600 transition-colors">Privacy Policy</Link></li>
-                    <li><Link to="/app/help" className="hover:text-emerald-600 transition-colors">Terms of Service</Link></li>
-                    <li><Link to="/app/help" className="hover:text-emerald-600 transition-colors">Support</Link></li>
-                </ul>
+              ))}
             </div>
           </div>
-          
-          <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-200 gap-4">
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">&copy; 2026 Nexa Systems Ltd. All Rights Reserved.</p>
+
+          <div className="pt-8 border-t border-white/15 flex flex-col md:flex-row items-center justify-between gap-3">
+            <p className="text-indigo-100/70 text-[11px] font-semibold tracking-[0.14em] uppercase">Copyright 2026 Nexa Systems Ltd. All rights reserved.</p>
+            <div className="flex items-center gap-5 text-indigo-100/80 text-[12px]">
+              <a href="#top" className="hover:text-cyan-300 transition-colors">Cookie Settings</a>
+              <a href="#top" className="hover:text-cyan-300 transition-colors">Privacy</a>
+              <Link to="/login" className="hover:text-cyan-300 transition-colors">Sign In</Link>
+            </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="absolute right-5 md:right-12 bottom-6 md:bottom-10 w-16 h-16 rounded-full bg-[#4d108a] text-white flex items-center justify-center hover:bg-[#5f1aa6] transition-colors"
+          aria-label="Back to top"
+        >
+          <ChevronUp size={28} />
+        </button>
       </footer>
     </div>
   );
