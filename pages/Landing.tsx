@@ -34,7 +34,17 @@ import {
   Zap,
   Package,
   Lock,
-  ChevronUp
+  ChevronUp,
+  Star,
+  Quote,
+  ChevronDown,
+  Check,
+  Play,
+  MessageCircle,
+  Award,
+  Smartphone,
+  Wifi,
+  Bot
 } from 'lucide-react';
 import { NexaLogo } from '../components/NexaLogo';
 
@@ -117,6 +127,12 @@ export default function Landing() {
   const techAnim = useInView();
   const teamAnim = useInView();
   const statsAnim = useInView();
+  const industriesAnim = useInView();
+  const aiAnim = useInView();
+  const pricingAnim = useInView();
+  const testimonialsAnim = useInView();
+  const faqAnim = useInView();
+  const contactAnim = useInView();
 
   const stats = [
     { label: "Active Export Hubs", value: "120+" },
