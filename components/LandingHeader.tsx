@@ -1,14 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link, useLocation } = ReactRouterDOM as any;
 import { Menu, X, ArrowRight, ChevronDown } from 'lucide-react';
 import { NexaLogo } from './NexaLogo';
 
 interface DropdownLink { label: string; to: string; }
+interface DropdownColumn { heading: string; links: DropdownLink[]; }
+interface FeaturedCard { title: string; cta: string; to: string; gradient: string; }
 interface NavLink {
   label: string;
   to: string;
-  dropdown?: { heading: string; links: DropdownLink[] };
+  megaMenu?: {
+    columns: DropdownColumn[];
+    featured: FeaturedCard;
+  };
 }
 
 const NAV_LINKS: NavLink[] = [
@@ -16,47 +21,114 @@ const NAV_LINKS: NavLink[] = [
   {
     label: 'Industries',
     to: '/industries',
-    dropdown: {
-      heading: 'Industries',
-      links: [
-        { label: 'Coffee & Commodity Export', to: '/industries' },
-        { label: 'Commercial Farming', to: '/industries' },
-        { label: 'Livestock Production', to: '/industries' },
-        { label: 'Agro-Processing', to: '/industries' },
-        { label: 'Logistics & Supply Chain', to: '/industries' },
-        { label: 'Compliance & Certification', to: '/industries' },
+    megaMenu: {
+      columns: [
+        {
+          heading: 'By Sector',
+          links: [
+            { label: 'Coffee & Commodity Export', to: '/industries' },
+            { label: 'Commercial Farming', to: '/industries' },
+            { label: 'Livestock Production', to: '/industries' },
+          ],
+        },
+        {
+          heading: 'By Scale',
+          links: [
+            { label: 'Smallholder Farmers', to: '/industries' },
+            { label: 'Commercial Enterprises', to: '/industries' },
+            { label: 'Export Groups & Co-ops', to: '/industries' },
+          ],
+        },
+        {
+          heading: 'By Function',
+          links: [
+            { label: 'Agro-Processing', to: '/industries' },
+            { label: 'Logistics & Supply Chain', to: '/industries' },
+            { label: 'Compliance & Certification', to: '/industries' },
+          ],
+        },
       ],
+      featured: {
+        title: "How Nile Agro cut export time by 90%",
+        cta: 'Read the story',
+        to: '/stories',
+        gradient: 'from-[#2d006e] via-[#4a0090] to-[#170038]',
+      },
     },
   },
   {
     label: 'Products',
     to: '/products',
-    dropdown: {
-      heading: 'Platform',
-      links: [
-        { label: 'Farm & Livestock Management', to: '/products' },
-        { label: 'Export & Logistics', to: '/products' },
-        { label: 'Financial Intelligence', to: '/products' },
-        { label: 'Compliance & Reporting', to: '/products' },
-        { label: 'NexaAI Assistant', to: '/products' },
-        { label: 'Analytics Dashboard', to: '/products' },
+    megaMenu: {
+      columns: [
+        {
+          heading: 'By Product',
+          links: [
+            { label: 'Nexa Cloud Platform', to: '/products' },
+            { label: 'Farm & Livestock Suite', to: '/products' },
+            { label: 'Export & Logistics Module', to: '/products' },
+            { label: 'Finance & Purchase Orders', to: '/products' },
+          ],
+        },
+        {
+          heading: 'By Feature',
+          links: [
+            { label: 'Financial Intelligence', to: '/products' },
+            { label: 'Compliance & Reporting', to: '/products' },
+            { label: 'Analytics Dashboard', to: '/products' },
+            { label: 'Document Vault', to: '/products' },
+          ],
+        },
+        {
+          heading: 'Artificial Intelligence (AI)',
+          links: [
+            { label: 'NexaAI Assistant', to: '/products' },
+            { label: 'Predictive Yield Analytics', to: '/products' },
+            { label: 'Livestock Health Detection', to: '/products' },
+            { label: 'Compliance Automation', to: '/products' },
+          ],
+        },
       ],
+      featured: {
+        title: "What's New in Nexa Cloud",
+        cta: 'Learn more',
+        to: '/products',
+        gradient: 'from-[#0d3060] via-[#1a0060] to-[#120030]',
+      },
     },
   },
   { label: 'Pricing', to: '/pricing' },
   {
     label: 'About',
     to: '/about',
-    dropdown: {
-      heading: 'Company',
-      links: [
-        { label: 'Our Story', to: '/about' },
-        { label: 'Leadership', to: '/about' },
-        { label: 'Sustainability', to: '/about' },
-        { label: 'Careers', to: '/about' },
-        { label: 'News', to: '/about' },
-        { label: 'Financial Information', to: '/about' },
+    megaMenu: {
+      columns: [
+        {
+          heading: 'Company',
+          links: [
+            { label: 'Our Story', to: '/about' },
+            { label: 'Leadership', to: '/about' },
+            { label: 'Sustainability', to: '/about' },
+            { label: 'Careers', to: '/about' },
+            { label: 'News', to: '/about' },
+            { label: 'Financial Information', to: '/about' },
+          ],
+        },
+        {
+          heading: 'Community',
+          links: [
+            { label: 'Customer Stories', to: '/stories' },
+            { label: 'Partner Network', to: '/about' },
+            { label: 'Events', to: '/about' },
+          ],
+        },
       ],
+      featured: {
+        title: 'Modernising agriculture across 18+ countries',
+        cta: 'Our mission',
+        to: '/about',
+        gradient: 'from-[#1a3a00] via-[#0a2800] to-[#001a08]',
+      },
     },
   },
   { label: 'Stories', to: '/stories' },
@@ -92,8 +164,10 @@ export default function LandingHeader() {
   };
 
   const scheduleHide = () => {
-    hideTimer.current = setTimeout(() => setActiveDropdown(null), 120);
+    hideTimer.current = setTimeout(() => setActiveDropdown(null), 150);
   };
+
+  const activeLink = NAV_LINKS.find((l) => l.label === activeDropdown);
 
   return (
     <header
@@ -115,9 +189,9 @@ export default function LandingHeader() {
           <div className="hidden lg:flex items-center h-full gap-1">
             {NAV_LINKS.map((link) => (
               <div
-                key={link.to}
+                key={link.label}
                 className="relative h-full flex items-center"
-                onMouseEnter={() => link.dropdown ? showDropdown(link.label) : setActiveDropdown(null)}
+                onMouseEnter={() => link.megaMenu ? showDropdown(link.label) : setActiveDropdown(null)}
               >
                 <Link
                   to={link.to}
@@ -126,11 +200,11 @@ export default function LandingHeader() {
                   }`}
                 >
                   {link.label}
-                  {link.dropdown && (
+                  {link.megaMenu && (
                     <ChevronDown
                       size={13}
                       strokeWidth={2.5}
-                      className={`transition-transform duration-200 ${activeDropdown === link.label ? 'rotate-180 text-cyan-300' : ''}`}
+                      className={`transition-transform duration-200 ${activeDropdown === link.label ? 'rotate-180 text-violet-400' : ''}`}
                     />
                   )}
                   {isActive(link.to) && (
@@ -171,82 +245,124 @@ export default function LandingHeader() {
         </div>
       </nav>
 
-      {/* Desktop dropdown panel */}
-      {activeDropdown && (() => {
-        const active = NAV_LINKS.find((l) => l.label === activeDropdown);
-        if (!active?.dropdown) return null;
-        return (
-          <div
-            className="hidden lg:block bg-[#1a003d] border-b border-white/10"
-            onMouseEnter={() => showDropdown(activeDropdown)}
-            onMouseLeave={scheduleHide}
-          >
-            <div className="max-w-[1320px] mx-auto px-5 md:px-12 py-10">
-              <h4 className="text-[15px] font-bold text-violet-400 mb-3 tracking-wide">
-                {active.dropdown.heading}
-              </h4>
-              <div className="border-t border-white/15 mb-6" />
-              <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-1">
-                {active.dropdown.links.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      to={item.to}
-                      className="block py-2.5 text-[22px] font-semibold text-white hover:text-cyan-300 transition-colors leading-tight"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
+      {/* â”€â”€ Desktop mega-menu panel â”€â”€ */}
+      {activeLink?.megaMenu && (
+        <div
+          className="hidden lg:block bg-[#150030] border-b border-white/10"
+          onMouseEnter={() => showDropdown(activeLink.label)}
+          onMouseLeave={scheduleHide}
+        >
+          <div className="max-w-[1320px] mx-auto px-5 md:px-12 py-10">
+            <div className="flex gap-8">
+              {/* Columns */}
+              <div className="flex-1 grid gap-x-8"
+                style={{ gridTemplateColumns: `repeat(${activeLink.megaMenu.columns.length}, minmax(0,1fr))` }}
+              >
+                {activeLink.megaMenu.columns.map((col) => (
+                  <div key={col.heading}>
+                    {/* Column heading */}
+                    <h4 className="text-[14px] font-bold text-violet-400 tracking-wide mb-2">
+                      {col.heading}
+                    </h4>
+                    <div className="border-t border-white/20 mb-4" />
+                    {/* Links */}
+                    <ul className="space-y-0.5">
+                      {col.links.map((item) => (
+                        <li key={item.label}>
+                          <Link
+                            to={item.to}
+                            className="block py-2 text-[18px] font-semibold text-white/90 hover:text-cyan-300 transition-colors leading-snug"
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
+
+              {/* Featured card */}
+              <div className="w-[260px] shrink-0 flex flex-col rounded-xl overflow-hidden">
+                {/* Image area â€” abstract gradient pattern */}
+                <div className={`h-[160px] bg-gradient-to-br ${activeLink.megaMenu.featured.gradient} relative overflow-hidden`}>
+                  {/* Decorative orbs mimicking the abstract image */}
+                  <div className="absolute top-4 right-4 w-24 h-24 rounded-full bg-violet-500/40 blur-xl" />
+                  <div className="absolute bottom-2 left-6 w-16 h-16 rounded-full bg-cyan-400/30 blur-lg" />
+                  <div className="absolute top-8 left-8 w-10 h-10 rounded-full bg-fuchsia-500/50 blur-md" />
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(180,100,255,0.25),transparent_70%)]" />
+                  {/* Ring accent */}
+                  <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-2 border-violet-400/30" />
+                  <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-cyan-400/20" />
+                </div>
+
+                {/* White callout card */}
+                <div className="bg-white p-5 flex-1">
+                  <p className="text-[#170038] font-bold text-[14px] leading-snug mb-3">
+                    {activeLink.megaMenu.featured.title}
+                  </p>
+                  <Link
+                    to={activeLink.megaMenu.featured.to}
+                    className="inline-flex items-center gap-1.5 text-[#170038] font-black text-[12px] uppercase tracking-[0.15em] hover:text-violet-700 transition-colors group"
+                  >
+                    {activeLink.megaMenu.featured.cta}
+                    <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
 
-      {/* Mobile menu */}
+      {/* â”€â”€ Mobile menu â”€â”€ */}
       {isMenuOpen && (
         <div className="lg:hidden bg-[#240054] border-b border-white/10 max-h-[calc(100vh-86px)] overflow-y-auto">
           <div className="px-5 py-4 space-y-1.5">
             {NAV_LINKS.map((link) => (
-              <div key={link.to}>
+              <div key={link.label}>
                 <button
                   type="button"
                   className={`flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest transition-all ${
                     isActive(link.to) ? 'bg-cyan-300/15 text-cyan-300' : 'text-white/80 hover:bg-white/5'
                   }`}
                   onClick={() => {
-                    if (link.dropdown) {
+                    if (link.megaMenu) {
                       setOpenMobileKey(openMobileKey === link.label ? null : link.label);
                     } else {
                       setIsMenuOpen(false);
-                      window.location.hash = link.to;
                     }
                   }}
                 >
                   <Link
                     to={link.to}
-                    onClick={(e: React.MouseEvent) => { if (link.dropdown) e.preventDefault(); else setIsMenuOpen(false); }}
+                    onClick={(e: React.MouseEvent) => { if (link.megaMenu) e.preventDefault(); else setIsMenuOpen(false); }}
                     className="flex-1 text-left"
                   >
                     {link.label}
                   </Link>
-                  {link.dropdown
+                  {link.megaMenu
                     ? <ChevronDown size={14} className={`transition-transform ${openMobileKey === link.label ? 'rotate-180 text-cyan-300' : ''}`} />
                     : <ArrowRight size={13} />
                   }
                 </button>
 
-                {link.dropdown && openMobileKey === link.label && (
-                  <div className="mt-1 ml-4 pl-4 border-l border-white/10 space-y-1 pb-2">
-                    {link.dropdown.links.map((sub) => (
-                      <Link
-                        key={sub.label}
-                        to={sub.to}
-                        onClick={() => setIsMenuOpen(false)}
-                        className="block py-2.5 text-[14px] font-medium text-white/70 hover:text-cyan-300 transition-colors"
-                      >
-                        {sub.label}
-                      </Link>
+                {link.megaMenu && openMobileKey === link.label && (
+                  <div className="mt-1 pb-2 space-y-3">
+                    {link.megaMenu.columns.map((col) => (
+                      <div key={col.heading} className="ml-4 pl-4 border-l border-white/15">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-violet-400 mb-2 pt-1">{col.heading}</p>
+                        {col.links.map((sub) => (
+                          <Link
+                            key={sub.label}
+                            to={sub.to}
+                            onClick={() => setIsMenuOpen(false)}
+                            className="block py-2 text-[14px] font-medium text-white/70 hover:text-cyan-300 transition-colors"
+                          >
+                            {sub.label}
+                          </Link>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
