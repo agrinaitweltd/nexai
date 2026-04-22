@@ -18,6 +18,11 @@ import Settings from './pages/Settings';
 import Help from './pages/Help';
 import Reports from './pages/Reports';
 import Landing from './pages/Landing';
+import IndustriesPage from './pages/IndustriesPage';
+import ProductsPage from './pages/ProductsPage';
+import PricingPage from './pages/PricingPage';
+import AboutPage from './pages/AboutPage';
+import StoriesPage from './pages/StoriesPage';
 import Vault from './pages/Vault';
 import Communication from './pages/Communication';
 import AdminPortal from './pages/AdminPortal';
@@ -55,6 +60,11 @@ export default function App() {
             <CookiesConsent />
             <Routes>
                 <Route path="/" element={<Landing />} />
+                <Route path="/industries" element={<IndustriesPage />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/stories" element={<StoriesPage />} />
                 <Route path="/login" element={<Login />} />
                 
                 {/* User Portal */}

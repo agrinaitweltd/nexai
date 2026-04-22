@@ -47,6 +47,8 @@ import {
   Bot
 } from 'lucide-react';
 import { NexaLogo } from '../components/NexaLogo';
+import LandingHeader from '../components/LandingHeader';
+import LandingFooter from '../components/LandingFooter';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -96,18 +98,8 @@ function useScrollProgress(ref: React.RefObject<HTMLDivElement>, steps: number) 
 const ROTATING_WORDS = ['Farms', 'Finance', 'Livestock', 'Crops'];
 
 export default function Landing() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-  const [activeMenuTab, setActiveMenuTab] = useState('industries');
   const [wordIndex, setWordIndex] = useState(0);
   const [wordVisible, setWordVisible] = useState(true);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -174,7 +166,6 @@ export default function Landing() {
   ];
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [contactForm, setContactForm] = useState({ name: '', email: '', company: '', message: '' });
 
   const industries = [
     { icon: Globe2, title: 'Coffee & Commodity Export', desc: 'Manifest automation, phyto-sanitary certs, and real-time shipment tracking for commodities traded globally.', color: 'from-amber-500/10 to-amber-400/5', accent: 'bg-amber-500', tag: 'Export' },
@@ -411,118 +402,7 @@ export default function Landing() {
         .story-progress-bar { transition: width 0.6s cubic-bezier(0.34,1.2,0.64,1); }
       `}</style>
 
-      {/* Navigation */}
-      <header
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${scrolled ? 'shadow-[0_12px_38px_-20px_rgba(0,0,0,0.8)]' : ''}`}
-        onMouseLeave={() => setIsMegaMenuOpen(false)}
-      >
-        <nav className="bg-[#170038] border-b border-white/10">
-          <div className="max-w-[1320px] mx-auto px-5 md:px-12 h-[86px] flex items-center justify-between gap-4">
-            <div className="flex items-center cursor-pointer" onClick={scrollToTop}>
-              <NexaLogo className="h-8 md:h-10" light />
-            </div>
-
-            <div className="hidden lg:flex items-center h-full">
-              {megaMenuTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className={`relative h-full px-5 text-[13px] font-bold transition-colors ${activeMenuTab === tab.key ? 'text-white' : 'text-indigo-100/85 hover:text-white'}`}
-                  onMouseEnter={() => {
-                    setActiveMenuTab(tab.key);
-                    setIsMegaMenuOpen(true);
-                  }}
-                >
-                  {tab.label}
-                  {activeMenuTab === tab.key && (
-                    <span className="absolute left-3 right-3 bottom-0 h-[3px] bg-cyan-300 rounded-full" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="hidden lg:flex items-center gap-3">
-              <a href="#features" className="px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-indigo-100/90 hover:text-white transition-colors">Features</a>
-              <Link to="/login" className="px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-indigo-100/90 hover:text-white transition-colors">Sign In</Link>
-              <Link to="/login" className="px-5 py-3 rounded-xl bg-cyan-300 text-[#120030] text-[11px] font-black uppercase tracking-[0.18em] hover:bg-cyan-200 transition-colors">Get Started</Link>
-            </div>
-
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden relative w-10 h-10 flex items-center justify-center text-white bg-white/10 rounded-xl border border-white/20 transition-all active:scale-95">
-              <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}><X size={18} /></div>
-              <div className={`absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'}`}><Menu size={18} /></div>
-            </button>
-          </div>
-
-          <div className="hidden lg:block h-2 bg-[#240054]">
-            <div className="h-full w-[180px] bg-cyan-300 transition-all duration-300" />
-          </div>
-        </nav>
-
-        {isMegaMenuOpen && (
-          <div className="hidden lg:block bg-[#240054] border-b border-white/10 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="max-w-[1320px] mx-auto px-6 md:px-12 py-12 grid grid-cols-12 gap-10">
-              <div className="col-span-3">
-                <NexaLogo className="h-10 mb-8" light />
-                <p className="text-5xl font-black tracking-tight leading-[1.05] text-white/85 max-w-[280px]">
-                  Industrial <span className="text-cyan-300">AI</span> that matters.
-                </p>
-              </div>
-
-              <div className="col-span-9 grid grid-cols-5 gap-8">
-                {footerGroups.map((group) => (
-                  <div key={group.title} className="space-y-4">
-                    <h4 className="text-indigo-100 text-[13px] font-semibold tracking-wide">{group.title}</h4>
-                    <ul className="space-y-3">
-                      {group.links.slice(0, 5).map((item) => (
-                        <li key={item}>
-                          <a href="#top" className="text-white font-semibold text-[17px] leading-tight hover:text-cyan-300 transition-colors">
-                            {item}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isMenuOpen && (
-          <div className="lg:hidden bg-[#240054] border-t border-white/10 border-b border-white/10">
-            <div className="px-5 py-5 space-y-2">
-              {megaMenuTabs.map((tab) => (
-                <div key={tab.key} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between text-left text-white text-[13px] font-bold"
-                    onClick={() => setActiveMenuTab(activeMenuTab === tab.key ? '' : tab.key)}
-                  >
-                    <span>{tab.label}</span>
-                    <ArrowRight size={14} className={`transition-transform ${activeMenuTab === tab.key ? 'rotate-90' : ''}`} />
-                  </button>
-                  {activeMenuTab === tab.key && (
-                    <ul className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                      {tab.links.slice(0, 4).map((item) => (
-                        <li key={item}>
-                          <a href="#top" onClick={() => setIsMenuOpen(false)} className="text-white/80 text-[12px] font-medium hover:text-cyan-300 transition-colors block">
-                            {item}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-
-              <div className="grid grid-cols-2 gap-3 pt-3">
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center rounded-xl py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white border border-white/30">Sign In</Link>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center rounded-xl py-3 text-[11px] font-black uppercase tracking-[0.16em] bg-cyan-300 text-[#120030]">Get Started</Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
+      <LandingHeader />
 
       {/* Hero */}
       <section ref={heroAnim.ref} className="relative pt-32 pb-16 md:pt-52 md:pb-32 px-5 md:px-12 bg-gradient-to-b from-emerald-50/50 to-white overflow-hidden">
@@ -1176,94 +1056,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─── CONTACT / DEMO CTA ─── */}
-      <section id="contact" ref={contactAnim.ref} className="py-20 md:py-36 bg-slate-950 px-5 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
-            <div className={contactAnim.inView ? 'anim-slide-right' : 'opacity-0'}>
-              <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-8">
-                <Award size={13} />
-                <span>Get in Touch</span>
-              </div>
-              <h3 className="text-4xl md:text-6xl font-black tracking-tighter text-white leading-[0.95] mb-6">
-                Ready to see<br/>Nexa in action?
-              </h3>
-              <p className="text-slate-400 text-base md:text-lg font-medium leading-relaxed mb-10 max-w-lg">
-                Book a free 30-minute guided demo with our team. We'll walk through your specific use case and show you exactly how Nexa can work for your business.
-              </p>
-              <div className="space-y-5">
-                {[
-                  { icon: Check, text: 'Live walkthrough tailored to your industry' },
-                  { icon: Check, text: 'No commitment — cancel or change anytime' },
-                  { icon: Check, text: 'Set up your account in under 30 minutes' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                      <item.icon size={14} className="text-emerald-400" />
-                    </div>
-                    <p className="text-white/80 text-[14px] font-medium">{item.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className={`bg-white/5 border border-white/10 rounded-2xl p-8 ${contactAnim.inView ? 'anim-slide-left d2' : 'opacity-0'}`}>
-              <h4 className="text-white font-black text-xl mb-6">Book a Demo</h4>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      placeholder="James Ochieng"
-                      value={contactForm.name}
-                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-[13px] placeholder-white/20 focus:outline-none focus:border-emerald-500/50 transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-2">Company</label>
-                    <input
-                      type="text"
-                      placeholder="Nile Agro Ltd"
-                      value={contactForm.company}
-                      onChange={(e) => setContactForm({ ...contactForm, company: e.target.value })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-[13px] placeholder-white/20 focus:outline-none focus:border-emerald-500/50 transition-colors"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="james@nileagro.com"
-                    value={contactForm.email}
-                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-[13px] placeholder-white/20 focus:outline-none focus:border-emerald-500/50 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 block mb-2">What are you looking to manage?</label>
-                  <textarea
-                    rows={3}
-                    placeholder="e.g. 3 coffee farms, 200 acres, exporting to Europe..."
-                    value={contactForm.message}
-                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-[13px] placeholder-white/20 focus:outline-none focus:border-emerald-500/50 transition-colors resize-none"
-                  />
-                </div>
-                <Link
-                  to="/login"
-                  className="w-full flex items-center justify-center gap-2 bg-cyan-300 text-[#120030] py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-cyan-200 transition-colors mt-2"
-                >
-                  Book My Demo <ArrowRight size={14} />
-                </Link>
-                <p className="text-center text-white/25 text-[10px] font-medium">No spam. We'll reach out within 1 business day.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ─── FINAL CTA ─── */}
       <section className="py-20 md:py-28 px-5 md:px-12 bg-white">
         <div className="max-w-4xl mx-auto text-center">
@@ -1280,64 +1072,12 @@ export default function Landing() {
             >
               Start Free Trial <ArrowRight size={18} className="ml-3 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="#contact" className="px-8 py-5 text-slate-500 font-black text-xs uppercase tracking-[0.2em] hover:text-emerald-600 transition-all">Book a Demo</a>
+            <Link to="/pricing" className="px-8 py-5 text-slate-500 font-black text-xs uppercase tracking-[0.2em] hover:text-emerald-600 transition-all">View Pricing</Link>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative overflow-hidden bg-[#0d0028] px-5 md:px-12 py-16 md:py-24">
-        <div className="absolute -bottom-24 left-[8%] w-[260px] h-[260px] bg-white/5 rounded-[38%] blur-[2px]" />
-        <div className="absolute -bottom-14 left-[22%] w-[220px] h-[220px] bg-white/5 rounded-[38%] blur-[2px]" />
-        <div className="absolute -bottom-20 left-[38%] w-[280px] h-[280px] bg-white/5 rounded-[38%] blur-[2px]" />
-        <div className="absolute -bottom-24 right-[8%] w-[150px] h-[150px] bg-white/5 rounded-[38%] blur-[1px]" />
-
-        <div className="relative z-10 max-w-[1320px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 mb-12">
-            <div className="lg:col-span-4 space-y-8">
-              <NexaLogo className="h-12" light />
-              <h3 className="text-white/90 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] max-w-md">
-                Industrial <span className="text-cyan-300">AI</span> that matters.
-              </h3>
-            </div>
-
-            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
-              {footerGroups.map((group) => (
-                <div key={group.title} className="space-y-5">
-                  <h5 className="text-[15px] font-semibold tracking-wide text-indigo-100">{group.title}</h5>
-                  <ul className="space-y-2.5">
-                    {group.links.map((item) => (
-                      <li key={`${group.title}-${item}`}>
-                        <a href="#top" className="text-white text-[22px] md:text-[20px] leading-tight font-semibold hover:text-cyan-300 transition-colors">
-                          {item}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-white/15 flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-indigo-100/70 text-[11px] font-semibold tracking-[0.14em] uppercase">Copyright 2026 Nexa Systems Ltd. All rights reserved.</p>
-            <div className="flex items-center gap-5 text-indigo-100/80 text-[12px]">
-              <a href="#top" className="hover:text-cyan-300 transition-colors">Cookie Settings</a>
-              <a href="#top" className="hover:text-cyan-300 transition-colors">Privacy</a>
-              <Link to="/login" className="hover:text-cyan-300 transition-colors">Sign In</Link>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={scrollToTop}
-          className="absolute right-5 md:right-12 bottom-6 md:bottom-10 w-16 h-16 rounded-full bg-[#4d108a] text-white flex items-center justify-center hover:bg-[#5f1aa6] transition-colors"
-          aria-label="Back to top"
-        >
-          <ChevronUp size={28} />
-        </button>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
