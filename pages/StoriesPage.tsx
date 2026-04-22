@@ -1,219 +1,164 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link } = ReactRouterDOM as any;
-import { Star, Quote, ArrowRight, Globe2, Users, BarChart3, TrendingUp } from 'lucide-react';
+import { ArrowRight, Quote } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
 import PageBreadcrumb from '../components/PageBreadcrumb';
+import PageTabBar, { useActiveTab, TabItem } from '../components/PageTabBar';
 
-function useInView(threshold = 0.1) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
+const TABS: TabItem[] = [
+  { key: 'all',    label: 'All Stories' },
+  { key: 'africa', label: 'Africa' },
+  { key: 'global', label: 'Global' },
+];
+
+interface Story {
+  region: 'africa' | 'global';
+  company: string;
+  country: string;
+  sector: string;
+  name: string;
+  role: string;
+  quote: string;
+  stat: { value: string; label: string };
+  color: string;
+  bg: string;
 }
 
-const TESTIMONIALS = [
+const STORIES: Story[] = [
   {
-    name: 'James Ochieng',
-    role: 'Operations Manager',
-    company: 'Nile Agro Exports Ltd',
+    region: 'africa',
+    company: 'Nile Agro Holdings',
     country: 'Uganda',
-    quote: 'Before Nexa, reconciling our export documentation used to take three full days per shipment. Now it takes under two hours. The phyto-sanitary automation alone justified the subscription in the first month.',
-    stars: 5,
-    metric: { value: '90%', label: 'Reduction in documentation time' },
-    avatar: 'JO',
-    accentColor: 'bg-amber-500',
-    borderColor: 'border-amber-100',
+    sector: 'Coffee Export',
+    name: 'Mr. Patrick Ssemakula',
+    role: 'Managing Director',
+    quote: 'Before Nexa, our export documentation team was working 14-hour days during peak season. Now the same volume is handled automatically. We shipped 40% more this year with the same team size.',
+    stat: { value: '+40%', label: 'Export Volume Growth' },
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
   },
   {
-    name: 'Priya Sharma',
-    role: 'Director of Agriculture',
-    company: 'Deccan Farms Ltd',
-    country: 'India',
-    quote: 'We manage 14 farm units across three states. Nexa gave us a single dashboard to see everything — yields, staff, costs, compliance — in real time. NexaAI flagged a water stress issue in our western unit before our agronomist noticed it on the ground.',
-    stars: 5,
-    metric: { value: '14', label: 'Farm units consolidated in one view' },
-    avatar: 'PS',
-    accentColor: 'bg-emerald-500',
-    borderColor: 'border-emerald-100',
-  },
-  {
-    name: 'Amara Diallo',
-    role: 'Finance Controller',
-    company: 'West Africa Cocoa Group',
+    region: 'africa',
+    company: 'West Africa Cocoa Cooperative',
     country: 'Ghana',
-    quote: 'Our auditors spent three weeks reviewing our books last year. This year with Nexa\'s automatic ledger and one-click statutory reports, the audit was done in four days. The compliance module is exceptional.',
-    stars: 5,
-    metric: { value: '75%', label: 'Reduction in audit preparation time' },
-    avatar: 'AD',
-    accentColor: 'bg-blue-500',
-    borderColor: 'border-blue-100',
+    sector: 'Smallholder Aggregation',
+    name: 'Ms. Abena Frimpong',
+    role: 'Operations Director',
+    quote: 'Our cooperative aggregates from 1,200 smallholder farms. Keeping track manually was impossible. Nexa gave us visibility we never had — yield per farm, quality grades, and traceability all in one screen.',
+    stat: { value: '1,200+', label: 'Farms Connected' },
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
   },
   {
-    name: 'Carlos Mendez',
+    region: 'global',
+    company: 'Deccan Farms Ltd.',
+    country: 'India',
+    sector: 'Commercial Farming',
+    name: 'Mr. Vikram Nair',
     role: 'CEO',
-    company: 'Andina Fresh Exports',
-    country: 'Peru',
-    quote: 'We integrated Nexa across our entire supply chain — farms, processing, logistics, and finance. The visibility we now have is extraordinary. Our European buyers ask about our real-time traceability as a competitive advantage.',
-    stars: 5,
-    metric: { value: '340%', label: 'ROI in first 12 months' },
-    avatar: 'CM',
-    accentColor: 'bg-violet-500',
-    borderColor: 'border-violet-100',
+    quote: 'We manage 18,000 acres across three states. The old system required a 12-person data entry team. With Nexa, we cut that to 3 people and our data quality is night and day better.',
+    stat: { value: '18,000', label: 'Acres Managed' },
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+  },
+  {
+    region: 'global',
+    company: 'Andina Fresh S.A.',
+    country: 'Colombia',
+    sector: 'Agro-Processing & Export',
+    name: 'Ms. Valentina Ríos',
+    role: 'Supply Chain Manager',
+    quote: "Nexa's compliance module alone paid for itself in the first quarter. We had a GLOBALG.A.P. audit with 6 weeks' notice and passed first time. The inspector said our documentation was the best they had seen.",
+    stat: { value: '100%', label: 'First-Time Audit Pass Rate' },
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
   },
 ];
 
-const TRUST_COMPANIES = [
-  'Nile Agro Exports', 'Deccan Farms Ltd', 'West Africa Cocoa Group',
-  'Andina Fresh Exports', 'Kenyan Tea Board', 'East Africa Growers', 'Savanna Commodities',
-];
-
-const STATS = [
-  { icon: Users, value: '500+', label: 'Enterprises on Nexa' },
-  { icon: Globe2, value: '18+', label: 'Countries Served' },
-  { icon: BarChart3, value: '4.9/5', label: 'Average Satisfaction Score' },
-  { icon: TrendingUp, value: '94%', label: 'Year-2 Retention Rate' },
-];
+function StoryCard({ s }: { s: Story }) {
+  return (
+    <div className="p-8 rounded-2xl border border-slate-100 hover:shadow-xl transition-all flex flex-col">
+      <div className="flex items-center gap-3 mb-5">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.bg}`}>
+          <span className={`font-black text-lg ${s.color}`}>{s.company[0]}</span>
+        </div>
+        <div>
+          <p className="font-black text-slate-900 text-sm">{s.company}</p>
+          <p className="text-slate-400 text-[11px] font-medium">{s.country} · {s.sector}</p>
+        </div>
+      </div>
+      <div className={`mb-5 pb-5 border-b border-slate-100`}>
+        <p className="text-3xl font-black text-slate-900 tracking-tighter">{s.stat.value}</p>
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{s.stat.label}</p>
+      </div>
+      <div className="relative flex-1 mb-6">
+        <Quote size={20} className={`absolute -top-1 -left-1 ${s.color} opacity-30`} />
+        <p className="text-slate-600 text-sm font-medium leading-relaxed pl-5 italic">
+          {s.quote}
+        </p>
+      </div>
+      <div>
+        <p className="font-black text-slate-800 text-sm">{s.name}</p>
+        <p className={`text-[11px] font-bold uppercase tracking-widest ${s.color}`}>{s.role}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function StoriesPage() {
-  const heroAnim = useInView(0.05);
-  const storiesAnim = useInView(0.05);
-  const statsAnim = useInView(0.1);
-  const trustAnim = useInView(0.1);
+  const activeKey = useActiveTab(TABS);
+  const filtered = activeKey === 'all' ? STORIES : STORIES.filter(s => s.region === activeKey);
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       <LandingHeader />
 
-      {/* Breadcrumb */}
       <div className="pt-[86px]">
-        <PageBreadcrumb crumbs={[
-          { label: 'Customer Stories' },
-        ]} />
+        <PageBreadcrumb crumbs={[{ label: 'Customer Stories', to: '/stories' }, { label: TABS.find(t => t.key === activeKey)?.label || '' }]} />
       </div>
 
-      {/* Hero */}
-      <section className="pt-20 md:pt-28 pb-20 md:pb-28 px-5 md:px-12 bg-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(16,185,129,0.1),transparent_55%)]" />
-        <div ref={heroAnim.ref} className="max-w-7xl mx-auto relative z-10">
-          <div className={`max-w-3xl ${heroAnim.inView ? '' : 'opacity-0'}`} style={{ transition: 'opacity 0.8s ease-out' }}>
-            <div className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 text-amber-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-8">
-              <Star size={13} className="fill-amber-400" />
-              <span>Customer Stories</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.95] text-white mb-6">
-              Heard from<br /><span className="text-emerald-400">the field.</span>
-            </h1>
-            <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-              From small family farms to large-scale export houses, see how teams around the world are transforming their operations with Nexa.
-            </p>
+      <PageTabBar tabs={TABS} />
+
+      <section className="py-16 md:py-24 px-5 md:px-12 bg-gradient-to-br from-slate-900 to-[#170038]">
+        <div className="max-w-4xl mx-auto text-center">
+          <span className="inline-block text-[10px] font-black uppercase tracking-[0.35em] px-3 py-1.5 rounded-full mb-5 bg-white/10 text-cyan-300">
+            Customer Stories
+          </span>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white leading-[0.95] mb-5">
+            Operations transformed, in their own words.
+          </h1>
+          <p className="text-indigo-200/70 text-lg font-medium leading-relaxed max-w-2xl mx-auto">
+            From East African coffee exporters to South American agro-processors — real results from real operations.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-16 px-5 md:px-12 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filtered.map((s) => <StoryCard key={s.company} s={s} />)}
+        </div>
+        {filtered.length === 0 && (
+          <div className="max-w-xl mx-auto text-center py-12">
+            <p className="text-slate-400 font-medium">No stories found for this region yet. Check back soon.</p>
           </div>
-        </div>
+        )}
       </section>
 
-      {/* Stats bar */}
-      <section ref={statsAnim.ref} className="bg-[#0a001e] border-b border-white/10 px-5 md:px-12 py-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map((s, i) => (
-            <div
-              key={s.label}
-              className={`text-center md:text-left ${statsAnim.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-              style={{ transition: 'all 0.6s ease-out', transitionDelay: `${i * 100}ms` }}
-            >
-              <div className="flex items-center gap-2 justify-center md:justify-start mb-2">
-                <s.icon size={16} className="text-emerald-400 shrink-0" />
-                <p className="text-3xl md:text-4xl font-black text-white tracking-tighter">{s.value}</p>
-              </div>
-              <p className="text-[10px] font-bold text-indigo-300/60 uppercase tracking-widest">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Testimonial cards */}
-      <section ref={storiesAnim.ref} className="py-20 md:py-32 px-5 md:px-12 bg-white">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {TESTIMONIALS.map((t, i) => (
-            <div
-              key={t.name}
-              className={`grid grid-cols-1 lg:grid-cols-3 gap-8 items-start p-8 md:p-10 rounded-2xl border ${t.borderColor} hover:shadow-2xl transition-all duration-500 ${storiesAnim.inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-              style={{ transitionDelay: `${i * 100}ms` }}
-            >
-              {/* Author info */}
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-2xl ${t.accentColor} text-white font-black text-lg flex items-center justify-center`}>
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 text-[16px]">{t.name}</p>
-                    <p className="text-slate-500 text-[12px] font-medium">{t.role}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="font-bold text-slate-700 text-[13px]">{t.company}</p>
-                  <p className="text-slate-400 text-[12px] font-medium flex items-center gap-1.5 mt-0.5">
-                    <Globe2 size={11} /> {t.country}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: t.stars }).map((_, j) => (
-                    <Star key={j} size={14} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <div className={`inline-block p-4 rounded-xl border ${t.borderColor} bg-slate-50`}>
-                  <p className="text-3xl font-black text-slate-900 tracking-tighter">{t.metric.value}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{t.metric.label}</p>
-                </div>
-              </div>
-
-              {/* Quote */}
-              <div className="lg:col-span-2 relative">
-                <Quote size={40} className="text-slate-100 mb-4" />
-                <p className="text-slate-700 text-lg md:text-xl font-medium leading-relaxed italic">
-                  "{t.quote}"
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Trust strip */}
-      <section ref={trustAnim.ref} className="py-14 px-5 md:px-12 bg-slate-50 border-y border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-center text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 mb-8">Trusted by leading agricultural enterprises</p>
-          <div className={`flex flex-wrap justify-center items-center gap-x-8 gap-y-4 ${trustAnim.inView ? '' : 'opacity-0'}`} style={{ transition: 'opacity 0.8s ease-out' }}>
-            {TRUST_COMPANIES.map((name) => (
-              <span key={name} className="text-[13px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-700 transition-colors">
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 md:py-24 px-5 md:px-12 bg-[#170038]">
+      <section className="py-16 md:py-20 px-5 md:px-12 bg-gradient-to-br from-emerald-500/10 to-teal-400/5 border-t border-slate-100">
         <div className="max-w-3xl mx-auto text-center">
-          <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-5">
-            Your story starts here.
+          <h3 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 mb-4">
+            Ready to write your own success story?
           </h3>
-          <p className="text-indigo-100/70 text-base md:text-lg font-medium mb-8">
-            Join hundreds of enterprises that already run smarter with Nexa. No commitment required.
+          <p className="text-slate-400 text-base font-medium mb-8">
+            Join 400+ enterprises already transforming their operations on Nexa.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/login" className="bg-cyan-300 text-[#120030] px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-cyan-200 transition-all active:scale-95 flex items-center gap-3">
+            <Link to="/login" className="bg-[#170038] text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#240054] transition-all flex items-center gap-3">
               Start Free Trial <ArrowRight size={16} />
             </Link>
-            <Link to="/pricing" className="px-8 py-5 text-indigo-100/70 font-black text-xs uppercase tracking-[0.2em] hover:text-white transition-all border border-white/20 rounded-2xl">
+            <Link to="/pricing" className="px-8 py-5 text-slate-500 font-black text-xs uppercase tracking-[0.2em] hover:text-emerald-600 transition-all">
               View Pricing
             </Link>
           </div>
