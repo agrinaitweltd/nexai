@@ -37,7 +37,7 @@ const UG_BANKS = [
   "Standard Chartered Bank","Revolut","Wise","Monzo","Starling Bank",
 ];
 
-type AuthView = 'LOGIN' | 'SIGNUP' | 'PAYMENT' | 'VERIFICATION' | 'AWAITING' | 'REJECTED' | 'LIMIT' | 'FORGOT_PASSWORD' | 'RESET_PASSWORD';
+type AuthView = 'LOGIN' | 'SIGNUP' | 'SIGNUP_SUCCESS' | 'PAYMENT' | 'VERIFICATION' | 'AWAITING' | 'REJECTED' | 'LIMIT' | 'FORGOT_PASSWORD' | 'RESET_PASSWORD';
 
 type ActivationMethod = 'MTN' | 'AIRTEL' | 'MPESA' | 'BANK';
 
@@ -132,6 +132,177 @@ const getPayCfg = (country: string): CountryPayCfg =>
     banks: ['Wise','Revolut'],
     bankDetails: { accountName: 'Nexa Intelligence Ltd', bank: 'Wise (wise.com)', accountNumber: 'billing@nexaagri.com', note: 'International wire or Wise accepted.' },
   };
+
+// ─── Signup Success / Welcome Screen ──────────────────────────────────────────
+interface SignupSuccessProps {
+  name: string;
+  email: string;
+  onContinue: () => void;
+  onSignOut: () => void;
+}
+
+function SignupSuccessScreen({ name, email, onContinue, onSignOut }: SignupSuccessProps) {
+  const [onboardingStep, setOnboardingStep] = React.useState<'welcome' | 'intro'>('welcome');
+  const [visible, setVisible] = React.useState(false);
+  const [checkDone, setCheckDone] = React.useState(false);
+
+  React.useEffect(() => {
+    const t1 = setTimeout(() => setVisible(true), 80);
+    const t2 = setTimeout(() => setCheckDone(true), 700);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  const firstName = name.split(' ')[0] || name;
+
+  if (onboardingStep === 'intro') {
+    return (
+      <div className="fixed inset-0 z-[500] bg-[#0a0a0a] flex flex-col overflow-hidden">
+        {/* Warm glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-amber-900/40 rounded-full blur-[120px]" />
+        </div>
+
+        {/* Top bar */}
+        <div className="relative z-10 flex items-center justify-between px-6 md:px-10 pt-8">
+          <button
+            onClick={onSignOut}
+            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sign out
+          </button>
+          {/* Dot progress */}
+          <div className="flex items-center gap-2">
+            {[0,1,2,3,4].map(i => (
+              <div key={i} className={`rounded-full transition-all duration-300 ${i === 0 ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/20'}`} />
+            ))}
+          </div>
+        </div>
+
+        {/* Center content */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center"
+          style={{ animation: 'successFadeIn 0.6s ease-out both' }}>
+          <p className="text-white/30 text-sm font-black uppercase tracking-[0.3em] mb-6">1 of 5</p>
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none mb-5">
+            Let&apos;s set up your Treasury.
+          </h1>
+          <p className="text-white/40 text-base md:text-lg font-medium max-w-md mb-12 leading-relaxed">
+            We&apos;ll walk you through a few quick steps to help get you set up.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button
+              onClick={onContinue}
+              className="flex items-center gap-3 bg-white text-slate-900 px-10 py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
+            >
+              Let&apos;s begin
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button
+              onClick={onContinue}
+              className="text-white/40 hover:text-white/70 transition-colors text-sm font-bold uppercase tracking-widest"
+            >
+              Skip onboarding
+            </button>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-10 flex items-center justify-between px-6 md:px-10 pb-8 text-white/20 text-[11px] font-medium">
+          <span>© 2026 Treasury Technologies Inc.</span>
+          <div className="flex items-center gap-4">
+            <button className="hover:text-white/40 transition-colors">Terms</button>
+            <button className="hover:text-white/40 transition-colors">Privacy</button>
+          </div>
+        </div>
+
+        <style>{`@keyframes successFadeIn { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: translateY(0); } }`}</style>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[500] bg-[#0a0a0a] flex flex-col overflow-hidden">
+      {/* Animated warm ambient glow */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-amber-900/50 rounded-full blur-[130px] transition-all duration-1000 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+        <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-orange-800/40 rounded-full blur-[80px] transition-all duration-1200 delay-300 ${visible ? 'opacity-100' : 'opacity-0'}`} />
+      </div>
+
+      {/* Top bar */}
+      <div className={`relative z-10 flex items-center justify-start px-6 md:px-10 pt-8 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <button
+          onClick={onSignOut}
+          className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign out
+          <span className="text-white/25 font-normal normal-case tracking-normal">({email})</span>
+        </button>
+      </div>
+
+      {/* Center */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
+        {/* Animated checkmark circle */}
+        <div className={`mb-10 transition-all duration-700 delay-200 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+          <div className="relative w-20 h-20">
+            <svg viewBox="0 0 80 80" className="w-full h-full" fill="none">
+              <circle
+                cx="40" cy="40" r="36"
+                stroke="white"
+                strokeWidth="2"
+                strokeOpacity="0.1"
+              />
+              <circle
+                cx="40" cy="40" r="36"
+                stroke="url(#checkGrad)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="226"
+                strokeDashoffset={checkDone ? 0 : 226}
+                style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.34,1.2,0.64,1)', transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+              />
+              <defs>
+                <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#10b981" />
+                  <stop offset="100%" stopColor="#34d399" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 delay-500 ${checkDone ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Headline */}
+        <div className={`transition-all duration-700 delay-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none mb-4">
+            Welcome, {firstName}.
+          </h1>
+          <p className="text-white/35 text-lg md:text-xl font-medium mb-14">
+            Your Treasury awaits.
+          </p>
+        </div>
+
+        {/* CTA */}
+        <div className={`w-full max-w-sm transition-all duration-700 delay-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <button
+            onClick={() => setOnboardingStep('intro')}
+            className="w-full bg-white/10 hover:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-sm text-white px-10 py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            Get Started
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Login() {
   const { login, register, submitVerification, resetUserStatus, requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery } = useApp();
@@ -318,7 +489,7 @@ export default function Login() {
 
         if (result.success && result.user) {
             setPendingUser(result.user);
-            setView('PAYMENT');
+            setView('SIGNUP_SUCCESS');
         } else {
             setError(result.message);
         }
@@ -852,6 +1023,16 @@ export default function Login() {
                         </div>
                     </form>
                 </div>
+            )}
+
+            {/* SIGNUP SUCCESS VIEW */}
+            {view === 'SIGNUP_SUCCESS' && (
+                <SignupSuccessScreen
+                    name={name}
+                    email={newEmail}
+                    onContinue={() => setView('PAYMENT')}
+                    onSignOut={() => { setView('LOGIN'); }}
+                />
             )}
 
             {/* PAYMENT INSTRUCTIONS VIEW */}

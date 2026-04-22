@@ -25,7 +25,15 @@ import {
   Cloud,
   CheckCircle2,
   Mail,
-  Linkedin
+  Linkedin,
+  Sprout,
+  Activity,
+  FileText,
+  TrendingUp,
+  MapPin,
+  Zap,
+  Package,
+  Lock
 } from 'lucide-react';
 import { NexaLogo } from '../components/NexaLogo';
 
@@ -40,6 +48,27 @@ function useInView(threshold = 0.15) {
     return () => obs.disconnect();
   }, [threshold]);
   return { ref, inView };
+}
+
+function useScrollProgress(ref: React.RefObject<HTMLDivElement>, steps: number) {
+  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const totalHeight = el.offsetHeight - window.innerHeight;
+      const scrolled = -rect.top;
+      const raw = Math.max(0, Math.min(1, scrolled / totalHeight));
+      setProgress(raw);
+      setStep(Math.min(steps - 1, Math.floor(raw * steps)));
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [ref, steps]);
+  return { step, progress };
 }
 
 const ROTATING_WORDS = ['Farms', 'Finance', 'Livestock', 'Crops'];
@@ -114,6 +143,60 @@ export default function Landing() {
     { icon: Cloud, title: "Scalable Platform", desc: "A strong cloud system that can start small and grow easily as more farmers, produce, and data join the platform." }
   ];
 
+  const scrollStoryRef = useRef<HTMLDivElement>(null);
+  const { step: storyStep } = useScrollProgress(scrollStoryRef as React.RefObject<HTMLDivElement>, 4);
+
+  const storyChapters = [
+    {
+      tag: 'Farm Operations',
+      headline: 'Run every farm like a Fortune 500 company.',
+      body: 'Track fields, manage livestock health, schedule labor, and monitor soil metrics — all from a single unified dashboard built for agricultural scale.',
+      accent: 'from-emerald-500 to-teal-400',
+      cards: [
+        { icon: Tractor, title: 'Field Manager', stat: '14 Active Fields', sub: 'Real-time crop stage', color: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-400' },
+        { icon: Activity, title: 'Livestock Health', stat: '98.4% Herd Health', sub: 'Automated monitoring', color: 'bg-teal-50 text-teal-600', dot: 'bg-teal-400' },
+        { icon: Sprout, title: 'Crop Lifecycle', stat: '6 Harvest Stages', sub: 'Yield forecasting live', color: 'bg-green-50 text-green-600', dot: 'bg-green-400' },
+        { icon: MapPin, title: 'Farm Mapping', stat: '340 Acres Tracked', sub: 'GPS-grade accuracy', color: 'bg-lime-50 text-lime-600', dot: 'bg-lime-400' },
+      ]
+    },
+    {
+      tag: 'Financial Intelligence',
+      headline: 'Complete fiscal clarity, zero spreadsheets.',
+      body: 'From purchase orders to profit margins — track every shilling, manage multi-currency ledgers, and unlock real-time revenue analytics across all your business units.',
+      accent: 'from-blue-500 to-indigo-400',
+      cards: [
+        { icon: TrendingUp, title: 'Revenue Analytics', stat: 'UGX 48.2M / Mo', sub: '↑ 23% this quarter', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-400' },
+        { icon: DollarSign, title: 'Cost Ledger', stat: '1,240 Transactions', sub: 'Auto-categorized', color: 'bg-indigo-50 text-indigo-600', dot: 'bg-indigo-400' },
+        { icon: FileText, title: 'Purchase Orders', stat: '38 Open Orders', sub: 'Approval pipeline', color: 'bg-violet-50 text-violet-600', dot: 'bg-violet-400' },
+        { icon: BarChart3, title: 'Budget Tracker', stat: '94% On Budget', sub: '6 departments synced', color: 'bg-sky-50 text-sky-600', dot: 'bg-sky-400' },
+      ]
+    },
+    {
+      tag: 'Export & Compliance',
+      headline: 'Ship globally. Comply automatically.',
+      body: 'Generate export manifests, manage customs documentation, and track international shipments in real-time — all with built-in compliance automation for 18+ markets.',
+      accent: 'from-amber-500 to-orange-400',
+      cards: [
+        { icon: Ship, title: 'Shipment Tracker', stat: '12 Active Shipments', sub: '6 countries in transit', color: 'bg-amber-50 text-amber-600', dot: 'bg-amber-400' },
+        { icon: ClipboardCheck, title: 'Compliance Suite', stat: '99.9% Pass Rate', sub: 'Auto-checked certs', color: 'bg-orange-50 text-orange-600', dot: 'bg-orange-400' },
+        { icon: Globe2, title: 'Global Markets', stat: '18+ Countries', sub: 'Active trade routes', color: 'bg-yellow-50 text-yellow-600', dot: 'bg-yellow-400' },
+        { icon: ShieldCheck, title: 'Document Vault', stat: '430 Secure Files', sub: 'Encrypted storage', color: 'bg-red-50 text-red-600', dot: 'bg-red-400' },
+      ]
+    },
+    {
+      tag: 'Total Command',
+      headline: 'One platform. Infinite scale.',
+      body: 'Nexa brings every piece of your operation into a single intelligent hub — farms, staff, inventory, finance, exports, and compliance — ready to grow with you.',
+      accent: 'from-slate-400 to-slate-300',
+      cards: [
+        { icon: Users, title: 'Staff Control', stat: '86 Team Members', sub: 'Role-based access', color: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
+        { icon: Package, title: 'Inventory Hub', stat: '2,840 SKUs Tracked', sub: 'Multi-warehouse sync', color: 'bg-zinc-100 text-zinc-600', dot: 'bg-zinc-400' },
+        { icon: Zap, title: 'AI Insights', stat: '48 Recommendations', sub: 'Updated daily', color: 'bg-purple-50 text-purple-600', dot: 'bg-purple-400' },
+        { icon: Lock, title: 'Secure & Private', stat: 'SOC-2 Grade', sub: 'Enterprise encryption', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-400' },
+      ]
+    },
+  ];
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
@@ -128,12 +211,19 @@ export default function Landing() {
         @keyframes slideRight { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes wordIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes wordOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
+        @keyframes cardEnter { from { opacity: 0; transform: translateY(28px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes cardExit { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-20px) scale(0.96); } }
+        @keyframes textSlideUp { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes glowPulse { 0%, 100% { opacity: 0.15; transform: scale(1); } 50% { opacity: 0.25; transform: scale(1.05); } }
         .anim-fade-up { animation: fadeUp 0.8s ease-out both; }
         .anim-fade-in { animation: fadeIn 0.6s ease-out both; }
         .anim-scale-in { animation: scaleIn 0.6s ease-out both; }
         .anim-slide-left { animation: slideLeft 0.8s ease-out both; }
         .anim-slide-right { animation: slideRight 0.8s ease-out both; }
         .anim-float { animation: float 6s ease-in-out infinite; }
+        .anim-card-enter { animation: cardEnter 0.55s cubic-bezier(0.34,1.2,0.64,1) both; }
+        .anim-text-slide { animation: textSlideUp 0.5s cubic-bezier(0.34,1.2,0.64,1) both; }
+        .anim-glow { animation: glowPulse 4s ease-in-out infinite; }
         .word-in { animation: wordIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
         .word-out { animation: wordOut 0.35s ease-in forwards; }
         .d1 { animation-delay: 0.1s; }
@@ -142,6 +232,11 @@ export default function Landing() {
         .d4 { animation-delay: 0.4s; }
         .d5 { animation-delay: 0.5s; }
         .d6 { animation-delay: 0.6s; }
+        .cd1 { animation-delay: 0.05s; }
+        .cd2 { animation-delay: 0.15s; }
+        .cd3 { animation-delay: 0.25s; }
+        .cd4 { animation-delay: 0.35s; }
+        .story-progress-bar { transition: width 0.6s cubic-bezier(0.34,1.2,0.64,1); }
       `}</style>
 
       {/* Navigation */}
@@ -244,6 +339,122 @@ export default function Landing() {
                 </a>
               </div>
           </div>
+        </div>
+      </section>
+
+      {/* ─── SCROLL STORYTELLING SECTION ─── */}
+      <section
+        ref={scrollStoryRef}
+        className="relative bg-slate-950"
+        style={{ height: '400vh' }}
+        aria-label="Platform story"
+      >
+        <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
+          {/* Background glow */}
+          <div
+            key={`glow-${storyStep}`}
+            className={`absolute inset-0 pointer-events-none transition-all duration-700`}
+          >
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[160px] anim-glow
+              ${storyStep === 0 ? 'bg-emerald-500/20' : storyStep === 1 ? 'bg-blue-500/20' : storyStep === 2 ? 'bg-amber-500/20' : 'bg-slate-400/15'}`}
+            />
+          </div>
+
+          {/* Top progress bar */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/5 z-20">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-300 story-progress-bar"
+              style={{ width: `${((storyStep + 1) / 4) * 100}%` }}
+            />
+          </div>
+
+          {/* Step indicators */}
+          <div className="absolute top-8 right-6 md:right-12 flex items-center gap-3 z-20">
+            {storyChapters.map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all duration-500 ${i === storyStep ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/25'}`}
+              />
+            ))}
+          </div>
+
+          {/* Chapter tag */}
+          <div className="absolute top-8 left-6 md:left-12 z-20">
+            <div
+              key={`tag-${storyStep}`}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-[0.2em] anim-fade-in
+                ${storyStep === 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                  storyStep === 1 ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                  storyStep === 2 ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                  'bg-white/10 border-white/20 text-white/70'}`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse
+                ${storyStep === 0 ? 'bg-emerald-400' : storyStep === 1 ? 'bg-blue-400' : storyStep === 2 ? 'bg-amber-400' : 'bg-white/70'}`}
+              />
+              {storyChapters[storyStep].tag}
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-16 h-full px-6 md:px-12 max-w-7xl mx-auto w-full pt-16">
+
+            {/* Left: Text panel */}
+            <div className="lg:w-2/5 w-full text-center lg:text-left">
+              <div key={`text-${storyStep}`} className="space-y-5">
+                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/30 anim-text-slide cd1">
+                  {String(storyStep + 1).padStart(2, '0')} / 04
+                </p>
+                <h2 className={`text-3xl md:text-5xl lg:text-[3.2rem] font-black tracking-tighter leading-[0.95] text-white anim-text-slide cd2`}>
+                  {storyChapters[storyStep].headline}
+                </h2>
+                <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed max-w-md anim-text-slide cd3">
+                  {storyChapters[storyStep].body}
+                </p>
+                <div className="pt-2 anim-text-slide cd4">
+                  <Link
+                    to="/login"
+                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 bg-gradient-to-r text-white shadow-lg
+                      ${storyStep === 0 ? 'from-emerald-600 to-emerald-500 shadow-emerald-500/20' :
+                        storyStep === 1 ? 'from-blue-600 to-blue-500 shadow-blue-500/20' :
+                        storyStep === 2 ? 'from-amber-600 to-amber-500 shadow-amber-500/20' :
+                        'from-slate-700 to-slate-600 shadow-slate-500/20'}`}
+                  >
+                    Explore feature <ArrowRight size={12} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Cards grid */}
+            <div className="lg:w-3/5 w-full">
+              <div key={`cards-${storyStep}`} className="grid grid-cols-2 gap-3 md:gap-4">
+                {storyChapters[storyStep].cards.map((card, i) => (
+                  <div
+                    key={`${storyStep}-${i}`}
+                    className={`anim-card-enter cd${i + 1} bg-white/5 backdrop-blur-sm border border-white/8 rounded-2xl p-5 md:p-6 hover:bg-white/10 hover:border-white/15 transition-all duration-300 group`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.color}`}>
+                        <card.icon size={20} />
+                      </div>
+                      <div className={`w-2 h-2 rounded-full ${card.dot} mt-1`} />
+                    </div>
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5">{card.title}</p>
+                    <p className="text-xl md:text-2xl font-black text-white tracking-tighter leading-none mb-1">{card.stat}</p>
+                    <p className="text-[11px] font-medium text-slate-500">{card.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Scroll hint (only step 0) */}
+          {storyStep === 0 && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20 anim-fade-in">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/25">Scroll to explore</p>
+              <div className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent" />
+            </div>
+          )}
         </div>
       </section>
 
