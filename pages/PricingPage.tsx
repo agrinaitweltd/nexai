@@ -4,6 +4,7 @@ const { Link } = ReactRouterDOM as any;
 import { Check, ArrowRight, ChevronDown, DollarSign, ShieldCheck, Zap } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
+import PageBreadcrumb from '../components/PageBreadcrumb';
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -100,8 +101,15 @@ export default function PricingPage() {
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       <LandingHeader />
 
+      {/* Breadcrumb */}
+      <div className="pt-[86px]">
+        <PageBreadcrumb crumbs={[
+          { label: 'Pricing' },
+        ]} />
+      </div>
+
       {/* Hero */}
-      <section className="pt-32 md:pt-48 pb-20 px-5 md:px-12 bg-slate-50 border-b border-slate-100">
+      <section className="pt-20 md:pt-28 pb-20 px-5 md:px-12 bg-slate-50 border-b border-slate-100">
         <div ref={heroAnim.ref} className="max-w-3xl mx-auto text-center">
           <div className={`${heroAnim.inView ? '' : 'opacity-0'}`} style={{ transition: 'opacity 0.8s ease-out' }}>
             <div className="inline-flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full text-[10px] font-bold text-emerald-700 border border-emerald-100 mb-8">

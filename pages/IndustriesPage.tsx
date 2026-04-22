@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
+import PageBreadcrumb from '../components/PageBreadcrumb';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -152,8 +153,16 @@ export default function IndustriesPage() {
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       <LandingHeader />
 
+      {/* Breadcrumb */}
+      <div className="pt-[86px]">
+        <PageBreadcrumb crumbs={[
+          { label: 'Industries', to: '/industries' },
+          { label: 'All Sectors' },
+        ]} />
+      </div>
+
       {/* Hero */}
-      <section className="pt-32 md:pt-48 pb-20 md:pb-32 px-5 md:px-12 bg-gradient-to-b from-[#170038] to-[#0a001e] relative overflow-hidden">
+      <section className="pt-20 md:pt-28 pb-20 md:pb-32 px-5 md:px-12 bg-gradient-to-b from-[#170038] to-[#0a001e] relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.12),transparent_60%)]" />
         <div ref={heroAnim.ref} className="max-w-7xl mx-auto relative z-10">
           <div className={`max-w-3xl ${heroAnim.inView ? 'animate-[fadeUp_0.8s_ease-out_both]' : 'opacity-0'}`}

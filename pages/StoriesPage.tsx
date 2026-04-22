@@ -4,6 +4,7 @@ const { Link } = ReactRouterDOM as any;
 import { Star, Quote, ArrowRight, Globe2, Users, BarChart3, TrendingUp } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
+import PageBreadcrumb from '../components/PageBreadcrumb';
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -91,8 +92,15 @@ export default function StoriesPage() {
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       <LandingHeader />
 
+      {/* Breadcrumb */}
+      <div className="pt-[86px]">
+        <PageBreadcrumb crumbs={[
+          { label: 'Customer Stories' },
+        ]} />
+      </div>
+
       {/* Hero */}
-      <section className="pt-32 md:pt-48 pb-20 md:pb-28 px-5 md:px-12 bg-slate-950 relative overflow-hidden">
+      <section className="pt-20 md:pt-28 pb-20 md:pb-28 px-5 md:px-12 bg-slate-950 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(16,185,129,0.1),transparent_55%)]" />
         <div ref={heroAnim.ref} className="max-w-7xl mx-auto relative z-10">
           <div className={`max-w-3xl ${heroAnim.inView ? '' : 'opacity-0'}`} style={{ transition: 'opacity 0.8s ease-out' }}>
