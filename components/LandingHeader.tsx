@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link, useLocation } = ReactRouterDOM as any;
 import { Menu, X, ArrowRight, ChevronDown } from 'lucide-react';
@@ -245,7 +245,7 @@ export default function LandingHeader() {
         </div>
       </nav>
 
-      {/* â”€â”€ Desktop mega-menu panel â”€â”€ */}
+      {/* ── Desktop mega-menu panel ── */}
       {activeLink?.megaMenu && (
         <div
           className="hidden lg:block bg-[#150030] border-b border-white/10"
@@ -284,7 +284,7 @@ export default function LandingHeader() {
 
               {/* Featured card */}
               <div className="w-[260px] shrink-0 flex flex-col rounded-xl overflow-hidden">
-                {/* Image area â€” abstract gradient pattern */}
+                {/* Image area — abstract gradient pattern */}
                 <div className={`h-[160px] bg-gradient-to-br ${activeLink.megaMenu.featured.gradient} relative overflow-hidden`}>
                   {/* Decorative orbs mimicking the abstract image */}
                   <div className="absolute top-4 right-4 w-24 h-24 rounded-full bg-violet-500/40 blur-xl" />
@@ -315,53 +315,84 @@ export default function LandingHeader() {
         </div>
       )}
 
-      {/* â”€â”€ Mobile menu â”€â”€ */}
+      {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="lg:hidden bg-[#240054] border-b border-white/10 max-h-[calc(100vh-86px)] overflow-y-auto">
-          <div className="px-5 py-4 space-y-1.5">
+        <div className="lg:hidden bg-[#120030] border-b border-white/10 max-h-[calc(100dvh-86px)] overflow-y-auto">
+          {/* CTA buttons at the top */}
+          <div className="px-4 pt-4 pb-3 grid grid-cols-2 gap-2 border-b border-white/10">
+            <Link
+              to="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center justify-center rounded-2xl py-3.5 text-[11px] font-black uppercase tracking-[0.16em] text-white border border-white/25 active:scale-95 transition-all"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center justify-center rounded-2xl py-3.5 text-[11px] font-black uppercase tracking-[0.16em] bg-cyan-300 text-[#120030] hover:bg-cyan-200 active:scale-95 transition-all"
+            >
+              Get Started
+            </Link>
+          </div>
+
+          {/* Nav items */}
+          <div className="px-4 py-3 space-y-0.5">
             {NAV_LINKS.map((link) => (
               <div key={link.label}>
-                <button
-                  type="button"
-                  className={`flex items-center justify-between w-full px-5 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest transition-all ${
-                    isActive(link.to) ? 'bg-cyan-300/15 text-cyan-300' : 'text-white/80 hover:bg-white/5'
-                  }`}
-                  onClick={() => {
-                    if (link.megaMenu) {
-                      setOpenMobileKey(openMobileKey === link.label ? null : link.label);
-                    } else {
-                      setIsMenuOpen(false);
-                    }
-                  }}
-                >
+                <div className={`flex items-center rounded-2xl transition-colors ${
+                  isActive(link.to) ? 'bg-white/8' : 'hover:bg-white/5'
+                }`}>
+                  {/* Label navigates to the page */}
                   <Link
                     to={link.to}
-                    onClick={(e: React.MouseEvent) => { if (link.megaMenu) e.preventDefault(); else setIsMenuOpen(false); }}
-                    className="flex-1 text-left"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex-1 px-4 py-4 text-[14px] font-semibold transition-colors ${
+                      isActive(link.to) ? 'text-white' : 'text-white/75'
+                    }`}
                   >
                     {link.label}
                   </Link>
-                  {link.megaMenu
-                    ? <ChevronDown size={14} className={`transition-transform ${openMobileKey === link.label ? 'rotate-180 text-cyan-300' : ''}`} />
-                    : <ArrowRight size={13} />
-                  }
-                </button>
+                  {/* Chevron to expand sub-links */}
+                  {link.megaMenu ? (
+                    <button
+                      type="button"
+                      onClick={() => setOpenMobileKey(openMobileKey === link.label ? null : link.label)}
+                      className={`px-4 py-4 transition-colors ${openMobileKey === link.label ? 'text-cyan-300' : 'text-white/30 hover:text-white/70'}`}
+                      aria-label={`Expand ${link.label}`}
+                    >
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${openMobileKey === link.label ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  ) : (
+                    <span className="px-4 py-4 text-white/20">
+                      <ArrowRight size={14} />
+                    </span>
+                  )}
+                </div>
 
+                {/* Sub-link grid */}
                 {link.megaMenu && openMobileKey === link.label && (
-                  <div className="mt-1 pb-2 space-y-3">
-                    {link.megaMenu.columns.map((col) => (
-                      <div key={col.heading} className="ml-4 pl-4 border-l border-white/15">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-violet-400 mb-2 pt-1">{col.heading}</p>
-                        {col.links.map((sub) => (
-                          <Link
-                            key={sub.label}
-                            to={sub.to}
-                            onClick={() => setIsMenuOpen(false)}
-                            className="block py-2 text-[14px] font-medium text-white/70 hover:text-cyan-300 transition-colors"
-                          >
-                            {sub.label}
-                          </Link>
-                        ))}
+                  <div className="mt-1 mb-2 rounded-2xl bg-white/[0.04] border border-white/8 overflow-hidden">
+                    {link.megaMenu.columns.map((col, ci) => (
+                      <div key={col.heading} className={`px-4 pt-3 pb-2 ${ci < link.megaMenu!.columns.length - 1 ? 'border-b border-white/8' : ''}`}>
+                        <p className="text-[9px] font-black uppercase tracking-[0.45em] text-violet-400 mb-2.5">
+                          {col.heading}
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-3">
+                          {col.links.map((sub) => (
+                            <Link
+                              key={sub.label}
+                              to={sub.to}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="py-2.5 text-[13px] font-medium text-white/60 hover:text-cyan-300 active:text-cyan-200 transition-colors leading-tight"
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -369,24 +400,10 @@ export default function LandingHeader() {
               </div>
             ))}
           </div>
-          <div className="px-5 pb-5 pt-2 grid grid-cols-2 gap-3 border-t border-white/10">
-            <Link
-              to="/login"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center justify-center rounded-xl py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white border border-white/30"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/login"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center justify-center rounded-xl py-3 text-[11px] font-black uppercase tracking-[0.16em] bg-cyan-300 text-[#120030]"
-            >
-              Get Started
-            </Link>
-          </div>
+          <div className="h-4" />
         </div>
       )}
     </header>
   );
 }
+

@@ -4,7 +4,7 @@ const { Link } = ReactRouterDOM as any;
 import { Globe2, Tractor, Activity, Building2, Ship, ShieldCheck, ArrowRight, Check } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
-import PageBreadcrumb from '../components/PageBreadcrumb';
+
 import PageTabBar, { useActiveTab, TabItem } from '../components/PageTabBar';
 
 const TABS: TabItem[] = [
@@ -202,15 +202,8 @@ export default function IndustriesPage() {
   const Icon = content.icon;
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans text-slate-900">
       <LandingHeader />
-
-      <div className="pt-[86px]">
-        <PageBreadcrumb crumbs={[
-          { label: 'Industries', to: '/industries' },
-          { label: content.title },
-        ]} />
-      </div>
 
       <PageTabBar tabs={TABS} />
 

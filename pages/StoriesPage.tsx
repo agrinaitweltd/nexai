@@ -4,7 +4,7 @@ const { Link } = ReactRouterDOM as any;
 import { ArrowRight, Quote } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
-import PageBreadcrumb from '../components/PageBreadcrumb';
+
 import PageTabBar, { useActiveTab, TabItem } from '../components/PageTabBar';
 
 const TABS: TabItem[] = [
@@ -112,12 +112,8 @@ export default function StoriesPage() {
   const filtered = activeKey === 'all' ? STORIES : STORIES.filter(s => s.region === activeKey);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans text-slate-900">
       <LandingHeader />
-
-      <div className="pt-[86px]">
-        <PageBreadcrumb crumbs={[{ label: 'Customer Stories', to: '/stories' }, { label: TABS.find(t => t.key === activeKey)?.label || '' }]} />
-      </div>
 
       <PageTabBar tabs={TABS} />
 
