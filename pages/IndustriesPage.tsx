@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link } = ReactRouterDOM as any;
-import {
-  Globe2, Tractor, Activity, Building2, Ship, ShieldCheck,
-  ArrowRight, Check, ChevronRight
-} from 'lucide-react';
+import { Globe2, Tractor, Activity, Building2, Ship, ShieldCheck, ArrowRight, Check } from 'lucide-react';
 import LandingHeader from '../components/LandingHeader';
 import LandingFooter from '../components/LandingFooter';
 import PageBreadcrumb from '../components/PageBreadcrumb';
+import PageTabBar, { useActiveTab, TabItem } from '../components/PageTabBar';
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
