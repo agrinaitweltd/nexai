@@ -47,13 +47,13 @@ Deno.serve(async (req) => {
 
 
 
-    // Use the _tmp_password from pending_registrations to create the user
-    if (!pending._tmp_password) {
+    // Use the tmp_password from pending_registrations to create the user
+    if (!pending.tmp_password) {
       return new Response(JSON.stringify({ error: 'No password found for this registration.' }), { status: 400, headers: corsHeaders });
     }
     const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: pending.email,
-      password: pending._tmp_password,
+      password: pending.tmp_password,
       email_confirm: true,
       user_metadata: {
         full_name: pending.full_name,

@@ -508,7 +508,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       business_type: data.businessType || null,
       company_name: data.companyName || null,
       preferred_currency: preferredCurrency,
-      _tmp_password: data.password,
+      tmp_password: data.password,
       transaction_id: null,
       payment_phone: null,
       payment_method: null,
