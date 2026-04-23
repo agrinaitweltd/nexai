@@ -307,7 +307,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // ── Load pending signups (super admin only) ──────────────────
 
   const loadPendingSignups = useCallback(async () => {
-    const { data } = await supabase.from('pending_registrations').select('*').eq('status', 'PENDING');
+    // Explicitly select columns (exclude tmp_password to avoid PostgREST schema cache issues)
+    const { data } = await supabase
+      .from('pending_registrations')
+      .select('id, email, full_name, phone, country, sector, business_category, business_type, company_name, preferred_currency, transaction_id, payment_phone, payment_method, bank_name, account_name, status, created_at')
+      .eq('status', 'PENDING');
     setPendingSignups((data ?? []).map((r: any): PendingSignup => ({
       id: r.id,
       userId: r.id, // no auth user yet; use pending_registration id
