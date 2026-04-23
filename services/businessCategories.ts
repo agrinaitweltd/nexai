@@ -2,7 +2,7 @@ export const BUSINESS_CATEGORIES = [
   {
     category: "Crop Farming",
     types: [
-      "Crop Farming (Maize, Wheat, Rice, etc.)",
+      "Crop Farming (Maize, Wheat, Ric, etc.)",
       "Organic Farming",
       "Greenhouse Farming",
       "Floriculture (Flowers)",
