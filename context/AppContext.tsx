@@ -502,6 +502,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { data: rpcResult, error: insertErr } = await supabase.rpc('create_pending_registration', {
       p_email: data.email,
       p_full_name: data.name,
+      p_tmp_password: data.password,
       p_phone: data.phone || null,
       p_country: data.location || null,
       p_sector: data.sector || 'GENERAL',
@@ -509,7 +510,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       p_business_type: data.businessType || null,
       p_company_name: data.companyName || null,
       p_preferred_currency: preferredCurrency,
-      p_tmp_password: data.password,
       p_transaction_id: null,
       p_payment_phone: null,
       p_payment_method: null,
