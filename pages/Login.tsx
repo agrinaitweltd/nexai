@@ -717,32 +717,32 @@ export default function Login() {
       </div>
 
       {/* Form Side - Right */}
-      <div className="w-full lg:w-1/2 flex flex-col h-full items-center justify-center p-5 md:p-16 overflow-y-auto bg-slate-50/50 relative">
+      <div className="w-full lg:w-1/2 flex flex-col h-full items-center justify-start p-5 md:p-16 overflow-y-auto bg-slate-50/50 relative">
         {/* Back to Homepage Button */}
-        <div className="absolute top-8 left-8 z-20">
+        <div className="w-full max-w-lg flex items-center pt-4 pb-2 md:pt-8 md:pb-4 shrink-0">
             <Link 
                 to="/" 
-                className="flex items-center space-x-2 bg-white px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 border border-slate-200 shadow-sm hover:shadow-md hover:bg-slate-50 transition-all active:scale-95"
+                className="flex items-center space-x-2 bg-white px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 border border-slate-200 shadow-sm hover:shadow-md hover:bg-slate-50 transition-all active:scale-95"
             >
-                <Home size={14} />
+                <Home size={13} />
                 <span>Back to Home</span>
             </Link>
         </div>
 
-        <div className="w-full max-w-lg space-y-6 md:space-y-10 animate-in fade-in zoom-in duration-500 py-3 md:py-20 flex flex-col">
+        <div className="w-full max-w-lg space-y-5 md:space-y-10 animate-in fade-in zoom-in duration-500 py-4 md:py-10 flex flex-col flex-1">
             
             {/* LOGIN VIEW */}
             {view === 'LOGIN' && (
                 <div className="flex-1">
-                    <div className="mb-4 md:mb-12 lg:hidden flex justify-center">
-                        <NexaLogo className="h-8 md:h-12" />
+                    <div className="mb-4 md:mb-8 lg:hidden flex justify-center">
+                        <NexaLogo className="h-8 md:h-10" />
                     </div>
                     <div>
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4">{isAdminLogin ? 'Sign In' : 'Sign In'}</h2>
-                        <p className="text-slate-500 font-medium text-lg">{isAdminLogin ? 'Authorized Executive Credentials Required.' : 'Secure verification for enterprise hub entry.'}</p>
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter leading-none mb-3">{isAdminLogin ? 'Sign In' : 'Sign In'}</h2>
+                        <p className="text-slate-500 font-medium text-base md:text-lg">{isAdminLogin ? 'Authorized Executive Credentials Required.' : 'Secure verification for enterprise hub entry.'}</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4 md:space-y-6 mt-5 md:mt-12">
+                    <form onSubmit={handleLogin} className="space-y-4 md:space-y-6 mt-5 md:mt-10">
                         {error && (
                             <div className="p-6 bg-red-50 text-red-600 text-xs rounded-[1.5rem] flex items-start animate-in shake duration-300 font-black uppercase tracking-widest border border-red-100">
                                 <AlertCircle size={20} className="mr-3 shrink-0" />
@@ -946,12 +946,15 @@ export default function Login() {
             {/* SIGNUP VIEW */}
             {view === 'SIGNUP' && (
                 <div className="flex-1">
+                    <div className="mb-4 md:mb-0 lg:hidden flex justify-center">
+                        <NexaLogo className="h-8" />
+                    </div>
                     <div>
-                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4">Sign Up</h2>
-                        <p className="text-slate-500 font-medium text-lg">Create your corporate account on the NexaAgri cloud.</p>
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter leading-none mb-3">Sign Up</h2>
+                        <p className="text-slate-500 font-medium text-base md:text-lg">Create your corporate account on the NexaAgri cloud.</p>
                     </div>
 
-                    <form onSubmit={handleInitialSignup} className="space-y-8 mt-12 pb-16">
+                    <form onSubmit={handleInitialSignup} className="space-y-5 md:space-y-8 mt-6 md:mt-10 pb-10">
                         {error && (
                             <div className="p-6 bg-red-50 text-red-600 text-xs rounded-[1.5rem] flex items-start animate-in shake duration-300 font-black uppercase tracking-widest border border-red-100">
                                 <AlertCircle size={20} className="mr-3 shrink-0" />
@@ -959,34 +962,34 @@ export default function Login() {
                             </div>
                         )}
 
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-6">Full Name</label>
-                                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border-none bg-white rounded-[1.5rem] px-8 py-5 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="e.g. Samuel Kiptoo" />
+                        <div className="space-y-4 md:space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-4">Full Name</label>
+                                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border-none bg-white rounded-2xl px-6 py-3 md:py-4 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="e.g. Samuel Kiptoo" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-6">Jurisdiction</label>
-                                    <select value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="w-full border-none bg-white rounded-[1.5rem] px-8 py-5 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none">
+                                <div className="space-y-1.5">
+                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-4">Jurisdiction</label>
+                                    <select value={selectedCountry} onChange={e => setSelectedCountry(e.target.value)} className="w-full border-none bg-white rounded-2xl px-6 py-3 md:py-4 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none">
                                         {AFRICAN_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-6">Email Address</label>
-                                    <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full border-none bg-white rounded-[1.5rem] px-8 py-5 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="office@company.com" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-4">Email Address</label>
+                                    <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full border-none bg-white rounded-2xl px-6 py-3 md:py-4 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="office@company.com" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-6">Password</label>
-                                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border-none bg-white rounded-[1.5rem] px-8 py-5 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="Secure Password" />
+                                <div className="space-y-1.5">
+                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-4">Password</label>
+                                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border-none bg-white rounded-2xl px-6 py-3 md:py-4 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="Secure Password" />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-6">Confirm Password</label>
-                                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full border-none bg-white rounded-[1.5rem] px-8 py-5 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="Re-enter Password" />
+                            <div className="space-y-1.5">
+                                <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-4">Confirm Password</label>
+                                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full border-none bg-white rounded-2xl px-6 py-3 md:py-4 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-green/5 transition-all outline-none" placeholder="Re-enter Password" />
                             </div>
 
                             <div className="px-6 space-y-4 bg-slate-100/50 p-6 rounded-[2rem] border border-slate-200">
@@ -1014,16 +1017,16 @@ export default function Login() {
                                 </div>
                             </div>
 
-                            <div className="p-8 bg-white/40 backdrop-blur-sm rounded-[3rem] border border-white shadow-inner space-y-8">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center px-4"><Building size={16} className="mr-4 text-nexa-blue" /> Business Identity</h4>
-                                <div className="space-y-2">
-                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-6">Company Name</label>
-                                    <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full border-none bg-white rounded-[1.5rem] px-8 py-5 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-blue/5 transition-all outline-none" placeholder="Global Trade Partners Ltd" />
+                            <div className="p-5 md:p-8 bg-white/40 backdrop-blur-sm rounded-2xl md:rounded-[3rem] border border-white shadow-inner space-y-5 md:space-y-8">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] flex items-center px-2"><Building size={16} className="mr-3 text-nexa-blue" /> Business Identity</h4>
+                                <div className="space-y-1.5">
+                                    <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest px-4">Company Name</label>
+                                    <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full border-none bg-white rounded-2xl px-6 py-3 md:py-4 text-sm font-bold shadow-sm focus:ring-8 focus:ring-nexa-blue/5 transition-all outline-none" placeholder="Global Trade Partners Ltd" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-slate-400 mb-1 uppercase tracking-[0.4em] px-8">Vertical Allocation</label>
+                                <div className="space-y-1.5">
+                                    <label className="block text-[10px] font-black text-slate-400 mb-1 uppercase tracking-[0.4em] px-4">Vertical Allocation</label>
                                     <div className="relative">
-                                        <div className="w-full bg-white rounded-[2.5rem] px-10 py-6 text-sm cursor-pointer flex justify-between items-center shadow-xl shadow-slate-200/50 hover:ring-12 hover:ring-nexa-green/5 transition-all" onClick={() => setShowDropdown(true)}>
+                                        <div className="w-full bg-white rounded-2xl md:rounded-[2.5rem] px-6 md:px-10 py-4 md:py-6 text-sm cursor-pointer flex justify-between items-center shadow-xl shadow-slate-200/50 hover:ring-8 hover:ring-nexa-green/5 transition-all" onClick={() => setShowDropdown(true)}>
                                             <span className={`truncate font-black uppercase tracking-widest ${selectedType ? 'text-slate-900' : 'text-slate-400'}`}>
                                                 {selectedType || 'Select Agriculture Type'}
                                             </span>
@@ -1063,7 +1066,7 @@ export default function Login() {
                         <button 
                             type="submit" 
                             disabled={isLoading || strength.label !== 'Strong'}
-                            className="w-full bg-nexa-green text-white py-8 rounded-[3rem] font-black uppercase tracking-[0.4em] hover:bg-emerald-600 transition-all shadow-[0_30px_60px_-15px_rgba(0,223,130,0.4)] hover:scale-[1.02] active:scale-95 text-xs disabled:opacity-50 disabled:grayscale flex items-center justify-center"
+                            className="w-full bg-nexa-green text-white py-5 md:py-7 rounded-2xl md:rounded-[3rem] font-black uppercase tracking-[0.4em] hover:bg-emerald-600 transition-all shadow-[0_20px_40px_-10px_rgba(0,223,130,0.4)] hover:scale-[1.02] active:scale-95 text-xs disabled:opacity-50 disabled:grayscale flex items-center justify-center"
                         >
                             {isLoading ? (
                                 <><RefreshCw className="animate-spin mr-3" size={18} /> Initializing Account...</>
