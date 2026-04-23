@@ -3,14 +3,13 @@ import React, { useState } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { useNavigate } = ReactRouterDOM as any;
 import { useApp } from '../context/AppContext';
-import { NexaLogo } from '../components/NexaLogo';
 import { 
     TrendingUp, Package, AlertCircle, Tractor, FileStack, MessageSquare,
     Activity, DollarSign, Settings, Plus, X, ArrowUp, ArrowDown, CheckSquare, Wallet, ChevronRight, ChevronLeft, Check, Ban, BarChart3, Globe, Zap, ArrowRight, ShieldCheck, Warehouse, Briefcase,
     Sprout, FileText, Users, CloudRain, Wind, Sun, PieChart as PieChartIcon, ListChecks, History, CheckCircle2, Ship, Smartphone, UserPlus, Palette, ArrowUpRight, Clock, Search
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
-import { DashboardWidget, WidgetType, DashboardTheme } from '../types';
+
 
 // --- ENHANCED WIDGET COMPONENTS ---
 
@@ -347,125 +346,30 @@ const TransactionFeedWidget = () => {
     );
 };
 
-const AVAILABLE_WIDGETS: { type: WidgetType, title: string, defaultTitle: string, desc: string }[] = [
-    { type: 'FINANCIAL_STATS', title: 'Financials', defaultTitle: 'Financial Overview', desc: 'Cash flow tracking' },
-    { type: 'PRODUCTION_OVERVIEW', title: 'Stock Distribution', defaultTitle: 'Stock Health', desc: 'Inventory visualization' },
-    { type: 'RECENT_ACTIVITY', title: 'Activity Logs', defaultTitle: 'Recent Activity', desc: 'Sync of all operations' },
-    { type: 'QUICK_ACTIONS', title: 'Toolbox', defaultTitle: 'Quick Actions', desc: 'Workflow navigation' },
-    { type: 'ACTIVATION_REQUESTS', title: 'Pending Audits', defaultTitle: 'Activation Pipeline', desc: 'Account verification audit' },
-    { type: 'LIVESTOCK_SUMMARY', title: 'Livestock', defaultTitle: 'Livestock Register', desc: 'Heads count by species' },
-    { type: 'MISSIONS_TRACKER', title: 'Missions', defaultTitle: 'Active Missions', desc: 'Live export & domestic missions' },
-    { type: 'STAFF_OVERVIEW', title: 'Workforce', defaultTitle: 'Workforce Overview', desc: 'Headcount & role breakdown' },
-    { type: 'TRANSACTION_FEED', title: 'Ledger Feed', defaultTitle: 'Transaction Feed', desc: 'Latest financial movements' },
-];
 
-const THEME_OPTIONS: { id: DashboardTheme, color: string }[] = [
-    { id: 'emerald', color: 'bg-emerald-500' },
-    { id: 'blue', color: 'bg-blue-500' },
-    { id: 'indigo', color: 'bg-indigo-500' },
-    { id: 'rose', color: 'bg-rose-500' },
-    { id: 'amber', color: 'bg-amber-500' },
-    { id: 'slate', color: 'bg-slate-700' },
-];
 
 export default function Dashboard() {
-            // TEST BANNER FOR DEBUGGING
-            if (typeof window !== 'undefined') {
-                window.__NEXA_DASHBOARD_RENDERED = true;
-            }
-
-            // TEMP: Add a visible banner for debugging
-            const debugBanner = (
-                <div style={{ background: '#f43f5e', color: 'white', fontWeight: 'bold', padding: '16px', textAlign: 'center', zIndex: 9999 }}>
-                    DASHBOARD COMPONENT RENDERED (DEBUG BANNER)
-                </div>
-            );
-
-    // ...existing code...
-    // (all state, handlers, and widget logic remain unchanged)
-
     const { user, loading } = useApp();
+
     if (loading) {
-        return <div className="flex items-center justify-center min-h-screen text-xl font-bold text-slate-500">Loading dashboard...</div>;
+        return <div className="flex items-center justify-center h-64 text-xl font-bold text-slate-400">Loading dashboard...</div>;
     }
     if (!user) {
-        return <div className="flex items-center justify-center min-h-screen text-xl font-bold text-rose-500">User not found. Please log in.</div>;
+        return <div className="flex items-center justify-center h-64 text-xl font-bold text-rose-500">User not found. Please log in.</div>;
     }
 
-    // --- MODERNIZED LAYOUT ---
     return (
-        <>
-          {debugBanner}
-          <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
-            {/* Sidebar */}
-            <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 py-8 px-6 space-y-8 shadow-xl z-20">
-                <div className="flex items-center mb-8">
-                    <NexaLogo className="h-10 mr-2" />
-                    <span className="font-black text-xl tracking-tight text-emerald-600">NEXA</span>
-                </div>
-                <nav className="flex-1 space-y-2">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Menu</div>
-                    <ul className="space-y-1">
-                        <li><a href="/app/dashboard" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-700 dark:text-white bg-emerald-50 dark:bg-emerald-900/10"><BarChart3 size={16} className="mr-2 text-emerald-500" /> Dashboard</a></li>
-                        <li><a href="/app/farms" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Sprout size={16} className="mr-2 text-green-500" /> Tasks</a></li>
-                        <li><a href="/app/calendar" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Calendar size={16} className="mr-2 text-blue-500" /> Calendar</a></li>
-                        <li><a href="/app/analytics" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><PieChartIcon size={16} className="mr-2 text-indigo-500" /> Analytics</a></li>
-                        <li><a href="/app/staff" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Users size={16} className="mr-2 text-amber-500" /> Team</a></li>
-                    </ul>
-                    <div className="mt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">General</div>
-                    <ul className="space-y-1">
-                        <li><a href="/app/settings" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Settings size={16} className="mr-2 text-slate-500" /> Settings</a></li>
-                        <li><a href="/app/help" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><AlertCircle size={16} className="mr-2 text-rose-500" /> Help</a></li>
-                        <li><a href="/logout" className="flex items-center px-4 py-2 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><X size={16} className="mr-2 text-slate-400" /> Logout</a></li>
-                    </ul>
-                </nav>
-                <div className="mt-auto">
-                    <div className="bg-gradient-to-tr from-emerald-500 to-blue-500 rounded-2xl p-4 flex flex-col items-center text-white shadow-lg">
-                        <p className="font-bold text-xs mb-2">Download our Mobile App</p>
-                        <a href="#" className="bg-white text-emerald-600 font-black px-4 py-2 rounded-xl text-xs shadow hover:bg-emerald-50 transition">Download</a>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-h-screen">
-                {/* Topbar */}
-                <header className="flex items-center justify-between px-4 md:px-10 py-6 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-sm">
-                    <div className="flex items-center space-x-3">
-                        <button className="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-800"><BarChart3 size={20} /></button>
-                        <form className="relative">
-                            <input type="text" placeholder="Search..." className="pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none" />
-                            <Search size={16} className="absolute left-3 top-2.5 text-slate-400" />
-                        </form>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl">
-                            <img src={user.avatarUrl || '/avatar.png'} alt="avatar" className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500" />
-                            <div className="min-w-0">
-                                <p className="font-black text-xs text-slate-900 dark:text-white truncate">{user.name || 'User'}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Dashboard Widgets Grid */}
-                <main className="flex-1 p-4 md:p-10 space-y-8 bg-slate-50 dark:bg-slate-900">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        <FinancialStatsWidget />
-                        <StockDistributionWidget />
-                        <QuickActionsWidget />
-                        <RecentActivityWidget />
-                        <LivestockSummaryWidget />
-                        <MissionsTrackerWidget />
-                        <StaffOverviewWidget />
-                        <TransactionFeedWidget />
-                        <ActivationRequestsWidget />
-                    </div>
-                </main>
-            </div>
-          </div>
-        </>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <FinancialStatsWidget />
+            <StockDistributionWidget />
+            <QuickActionsWidget />
+            <RecentActivityWidget />
+            <LivestockSummaryWidget />
+            <MissionsTrackerWidget />
+            <StaffOverviewWidget />
+            <TransactionFeedWidget />
+            <ActivationRequestsWidget />
+        </div>
     );
 }
 

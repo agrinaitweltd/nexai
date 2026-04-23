@@ -14,7 +14,7 @@ const TABS: TabItem[] = [
 
 const PLANS = [
   {
-    name: 'Starter', price: '$299', period: '/month', tag: null,
+    name: 'Starter', price: '$4.99', period: '/mo', tag: null, billingNote: 'or $7.99/mo billed monthly',
     desc: 'For single-farm operations getting started with digital management.',
     color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200',
     features: [
@@ -106,10 +106,13 @@ export default function PricingPage() {
                   )}
                   <div className="mb-6">
                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${plan.bg} ${plan.color} mb-3 inline-block`}>{plan.name}</span>
-                    <div className="flex items-end gap-1 mb-2">
+                    <div className="flex items-end gap-1 mb-1">
                       <span className="text-4xl font-black text-slate-900 tracking-tighter">{plan.price}</span>
                       <span className="text-slate-400 text-sm font-medium pb-1">{plan.period}</span>
                     </div>
+                    {(plan as any).billingNote && (
+                      <p className="text-[11px] text-slate-400 font-medium mb-2">{(plan as any).billingNote}</p>
+                    )}
                     <p className="text-slate-500 text-sm font-medium leading-relaxed">{plan.desc}</p>
                   </div>
                   <ul className="space-y-3 flex-1 mb-8">
