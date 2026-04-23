@@ -497,38 +497,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Regular signup: store in pending_registrations (NO auth user created yet)
     // Admin must approve before an auth account is created
     const preferredCurrency = CURRENCY_MAP[data.location] || 'USD';
-    const pendingRow = {
-      id: 'pr-' + crypto.randomUUID().slice(0, 9),
-      email: data.email,
-      full_name: data.name,
-      phone: data.phone || null,
-      country: data.location || null,
-      sector: data.sector || 'GENERAL',
-      business_category: data.businessCategory || null,
-      business_type: data.businessType || null,
-      company_name: data.companyName || null,
-      preferred_currency: preferredCurrency,
-      tmp_password: data.password,
-      transaction_id: null,
-      payment_phone: null,
-      payment_method: null,
-      status: 'PENDING',
-    };
 
-    const { error: insertErr } = await supabase.from('pending_registrations').insert({
-      ...pendingRow,
+    // Use RPC function to bypass PostgREST schema cache issues
+    const { data: rpcResult, error: insertErr } = await supabase.rpc('create_pending_registration', {
+      p_email: data.email,
+      p_full_name: data.name,
+      p_phone: data.phone || null,
+      p_country: data.location || null,
+      p_sector: data.sector || 'GENERAL',
+      p_business_category: data.businessCategory || null,
+      p_business_type: data.businessType || null,
+      p_company_name: data.companyName || null,
+      p_preferred_currency: preferredCurrency,
+      p_tmp_password: data.password,
+      p_transaction_id: null,
+      p_payment_phone: null,
+      p_payment_method: null,
     });
 
-    if (insertErr) {
-      if (insertErr.message?.toLowerCase().includes('unique') || insertErr.code === '23505') {
+    if (insertErr || !rpcResult?.success) {
+      const errorMsg = rpcResult?.error || insertErr?.message || 'Registration failed';
+      if (errorMsg.toLowerCase().includes('email already exists')) {
         return { success: false, message: 'An account with this email is already pending review.' };
       }
-      return { success: false, message: insertErr.message };
+      return { success: false, message: errorMsg };
     }
 
     // Build a minimal local user so Login.tsx can proceed to the PAYMENT step
     const localUser: User = profileToUser({
-      id: pendingRow.id, // temporary ID
+      id: rpcResult.id, // temporary ID from RPC result
       full_name: data.name,
       email: data.email,
       role: 'ADMIN',
