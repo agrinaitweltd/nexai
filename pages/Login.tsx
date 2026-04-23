@@ -145,161 +145,217 @@ function SignupSuccessScreen({ name, email, onContinue, onSignOut }: SignupSucce
   const [onboardingStep, setOnboardingStep] = React.useState<'welcome' | 'intro'>('welcome');
   const [visible, setVisible] = React.useState(false);
   const [checkDone, setCheckDone] = React.useState(false);
+  const [orbs, setOrbs] = React.useState(false);
 
   React.useEffect(() => {
     const t1 = setTimeout(() => setVisible(true), 80);
-    const t2 = setTimeout(() => setCheckDone(true), 700);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t2 = setTimeout(() => setCheckDone(true), 600);
+    const t3 = setTimeout(() => setOrbs(true), 200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
   const firstName = name.split(' ')[0] || name;
 
+  /* ── INTRO step ─────────────────────────────────────────────── */
   if (onboardingStep === 'intro') {
     return (
-      <div className="fixed inset-0 z-[500] bg-[#0a0a0a] flex flex-col overflow-hidden">
-        {/* Warm glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-amber-900/40 rounded-full blur-[120px]" />
+      <div className="fixed inset-0 z-[500] bg-[#0d0020] flex flex-col overflow-hidden">
+        {/* Background orbs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-violet-900/30 rounded-full blur-[140px]" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-900/20 rounded-full blur-[100px]" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-fuchsia-900/20 rounded-full blur-[100px]" />
+          {/* Grid overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px'}} />
         </div>
 
         {/* Top bar */}
-        <div className="relative z-10 flex items-center justify-between px-6 md:px-10 pt-8">
-          <button
-            onClick={onSignOut}
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="relative z-10 flex items-center justify-between px-6 md:px-12 pt-8 shrink-0">
+          <button onClick={onSignOut} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors text-[10px] font-black uppercase tracking-widest">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
             </svg>
             Sign out
           </button>
-          {/* Dot progress */}
-          <div className="flex items-center gap-2">
+          {/* Step indicators */}
+          <div className="flex items-center gap-1.5">
             {[0,1,2,3,4].map(i => (
-              <div key={i} className={`rounded-full transition-all duration-300 ${i === 0 ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/20'}`} />
+              <div key={i} className={`rounded-full transition-all duration-500 ${i === 0 ? 'w-8 h-1.5 bg-cyan-400' : 'w-1.5 h-1.5 bg-white/15'}`} />
             ))}
           </div>
         </div>
 
-        {/* Center content */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center"
-          style={{ animation: 'successFadeIn 0.6s ease-out both' }}>
-          <p className="text-white/30 text-sm font-black uppercase tracking-[0.3em] mb-6">1 of 5</p>
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none mb-5">
-            Let&apos;s set up your Treasury.
+        {/* Center */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center" style={{animation: 'nexaFadeUp 0.7s ease-out both'}}>
+          {/* Icon */}
+          <div className="mb-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-white/10 flex items-center justify-center shadow-2xl shadow-violet-900/50 backdrop-blur-sm">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          {/* Step label */}
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-violet-400 mb-5">Step 1 of 5</p>
+          {/* Headline */}
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.95] mb-5 max-w-lg">
+            Let&apos;s build your<br/>
+            <span className="bg-gradient-to-r from-violet-300 via-cyan-300 to-violet-300 bg-clip-text text-transparent">
+              Corporate Hub.
+            </span>
           </h1>
           <p className="text-white/40 text-base md:text-lg font-medium max-w-md mb-12 leading-relaxed">
-            We&apos;ll walk you through a few quick steps to help get you set up.
+            A few quick steps to configure your farm profile, workforce, and financial infrastructure.
           </p>
-          <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs">
             <button
               onClick={onContinue}
-              className="flex items-center gap-3 bg-white text-slate-900 px-10 py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
+              className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-violet-900/60 hover:scale-[1.03] active:scale-95 transition-all"
             >
-              Let&apos;s begin
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              Let&apos;s Begin
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
-            <button
-              onClick={onContinue}
-              className="text-white/40 hover:text-white/70 transition-colors text-sm font-bold uppercase tracking-widest"
-            >
-              Skip onboarding
+            <button onClick={onContinue} className="text-white/30 hover:text-white/60 transition-colors text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
+              Skip setup
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 flex items-center justify-between px-6 md:px-10 pb-8 text-white/20 text-[11px] font-medium">
-          <span>© 2026 Treasury Technologies Inc.</span>
+        <div className="relative z-10 flex items-center justify-between px-6 md:px-12 pb-8 text-white/20 text-[10px] font-medium shrink-0">
+          <span>© 2026 Nexa Intelligence Ltd</span>
           <div className="flex items-center gap-4">
             <button className="hover:text-white/40 transition-colors">Terms</button>
             <button className="hover:text-white/40 transition-colors">Privacy</button>
           </div>
         </div>
 
-        <style>{`@keyframes successFadeIn { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: translateY(0); } }`}</style>
+        <style>{`@keyframes nexaFadeUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }`}</style>
       </div>
     );
   }
 
+  /* ── WELCOME step ───────────────────────────────────────────── */
   return (
-    <div className="fixed inset-0 z-[500] bg-[#0a0a0a] flex flex-col overflow-hidden">
-      {/* Animated warm ambient glow */}
+    <div className="fixed inset-0 z-[500] bg-[#0d0020] flex flex-col overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-amber-900/50 rounded-full blur-[130px] transition-all duration-1000 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
-        <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-orange-800/40 rounded-full blur-[80px] transition-all duration-1200 delay-300 ${visible ? 'opacity-100' : 'opacity-0'}`} />
+        {/* Main glow */}
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-violet-800/25 rounded-full blur-[160px] transition-all duration-1500 ${orbs ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+        <div className={`absolute bottom-0 right-0 w-[500px] h-[400px] bg-indigo-900/20 rounded-full blur-[120px] transition-all duration-1000 delay-300 ${orbs ? 'opacity-100' : 'opacity-0'}`} />
+        <div className={`absolute top-0 left-0 w-80 h-80 bg-cyan-900/15 rounded-full blur-[100px] transition-all duration-1000 delay-500 ${orbs ? 'opacity-100' : 'opacity-0'}`} />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.025]" style={{backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '80px 80px'}} />
+        {/* Radial vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,#0d0020_100%)]" />
       </div>
 
       {/* Top bar */}
-      <div className={`relative z-10 flex items-center justify-start px-6 md:px-10 pt-8 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-        <button
-          onClick={onSignOut}
-          className="flex items-center gap-2 text-white/50 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform">
+      <div className={`relative z-10 flex items-center justify-start px-6 md:px-12 pt-8 shrink-0 transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <button onClick={onSignOut} className="flex items-center gap-2 text-white/30 hover:text-white/60 transition-colors text-[10px] font-black uppercase tracking-widest group">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          Sign out
-          <span className="text-white/25 font-normal normal-case tracking-normal">({email})</span>
+          <span>Sign out</span>
+          <span className="text-white/20 font-normal normal-case tracking-normal">({email})</span>
         </button>
       </div>
 
       {/* Center */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
-        {/* Animated checkmark circle */}
-        <div className={`mb-10 transition-all duration-700 delay-200 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
-          <div className="relative w-20 h-20">
-            <svg viewBox="0 0 80 80" className="w-full h-full" fill="none">
+        {/* Animated ring + checkmark */}
+        <div className={`mb-10 transition-all duration-700 delay-150 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+          <div className="relative w-24 h-24">
+            {/* Outer glow ring */}
+            <div className={`absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/10 blur-xl transition-all duration-1000 delay-300 ${checkDone ? 'opacity-100 scale-110' : 'opacity-0 scale-90'}`} />
+            <svg viewBox="0 0 96 96" className="w-full h-full relative" fill="none">
+              {/* Track */}
+              <circle cx="48" cy="48" r="43" stroke="white" strokeWidth="1.5" strokeOpacity="0.06" />
+              {/* Animated arc */}
               <circle
-                cx="40" cy="40" r="36"
-                stroke="white"
-                strokeWidth="2"
-                strokeOpacity="0.1"
-              />
-              <circle
-                cx="40" cy="40" r="36"
-                stroke="url(#checkGrad)"
-                strokeWidth="2"
+                cx="48" cy="48" r="43"
+                stroke="url(#nexaRingGrad)"
+                strokeWidth="1.5"
                 strokeLinecap="round"
-                strokeDasharray="226"
-                strokeDashoffset={checkDone ? 0 : 226}
-                style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.34,1.2,0.64,1)', transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                strokeDasharray="270"
+                strokeDashoffset={checkDone ? 0 : 270}
+                style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1)', transform: 'rotate(-90deg)', transformOrigin: 'center' }}
               />
               <defs>
-                <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#10b981" />
-                  <stop offset="100%" stopColor="#34d399" />
+                <linearGradient id="nexaRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#a78bfa" />
+                  <stop offset="100%" stopColor="#22d3ee" />
                 </linearGradient>
               </defs>
             </svg>
-            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 delay-500 ${checkDone ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
+            {/* Checkmark */}
+            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-600 delay-700 ${checkDone ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" stroke="url(#chkGrad)"/>
+                <defs>
+                  <linearGradient id="chkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#a78bfa"/>
+                    <stop offset="100%" stopColor="#22d3ee"/>
+                  </linearGradient>
+                </defs>
               </svg>
             </div>
           </div>
         </div>
 
+        {/* Account confirmed badge */}
+        <div className={`mb-6 transition-all duration-700 delay-200 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20 text-[10px] font-black uppercase tracking-[0.3em] text-violet-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+            Account Confirmed
+          </span>
+        </div>
+
         {/* Headline */}
         <div className={`transition-all duration-700 delay-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none mb-4">
-            Welcome, {firstName}.
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.92] mb-3">
+            Welcome,<br/>
+            <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">
+              {firstName}.
+            </span>
           </h1>
-          <p className="text-white/35 text-lg md:text-xl font-medium mb-14">
+          <p className="text-white/30 text-base md:text-lg font-medium mb-12 tracking-wide">
             Your Treasury awaits.
           </p>
+        </div>
+
+        {/* Info row */}
+        <div className={`w-full max-w-sm mb-8 transition-all duration-700 delay-400 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className="bg-white/[0.04] border border-white/8 rounded-2xl px-5 py-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-violet-500/20 border border-violet-400/20 flex items-center justify-center shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30 mb-0.5">Registered as</p>
+              <p className="text-xs font-bold text-white/70 truncate">{email}</p>
+            </div>
+          </div>
         </div>
 
         {/* CTA */}
         <div className={`w-full max-w-sm transition-all duration-700 delay-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <button
             onClick={() => setOnboardingStep('intro')}
-            className="w-full bg-white/10 hover:bg-white/15 border border-white/10 hover:border-white/20 backdrop-blur-sm text-white px-10 py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all"
+            className="w-full relative overflow-hidden bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.25em] shadow-2xl shadow-violet-900/60 hover:scale-[1.03] active:scale-95 transition-all"
           >
-            Get Started
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              Access Your Hub
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+            {/* Shimmer */}
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" style={{animationDelay:'1s'}} />
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
+      `}</style>
     </div>
   );
 }
@@ -575,7 +631,7 @@ export default function Login() {
   })).filter(cat => cat.types.length > 0 || cat.category.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="min-h-screen flex bg-white font-sans overflow-hidden">
+    <div className="h-[100dvh] flex bg-white font-sans overflow-hidden">
 
       {/* Mobile unlock prompt (PIN / Face ID) */}
       {showMobileUnlock && savedMobileAuth && (
@@ -661,7 +717,7 @@ export default function Login() {
       </div>
 
       {/* Form Side - Right */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 md:p-16 overflow-y-auto bg-slate-50/50 relative">
+      <div className="w-full lg:w-1/2 flex flex-col h-full items-center justify-center p-5 md:p-16 overflow-y-auto bg-slate-50/50 relative">
         {/* Back to Homepage Button */}
         <div className="absolute top-8 left-8 z-20">
             <Link 
@@ -673,20 +729,20 @@ export default function Login() {
             </Link>
         </div>
 
-        <div className="w-full max-w-lg space-y-10 animate-in fade-in zoom-in duration-500 py-20 flex flex-col min-h-full">
+        <div className="w-full max-w-lg space-y-6 md:space-y-10 animate-in fade-in zoom-in duration-500 py-3 md:py-20 flex flex-col">
             
             {/* LOGIN VIEW */}
             {view === 'LOGIN' && (
                 <div className="flex-1">
-                    <div className="mb-12 lg:hidden flex justify-center">
-                        <NexaLogo className="h-12" />
+                    <div className="mb-4 md:mb-12 lg:hidden flex justify-center">
+                        <NexaLogo className="h-8 md:h-12" />
                     </div>
                     <div>
                         <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-4">{isAdminLogin ? 'Sign In' : 'Sign In'}</h2>
                         <p className="text-slate-500 font-medium text-lg">{isAdminLogin ? 'Authorized Executive Credentials Required.' : 'Secure verification for enterprise hub entry.'}</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-6 mt-12">
+                    <form onSubmit={handleLogin} className="space-y-4 md:space-y-6 mt-5 md:mt-12">
                         {error && (
                             <div className="p-6 bg-red-50 text-red-600 text-xs rounded-[1.5rem] flex items-start animate-in shake duration-300 font-black uppercase tracking-widest border border-red-100">
                                 <AlertCircle size={20} className="mr-3 shrink-0" />
@@ -703,7 +759,7 @@ export default function Login() {
                                         type="email" 
                                         value={email} 
                                         onChange={e => setEmail(e.target.value)} 
-                                        className="w-full border-none rounded-[2.5rem] pl-18 pr-8 py-5 text-slate-900 placeholder-slate-400 focus:ring-8 focus:ring-nexa-green/5 outline-none transition-all bg-white shadow-xl shadow-slate-200/50 font-bold" 
+                                        className="w-full border-none rounded-[2.5rem] pl-18 pr-8 py-3 md:py-5 text-slate-900 placeholder-slate-400 focus:ring-8 focus:ring-nexa-green/5 outline-none transition-all bg-white shadow-xl shadow-slate-200/50 font-bold" 
                                         placeholder={isAdminLogin ? "admin@nexaagri.com" : "admin@company.com"} 
                                     />
                                 </div>
@@ -719,7 +775,7 @@ export default function Login() {
                                         type={showPassword ? 'text' : 'password'} 
                                         value={password} 
                                         onChange={e => setPassword(e.target.value)} 
-                                        className="w-full border-none rounded-[2.5rem] pl-18 pr-18 py-5 text-slate-900 placeholder-slate-400 focus:ring-8 focus:ring-nexa-green/5 outline-none transition-all bg-white shadow-xl shadow-slate-200/50 font-bold" 
+                                        className="w-full border-none rounded-[2.5rem] pl-18 pr-18 py-3 md:py-5 text-slate-900 placeholder-slate-400 focus:ring-8 focus:ring-nexa-green/5 outline-none transition-all bg-white shadow-xl shadow-slate-200/50 font-bold" 
                                         placeholder="••••••••" 
                                     />
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -732,7 +788,7 @@ export default function Login() {
                         <button 
                             type="submit" 
                             disabled={isLoading}
-                            className="w-full bg-nexa-dark text-white py-6 rounded-[2.5rem] font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center group active:scale-95 text-xs disabled:opacity-50"
+                            className="w-full bg-nexa-dark text-white py-4 md:py-6 rounded-[2.5rem] font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center group active:scale-95 text-xs disabled:opacity-50"
                         >
                             {isLoading ? 'Processing...' : isAdminLogin ? 'Sign In' : 'Sign In'} 
                             {!isLoading && <ArrowRight size={20} className="ml-4 group-hover:translate-x-2 transition-transform" />}

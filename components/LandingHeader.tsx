@@ -315,92 +315,106 @@ export default function LandingHeader() {
         </div>
       )}
 
-      {/* Mobile menu */}
+      {/* Mobile full-screen menu */}
       {isMenuOpen && (
-        <div className="lg:hidden bg-[#120030] border-b border-white/10 max-h-[calc(100dvh-86px)] overflow-y-auto">
-          {/* CTA buttons at the top */}
-          <div className="px-4 pt-4 pb-3 grid grid-cols-2 gap-2 border-b border-white/10">
-            <Link
-              to="/login"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center justify-center rounded-2xl py-3.5 text-[11px] font-black uppercase tracking-[0.16em] text-white border border-white/25 active:scale-95 transition-all"
-            >
-              Sign In
+        <div className="lg:hidden fixed inset-0 bg-[#120030] z-[101] flex flex-col overflow-hidden">
+          {/* Menu top bar — logo + close */}
+          <div className="flex items-center justify-between px-5 h-[86px] border-b border-white/10 shrink-0">
+            <Link to="/" className="flex items-center shrink-0" onClick={() => setIsMenuOpen(false)}>
+              <NexaLogo className="h-8" light />
             </Link>
-            <Link
-              to="/login"
+            <button
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center justify-center rounded-2xl py-3.5 text-[11px] font-black uppercase tracking-[0.16em] bg-cyan-300 text-[#120030] hover:bg-cyan-200 active:scale-95 transition-all"
+              className="w-10 h-10 flex items-center justify-center text-white bg-white/10 rounded-xl border border-white/20 active:scale-95 transition-all"
+              aria-label="Close menu"
             >
-              Get Started
-            </Link>
+              <X size={18} />
+            </button>
           </div>
 
-          {/* Nav items */}
-          <div className="px-4 py-3 space-y-0.5">
-            {NAV_LINKS.map((link) => (
-              <div key={link.label}>
-                <div className={`flex items-center rounded-2xl transition-colors ${
-                  isActive(link.to) ? 'bg-white/8' : 'hover:bg-white/5'
-                }`}>
-                  {/* Label navigates to the page */}
-                  <Link
-                    to={link.to}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex-1 px-4 py-4 text-[14px] font-semibold transition-colors ${
-                      isActive(link.to) ? 'text-white' : 'text-white/75'
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                  {/* Chevron to expand sub-links */}
-                  {link.megaMenu ? (
-                    <button
-                      type="button"
-                      onClick={() => setOpenMobileKey(openMobileKey === link.label ? null : link.label)}
-                      className={`px-4 py-4 transition-colors ${openMobileKey === link.label ? 'text-cyan-300' : 'text-white/30 hover:text-white/70'}`}
-                      aria-label={`Expand ${link.label}`}
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {/* CTA buttons */}
+            <div className="px-5 pt-5 pb-4 grid grid-cols-2 gap-3 border-b border-white/10">
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center justify-center rounded-2xl py-4 text-[11px] font-black uppercase tracking-[0.16em] text-white border border-white/25 active:scale-95 transition-all"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center justify-center rounded-2xl py-4 text-[11px] font-black uppercase tracking-[0.16em] bg-cyan-300 text-[#120030] hover:bg-cyan-200 active:scale-95 transition-all"
+              >
+                Get Started
+              </Link>
+            </div>
+
+            {/* Nav items */}
+            <div className="px-4 py-4 space-y-0.5">
+              {NAV_LINKS.map((link) => (
+                <div key={link.label}>
+                  <div className={`flex items-center rounded-2xl transition-colors ${
+                    isActive(link.to) ? 'bg-white/8' : 'hover:bg-white/5'
+                  }`}>
+                    <Link
+                      to={link.to}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex-1 px-4 py-4 text-[15px] font-semibold transition-colors ${
+                        isActive(link.to) ? 'text-white' : 'text-white/75'
+                      }`}
                     >
-                      <ChevronDown
-                        size={16}
-                        className={`transition-transform duration-200 ${openMobileKey === link.label ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-                  ) : (
-                    <span className="px-4 py-4 text-white/20">
-                      <ArrowRight size={14} />
-                    </span>
+                      {link.label}
+                    </Link>
+                    {link.megaMenu ? (
+                      <button
+                        type="button"
+                        onClick={() => setOpenMobileKey(openMobileKey === link.label ? null : link.label)}
+                        className={`px-4 py-4 transition-colors ${openMobileKey === link.label ? 'text-cyan-300' : 'text-white/30 hover:text-white/70'}`}
+                        aria-label={`Expand ${link.label}`}
+                      >
+                        <ChevronDown
+                          size={16}
+                          className={`transition-transform duration-200 ${openMobileKey === link.label ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                    ) : (
+                      <span className="px-4 py-4 text-white/20">
+                        <ArrowRight size={14} />
+                      </span>
+                    )}
+                  </div>
+
+                  {link.megaMenu && openMobileKey === link.label && (
+                    <div className="mt-1 mb-2 rounded-2xl bg-white/[0.04] border border-white/8 overflow-hidden">
+                      {link.megaMenu.columns.map((col, ci) => (
+                        <div key={col.heading} className={`px-4 pt-3 pb-2 ${ci < link.megaMenu!.columns.length - 1 ? 'border-b border-white/8' : ''}`}>
+                          <p className="text-[9px] font-black uppercase tracking-[0.45em] text-violet-400 mb-2.5">
+                            {col.heading}
+                          </p>
+                          <div className="grid grid-cols-2 gap-x-3">
+                            {col.links.map((sub) => (
+                              <Link
+                                key={sub.label}
+                                to={sub.to}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="py-2.5 text-[13px] font-medium text-white/60 hover:text-cyan-300 active:text-cyan-200 transition-colors leading-tight"
+                              >
+                                {sub.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {/* Sub-link grid */}
-                {link.megaMenu && openMobileKey === link.label && (
-                  <div className="mt-1 mb-2 rounded-2xl bg-white/[0.04] border border-white/8 overflow-hidden">
-                    {link.megaMenu.columns.map((col, ci) => (
-                      <div key={col.heading} className={`px-4 pt-3 pb-2 ${ci < link.megaMenu!.columns.length - 1 ? 'border-b border-white/8' : ''}`}>
-                        <p className="text-[9px] font-black uppercase tracking-[0.45em] text-violet-400 mb-2.5">
-                          {col.heading}
-                        </p>
-                        <div className="grid grid-cols-2 gap-x-3">
-                          {col.links.map((sub) => (
-                            <Link
-                              key={sub.label}
-                              to={sub.to}
-                              onClick={() => setIsMenuOpen(false)}
-                              className="py-2.5 text-[13px] font-medium text-white/60 hover:text-cyan-300 active:text-cyan-200 transition-colors leading-tight"
-                            >
-                              {sub.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="h-10" />
           </div>
-          <div className="h-4" />
         </div>
       )}
     </header>

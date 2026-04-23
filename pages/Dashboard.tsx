@@ -349,7 +349,7 @@ const TransactionFeedWidget = () => {
 
 
 export default function Dashboard() {
-    const { user, loading } = useApp();
+    const { user, loading, balance, transactions, formatCurrency } = useApp();
 
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-xl font-bold text-slate-400">Loading dashboard...</div>;
@@ -358,17 +358,56 @@ export default function Dashboard() {
         return <div className="flex items-center justify-center h-64 text-xl font-bold text-rose-500">User not found. Please log in.</div>;
     }
 
+    const revenue = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amount, 0);
+    const expenses = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0);
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <FinancialStatsWidget />
-            <StockDistributionWidget />
-            <QuickActionsWidget />
-            <RecentActivityWidget />
-            <LivestockSummaryWidget />
-            <MissionsTrackerWidget />
-            <StaffOverviewWidget />
-            <TransactionFeedWidget />
-            <ActivationRequestsWidget />
+        <div>
+            {/* Mobile-only hero stats card */}
+            <div className="md:hidden mb-5">
+                <div className="bg-gradient-to-br from-[#170038] to-[#360070] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/20 rounded-full blur-2xl -translate-y-8 translate-x-8" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl translate-y-4 -translate-x-4" />
+                    <div className="relative z-10">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40 mb-0.5">{greeting}</p>
+                                <p className="text-lg font-black truncate max-w-[180px]">{user.name?.split(' ')[0] || 'Welcome'}</p>
+                                <p className="text-[10px] opacity-40 font-medium truncate max-w-[180px]">{user.companyName || user.email}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40 mb-0.5">Balance</p>
+                                <p className="text-2xl font-black tracking-tighter">{formatCurrency(balance)}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2.5">
+                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                                <p className="text-[8px] font-black uppercase tracking-widest opacity-50 mb-1 flex items-center gap-1"><ArrowUp size={9}/> Inflow</p>
+                                <p className="text-sm font-black tracking-tight text-emerald-300">{formatCurrency(revenue)}</p>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                                <p className="text-[8px] font-black uppercase tracking-widest opacity-50 mb-1 flex items-center gap-1"><ArrowDown size={9}/> Outflow</p>
+                                <p className="text-sm font-black tracking-tight text-rose-300">{formatCurrency(expenses)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Widgets grid */}
+            <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
+                <div className="col-span-2 md:col-span-1 hidden md:block"><FinancialStatsWidget /></div>
+                <div className="col-span-1"><StockDistributionWidget /></div>
+                <div className="col-span-1"><QuickActionsWidget /></div>
+                <div className="col-span-2 md:col-span-1"><RecentActivityWidget /></div>
+                <div className="col-span-1"><LivestockSummaryWidget /></div>
+                <div className="col-span-1"><MissionsTrackerWidget /></div>
+                <div className="col-span-1"><StaffOverviewWidget /></div>
+                <div className="col-span-1"><TransactionFeedWidget /></div>
+                <div className="col-span-2 md:col-span-1"><ActivationRequestsWidget /></div>
+            </div>
         </div>
     );
 }

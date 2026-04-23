@@ -508,7 +508,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       business_type: data.businessType || null,
       company_name: data.companyName || null,
       preferred_currency: preferredCurrency,
-      // Store password temporarily (will be cleared once auth user is created)
+      _tmp_password: data.password,
       transaction_id: null,
       payment_phone: null,
       payment_method: null,
