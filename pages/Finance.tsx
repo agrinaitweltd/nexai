@@ -264,6 +264,7 @@ export default function Finance() {
   // Account modal controlled state
   const [accountFormProvider, setAccountFormProvider] = useState('');
   const [accountFormCurrency, setAccountFormCurrency] = useState(user?.preferredCurrency || 'UGX');
+  const [accountFormBalance, setAccountFormBalance] = useState('');
   const [showProviderDropdown, setShowProviderDropdown] = useState(false);
 
   const [transferFromId, setTransferFromId] = useState('');
@@ -274,6 +275,49 @@ export default function Finance() {
   const [transferError, setTransferError] = useState('');
 
   const COMMON_CURRENCIES = ['UGX','USD','EUR','GBP','KES','TZS','RWF','AED','AUD','CAD','INR','ZAR','NGN','GHS','ETB'];
+
+  const FX_TO_USD: Record<string, number> = {
+    USD: 1,
+    EUR: 1.08,
+    GBP: 1.27,
+    UGX: 0.00027,
+    KES: 0.0077,
+    TZS: 0.00039,
+    RWF: 0.00074,
+    NGN: 0.00062,
+    GHS: 0.078,
+    ZAR: 0.054,
+    ETB: 0.017,
+    AED: 0.272,
+    AUD: 0.66,
+    CAD: 0.74,
+    INR: 0.012,
+  };
+
+  const convertAmount = (amount: number, fromCurrency: string, toCurrency: string): number => {
+    const from = fromCurrency?.toUpperCase();
+    const to = toCurrency?.toUpperCase();
+    if (!from || !to || from === to) return amount;
+
+    const fromRate = FX_TO_USD[from];
+    const toRate = FX_TO_USD[to];
+    if (!fromRate || !toRate) return amount;
+
+    const usdAmount = amount * fromRate;
+    return usdAmount / toRate;
+  };
+
+  const handleAccountCurrencyChange = (nextCurrency: string) => {
+    if (editingAccount && accountFormBalance !== '') {
+      const numericBalance = Number(accountFormBalance);
+      if (!Number.isNaN(numericBalance)) {
+        const converted = convertAmount(numericBalance, accountFormCurrency, nextCurrency);
+        setAccountFormBalance((Math.round(converted * 100) / 100).toString());
+      }
+    }
+    setAccountFormCurrency(nextCurrency);
+  };
+
   const userCountry = user?.location || '';
   const countryProviders = COUNTRY_PROVIDERS[userCountry] || [];
   const allProviderNames = countryProviders.map(p => p.name);
@@ -285,7 +329,7 @@ export default function Finance() {
     const fd = new FormData(e.currentTarget);
     const provider = accountFormProvider || (fd.get('provider') as string);
     const name = fd.get('name') as string || provider;
-    const bal = parseFloat(fd.get('balance') as string) || 0;
+    const bal = parseFloat(accountFormBalance || (fd.get('balance') as string)) || 0;
     const currency = accountFormCurrency || fd.get('currency') as string || user?.preferredCurrency || 'UGX';
     const providerMeta = countryProviders.find(p => p.name === provider);
     const rawType = providerMeta?.type || (fd.get('type') as string) || 'bank';
@@ -309,6 +353,7 @@ export default function Finance() {
     setEditingAccount(null);
     setAccountFormProvider('');
     setAccountFormCurrency(user?.preferredCurrency || 'UGX');
+    setAccountFormBalance('');
   };
 
   const handleTransfer = () => {
@@ -501,7 +546,7 @@ export default function Finance() {
                 <ArrowRight size={14} /> <span>Transfer</span>
               </button>
             )}
-            <button onClick={() => { setEditingAccount(null); setAccountFormProvider(''); setAccountFormCurrency(user?.preferredCurrency || 'UGX'); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
+            <button onClick={() => { setEditingAccount(null); setAccountFormProvider(''); setAccountFormCurrency(user?.preferredCurrency || 'UGX'); setAccountFormBalance(''); setShowAccountModal(true); }} className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">
               <Plus size={14} /> <span>Add Account</span>
             </button>
           </div>
@@ -517,7 +562,7 @@ export default function Finance() {
             {financeAccounts.map(acct => (
               <div key={acct.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm group relative overflow-hidden hover:shadow-md transition-shadow">
                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                  <button onClick={() => { setEditingAccount(acct); setAccountFormProvider(acct.provider); setAccountFormCurrency(acct.currency || user?.preferredCurrency || 'UGX'); setShowAccountModal(true); }} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
+                  <button onClick={() => { setEditingAccount(acct); setAccountFormProvider(acct.provider); setAccountFormCurrency(acct.currency || user?.preferredCurrency || 'UGX'); setAccountFormBalance(String(acct.balance ?? '')); setShowAccountModal(true); }} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
                   <button onClick={() => deleteFinanceAccount(acct.id)} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
                 </div>
                 <div className="flex items-center space-x-3 mb-4">
@@ -889,7 +934,7 @@ export default function Finance() {
           <form onSubmit={handleAccountSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-[3.5rem] w-full max-w-lg shadow-2xl border border-white/10">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{editingAccount ? 'Edit Account' : 'Add Account'}</h3>
-              <button type="button" onClick={() => { setShowAccountModal(false); setEditingAccount(null); }} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={20}/></button>
+              <button type="button" onClick={() => { setShowAccountModal(false); setEditingAccount(null); setAccountFormBalance(''); setAccountFormProvider(''); setAccountFormCurrency(user?.preferredCurrency || 'UGX'); }} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all shadow-sm"><X size={20}/></button>
             </div>
             <div className="space-y-6">
               {showCustomProvider ? (
@@ -967,7 +1012,7 @@ export default function Finance() {
                   <select
                     name="currency"
                     value={accountFormCurrency}
-                    onChange={e => setAccountFormCurrency(e.target.value)}
+                    onChange={e => handleAccountCurrencyChange(e.target.value)}
                     className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm"
                   >
                     {COMMON_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -976,11 +1021,11 @@ export default function Finance() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Current Balance</label>
-                <input name="balance" type="number" step="0.01" defaultValue={editingAccount?.balance || ''} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-5 rounded-[1.5rem] font-black text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" placeholder="0.00" />
+                <input name="balance" type="number" step="0.01" value={accountFormBalance} onChange={e => setAccountFormBalance(e.target.value)} required className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-5 rounded-[1.5rem] font-black text-3xl outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner" placeholder="0.00" />
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-10">
-              <button type="button" onClick={() => { setShowAccountModal(false); setEditingAccount(null); }} className="px-8 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancel</button>
+              <button type="button" onClick={() => { setShowAccountModal(false); setEditingAccount(null); setAccountFormBalance(''); setAccountFormProvider(''); setAccountFormCurrency(user?.preferredCurrency || 'UGX'); }} className="px-8 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancel</button>
               <button type="submit" className="px-10 py-4 bg-slate-900 dark:bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl text-xs active:scale-95 transition-all">{editingAccount ? 'Update' : 'Add Account'}</button>
             </div>
           </form>
