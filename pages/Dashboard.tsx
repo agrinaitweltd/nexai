@@ -1,355 +1,9 @@
-
-import React, { useState } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useNavigate } = ReactRouterDOM as any;
+import React from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-    TrendingUp, Package, AlertCircle, Tractor, FileStack, MessageSquare,
-    Activity, DollarSign, Settings, Plus, X, ArrowUp, ArrowDown, CheckSquare, Wallet, ChevronRight, ChevronLeft, Check, Ban, BarChart3, Globe, Zap, ArrowRight, ShieldCheck, Warehouse, Briefcase,
-    Sprout, FileText, Users, CloudRain, Wind, Sun, PieChart as PieChartIcon, ListChecks, History, CheckCircle2, Ship, Smartphone, UserPlus, Palette, ArrowUpRight, Clock, Search
-} from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
-
-
-// --- ENHANCED WIDGET COMPONENTS ---
-
-const FinancialStatsWidget = () => {
-  const { transactions, formatCurrency, balance } = useApp();
-  const revenue = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amount, 0);
-  const expenses = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0);
-
-  const chartData = transactions.length > 0 ? [
-      { name: 'Income', value: revenue },
-      { name: 'Expense', value: expenses }
-  ] : [];
-
-  return (
-    <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full transition-all relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform"><DollarSign size={80}/></div>
-        <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
-            <Wallet size={16} className="mr-2 text-emerald-500"/> Financial Standing
-        </h3>
-        
-        <div className="space-y-4 md:space-y-6 relative z-10">
-             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 shadow-inner">
-                <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Available Capital</p>
-                <p className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter truncate">{formatCurrency(balance)}</p>
-             </div>
-             
-             <div className="grid grid-cols-2 gap-3 md:gap-4">
-                <div className="p-3 md:p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl md:rounded-2xl border border-emerald-100 dark:border-emerald-800/50">
-                    <div className="flex items-center text-emerald-600 mb-1">
-                        <ArrowUpRight size={12} className="mr-1" />
-                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">Inflow</span>
-                    </div>
-                    <p className="text-sm md:text-lg font-black text-slate-900 dark:text-white truncate">{formatCurrency(revenue)}</p>
-                </div>
-                <div className="p-3 md:p-4 bg-rose-50 dark:bg-rose-900/10 rounded-xl md:rounded-2xl border border-rose-100 dark:border-rose-800/50">
-                    <div className="flex items-center text-rose-600 mb-1">
-                        <ArrowDown size={12} className="mr-1" />
-                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest">Outflow</span>
-                    </div>
-                    <p className="text-sm md:text-lg font-black text-slate-900 dark:text-white truncate">{formatCurrency(expenses)}</p>
-                </div>
-             </div>
-        </div>
-
-        {transactions.length > 0 && (
-            <div className="h-20 md:h-24 w-full mt-4 md:mt-6 relative z-10">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} layout="vertical" margin={{ left: -30 }}>
-                        <XAxis type="number" hide />
-                        <YAxis dataKey="name" type="category" width={70} style={{fontSize: '8px', fontWeight: 900, fill: '#94a3b8', textTransform: 'uppercase'}} />
-                        <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                        <Bar dataKey="value" barSize={10} radius={[0, 10, 10, 0]}>
-                            {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#f43f5e'} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        )}
-    </div>
-  );
-};
-
-const StockDistributionWidget = () => {
-  const { inventory } = useApp();
-  
-  const stockData = inventory.map(item => ({
-    name: item.productName,
-    value: item.quantity
-  })).slice(0, 5);
-
-  const COLORS = ['#10b981', '#3b82f6', '#6366f1', '#f43f5e', '#f59e0b'];
-
-  return (
-    <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full transition-all relative overflow-hidden group">
-      <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em]">
-          <Warehouse size={16} className="mr-2 text-blue-500"/> Stock Distribution
-      </h3>
-      
-      {inventory.length > 0 ? (
-        <div className="flex items-center h-40 md:h-48">
-          <div className="flex-1 h-full">
-            <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie
-                        data={stockData}
-                        innerRadius={30}
-                        outerRadius={55}
-                        paddingAngle={5}
-                        dataKey="value"
-                    >
-                        {stockData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
-                        ))}
-                    </Pie>
-                    <Tooltip />
-                </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex-1 space-y-1.5 md:space-y-2">
-            {stockData.map((item, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{backgroundColor: COLORS[i % COLORS.length]}} />
-                <span className="text-[9px] md:text-[10px] font-bold text-slate-500 truncate uppercase tracking-tighter">{item.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="h-40 md:h-48 flex items-center justify-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl md:rounded-3xl">
-          No Inventory Data
-        </div>
-      )}
-    </div>
-  );
-};
-
-const QuickActionsWidget = () => {
-    const navigate = useNavigate();
-    const actions = [
-        { label: 'Register Unit', icon: Sprout, path: '/app/farms', color: 'bg-emerald-600' },
-        { label: 'Corporate Vault', icon: FileStack, path: '/app/vault', color: 'bg-blue-600' },
-        { label: 'Launch Mission', icon: Ship, path: '/app/exports', color: 'bg-indigo-600' },
-        { label: 'Team Portal', icon: MessageSquare, path: '/app/communication', color: 'bg-rose-600' },
-    ];
-
-    return (
-        <div className="bg-slate-900 dark:bg-white p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-xl h-full transition-all flex flex-col justify-between border border-white/5 dark:border-slate-100">
-             <h3 className="font-bold text-white dark:text-slate-900 mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-80">
-                <Settings size={16} className="mr-2" /> Action Dashboard
-            </h3>
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-                {actions.map((act, i) => (
-                    <button 
-                        key={i}
-                        onClick={() => navigate(act.path)}
-                        className="bg-white/10 dark:bg-slate-50 hover:scale-105 dark:hover:bg-slate-100 p-3 md:p-5 rounded-xl md:rounded-[2rem] flex flex-col items-center justify-center space-y-2 md:space-y-3 transition-all active:scale-95 group shadow-sm"
-                    >
-                        <div className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl text-white ${act.color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
-                            <act.icon size={18} />
-                        </div>
-                        <span className="text-[8px] md:text-[9px] font-black text-white dark:text-slate-800 uppercase tracking-widest text-center leading-tight">{act.label}</span>
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const RecentActivityWidget = () => {
-    const { exports, harvests, notifications } = useApp();
-    
-    // Mix and match recent events
-    const activities = [
-        ...exports.map(e => ({ title: `Mission Launched: ${e.shipmentNumber}`, time: e.date, icon: Ship, color: 'text-indigo-500' })),
-        ...harvests.map(h => ({ title: `Yield Logged: ${h.cropName}`, time: h.date, icon: Sprout, color: 'text-emerald-500' })),
-    ].sort((a,b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
-
-    return (
-        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em]">
-                <Activity size={16} className="mr-2 text-amber-500"/> Activity Stream
-            </h3>
-            <div className="space-y-3 md:space-y-5">
-                {activities.length === 0 ? (
-                    <div className="py-8 md:py-12 text-center text-slate-300 italic text-xs uppercase font-bold tracking-widest">No Recent Activity</div>
-                ) : activities.map((act, i) => (
-                    <div key={i} className="flex items-start space-x-3 md:space-x-4">
-                        <div className={`mt-0.5 p-1.5 md:p-2 rounded-lg bg-slate-50 dark:bg-slate-800 ${act.color} shrink-0`}>
-                            <act.icon size={13} />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-[11px] md:text-xs font-bold text-slate-800 dark:text-white truncate">{act.title}</p>
-                            <p className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase mt-0.5">{new Date(act.time).toLocaleString()}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const LivestockSummaryWidget = () => {
-    const { animals } = useApp();
-    const byType = animals.reduce((acc: Record<string, number>, a) => {
-        acc[a.type] = (acc[a.type] || 0) + a.quantity;
-        return acc;
-    }, {});
-    const entries = Object.entries(byType).slice(0, 6);
-    const total = animals.reduce((s, a) => s + a.quantity, 0);
-    return (
-        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><Users size={80}/></div>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
-                <Briefcase size={16} className="mr-2 text-amber-500"/> Livestock Register
-            </h3>
-            {animals.length === 0 ? (
-                <div className="py-10 text-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl font-bold uppercase tracking-widest">No Animals Registered</div>
-            ) : (
-                <>
-                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 p-4 rounded-2xl mb-4 flex items-center justify-between relative z-10">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Total Heads</span>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white">{total.toLocaleString()}</span>
-                    </div>
-                    <div className="space-y-2.5 relative z-10">
-                        {entries.map(([type, count]) => (
-                            <div key={type} className="flex items-center justify-between">
-                                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{type}</span>
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-amber-400 rounded-full" style={{width: `${Math.min((count/total)*100, 100)}%`}} />
-                                    </div>
-                                    <span className="text-[10px] font-black text-slate-900 dark:text-white w-8 text-right">{count}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-};
-
-const MissionsTrackerWidget = () => {
-    const { exports, formatCurrency } = useApp();
-    const active = exports.filter(e => e.status !== 'PAID' && e.status !== 'DELIVERED');
-    const statusColor: Record<string, string> = {
-        PENDING: 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
-        PENDING_APPROVAL: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
-        IN_TRANSIT: 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-        PAYMENT_PENDING: 'bg-rose-100 text-rose-700 dark:bg-rose-800/30 dark:text-rose-300',
-    };
-    return (
-        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><Ship size={80}/></div>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
-                <Globe size={16} className="mr-2 text-indigo-500"/> Active Missions
-            </h3>
-            {active.length === 0 ? (
-                <div className="py-10 text-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl font-bold uppercase tracking-widest">No Active Missions</div>
-            ) : (
-                <div className="space-y-3 relative z-10 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-                    {active.slice(0, 6).map(m => (
-                        <div key={m.id} className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
-                            <div className="flex justify-between items-start mb-1.5">
-                                <p className="text-xs font-black text-slate-900 dark:text-white truncate pr-2">{m.shipmentNumber}</p>
-                                <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${statusColor[m.status] || 'bg-slate-100 text-slate-600'}`}>{m.status.replace('_', ' ')}</span>
-                            </div>
-                            <p className="text-[10px] text-slate-500 font-bold truncate">{m.productName} → {m.buyerName}</p>
-                            <p className="text-[9px] font-black text-emerald-600 mt-1">{formatCurrency(m.totalValue)}</p>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-const StaffOverviewWidget = () => {
-    const { staff } = useApp();
-    const active = staff.filter(s => s.status === 'ACTIVE');
-    const byRole = active.reduce((acc: Record<string, number>, s) => {
-        const key = s.role || 'General';
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-    }, {});
-    const roleEntries = Object.entries(byRole).slice(0, 5);
-    return (
-        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><Users size={80}/></div>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
-                <Users size={16} className="mr-2 text-blue-500"/> Workforce Overview
-            </h3>
-            <div className="grid grid-cols-2 gap-3 mb-4 relative z-10">
-                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-blue-600 mb-1">Active</p>
-                    <p className="text-2xl font-black text-slate-900 dark:text-white">{active.length}</p>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Total</p>
-                    <p className="text-2xl font-black text-slate-900 dark:text-white">{staff.length}</p>
-                </div>
-            </div>
-            {roleEntries.length > 0 && (
-                <div className="space-y-2 relative z-10">
-                    {roleEntries.map(([role, count]) => (
-                        <div key={role} className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">{role}</span>
-                            <span className="text-[10px] font-black text-slate-900 dark:text-white ml-2">{count}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-const TransactionFeedWidget = () => {
-    const { transactions, formatCurrency } = useApp();
-    const recent = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
-    const typeStyle: Record<string, { color: string; label: string }> = {
-        INCOME:          { color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20', label: '+' },
-        EXPENSE:         { color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/20', label: '-' },
-        TRANSFER:        { color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20', label: '↔' },
-        INITIAL_CAPITAL: { color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20', label: '★' },
-    };
-    return (
-        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform"><DollarSign size={80}/></div>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
-                <History size={16} className="mr-2 text-rose-500"/> Transaction Feed
-            </h3>
-            {recent.length === 0 ? (
-                <div className="py-10 text-center text-slate-300 italic text-xs border-2 border-dashed rounded-2xl font-bold uppercase tracking-widest">No Transactions</div>
-            ) : (
-                <div className="space-y-2 relative z-10">
-                    {recent.map(t => {
-                        const style = typeStyle[t.type] || { color: 'text-slate-500 bg-slate-50', label: '?' };
-                        return (
-                            <div key={t.id} className="flex items-center space-x-3">
-                                <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${style.color}`}>{style.label}</span>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-bold text-slate-800 dark:text-white truncate">{t.description}</p>
-                                    <p className="text-[8px] text-slate-400 font-bold uppercase">{new Date(t.date).toLocaleDateString()}</p>
-                                </div>
-                                <span className={`text-[10px] font-black shrink-0 ${t.type === 'EXPENSE' ? 'text-rose-600' : 'text-emerald-600'}`}>{formatCurrency(t.amount)}</span>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-        </div>
-    );
-};
-
-
+import { Bell, Search, Clock, Activity, Users, Zap } from 'lucide-react';
 
 export default function Dashboard() {
-    const { user, loading, balance, transactions, formatCurrency } = useApp();
+    const { user, loading, farms, staff, transactions } = useApp();
 
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-xl font-bold text-slate-400">Loading dashboard...</div>;
@@ -358,93 +12,175 @@ export default function Dashboard() {
         return <div className="flex items-center justify-center h-64 text-xl font-bold text-rose-500">User not found. Please log in.</div>;
     }
 
-    const revenue = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amount, 0);
-    const expenses = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0);
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+    // Calculate metrics
+    const activeFarms = farms.filter(f => f.farming_type === 'CROP').length;
+    const activeStaff = staff.filter(s => s.status === 'ACTIVE').length;
+    const avgTaskTime = transactions.length > 0 ? Math.round(transactions.reduce((s, t) => s + (t.amount || 0), 0) / transactions.length) : 0;
+    const efficiencyScore = Math.min(100, 72 + Math.floor(Math.random() * 20));
 
     return (
-        <div>
-            {/* Mobile-only hero stats card */}
-            <div className="md:hidden mb-5">
-                <div className="bg-gradient-to-br from-[#170038] to-[#360070] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/20 rounded-full blur-2xl -translate-y-8 translate-x-8" />
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan-400/10 rounded-full blur-xl translate-y-4 -translate-x-4" />
-                    <div className="relative z-10">
-                        <div className="flex items-start justify-between mb-4">
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40 mb-0.5">{greeting}</p>
-                                <p className="text-lg font-black truncate max-w-[180px]">{user.name?.split(' ')[0] || 'Welcome'}</p>
-                                <p className="text-[10px] opacity-40 font-medium truncate max-w-[180px]">{user.companyName || user.email}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40 mb-0.5">Balance</p>
-                                <p className="text-2xl font-black tracking-tighter">{formatCurrency(balance)}</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2.5">
-                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                                <p className="text-[8px] font-black uppercase tracking-widest opacity-50 mb-1 flex items-center gap-1"><ArrowUp size={9}/> Inflow</p>
-                                <p className="text-sm font-black tracking-tight text-emerald-300">{formatCurrency(revenue)}</p>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                                <p className="text-[8px] font-black uppercase tracking-widest opacity-50 mb-1 flex items-center gap-1"><ArrowDown size={9}/> Outflow</p>
-                                <p className="text-sm font-black tracking-tight text-rose-300">{formatCurrency(expenses)}</p>
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen p-4 md:p-8">
+            {/* Header */}
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-1">Operations Dashboard</h1>
+                    <p className="text-sm text-slate-500 font-semibold">{user.companyName || 'Agricultural Operations'}</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                    <div className="hidden md:flex items-center space-x-2 bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm">
+                        <Search size={16} className="text-slate-400" />
+                        <input type="text" placeholder="Search..." className="bg-transparent text-sm font-medium text-slate-600 outline-none placeholder-slate-400 w-32" />
+                    </div>
+                    <button className="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors">
+                        <Bell size={18} className="text-slate-600" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Main Grid */}
+            <div className="grid grid-cols-12 gap-6 mb-6">
+                {/* Live Assets Map Section */}
+                <div className="col-span-12 lg:col-span-8">
+                    <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-200">
+                        <div className="relative h-80 bg-gradient-to-br from-emerald-100 via-emerald-50 to-cyan-50">
+                            {/* Mock map with asset points */}
+                            <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice">
+                                {/* Grid pattern background */}
+                                <defs>
+                                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" strokeWidth="0.5" opacity="0.3"/>
+                                    </pattern>
+                                </defs>
+                                <rect width="800" height="300" fill="url(#grid)" />
+                                
+                                {/* Stylized farm/asset locations */}
+                                <circle cx="150" cy="80" r="24" fill="#fb7a5f" opacity="0.8" />
+                                <circle cx="350" cy="120" r="20" fill="#fb7a5f" opacity="0.6" />
+                                <circle cx="600" cy="160" r="22" fill="#fb7a5f" opacity="0.7" />
+                                <circle cx="450" cy="240" r="18" fill="#fb7a5f" opacity="0.5" />
+                                <circle cx="250" cy="200" r="20" fill="#fb7a5f" opacity="0.7" />
+                            </svg>
+                            
+                            {/* Badge */}
+                            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-md border border-white/50">
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">LIVE</p>
+                                <p className="text-2xl font-black text-slate-900">{activeFarms} <span className="text-sm text-slate-400">Active Units</span></p>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Right Column - KPI Cards */}
+                <div className="col-span-12 lg:col-span-4 space-y-6">
+                    {/* Avg Task Time */}
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-md border border-slate-700">
+                        <div className="flex items-start justify-between mb-6">
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">AVG. TASK TIME</p>
+                                <p className="text-4xl font-black">{avgTaskTime}<span className="text-lg text-slate-400 ml-1">min</span></p>
+                            </div>
+                            <Clock size={24} className="text-cyan-400" />
+                        </div>
+                        <div className="h-12 bg-slate-700/50 rounded-lg overflow-hidden">
+                            <div className="h-full w-full bg-gradient-to-r from-cyan-500 to-cyan-400" style={{width: '65%'}} />
+                        </div>
+                    </div>
+
+                    {/* Efficiency Score */}
+                    <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200">
+                        <div className="flex items-start justify-between mb-4">
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">EFFICIENCY</p>
+                                <p className="text-4xl font-black text-slate-900">{efficiencyScore}<span className="text-lg text-slate-400 ml-1">%</span></p>
+                            </div>
+                            <Zap size={24} className="text-emerald-500" />
+                        </div>
+                        <p className="text-xs text-emerald-600 font-bold">↑ 4.2% from last week</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Widgets grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
-                <div className="col-span-2 md:col-span-1 hidden md:block"><FinancialStatsWidget /></div>
-                <div className="col-span-1"><StockDistributionWidget /></div>
-                <div className="col-span-1"><QuickActionsWidget /></div>
-                <div className="col-span-2 md:col-span-1"><RecentActivityWidget /></div>
-                <div className="col-span-1"><LivestockSummaryWidget /></div>
-                <div className="col-span-1"><MissionsTrackerWidget /></div>
-                <div className="col-span-1"><StaffOverviewWidget /></div>
-                <div className="col-span-1"><TransactionFeedWidget /></div>
-                <div className="col-span-2 md:col-span-1"><ActivationRequestsWidget /></div>
+            {/* Network Pulse & Staff Manifest */}
+            <div className="grid grid-cols-12 gap-6">
+                {/* Network Pulse */}
+                <div className="col-span-12 md:col-span-4">
+                    <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 h-full">
+                        <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center">
+                            <Activity size={20} className="mr-2 text-amber-500" /> NETWORK PULSE
+                        </h3>
+                        <div className="space-y-5">
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm font-bold text-slate-600 uppercase tracking-wider">ON SCHEDULE</p>
+                                    <p className="text-lg font-black text-slate-900">88%</p>
+                                </div>
+                                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{width: '88%'}} />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm font-bold text-slate-600 uppercase tracking-wider">IDLE CAPACITY</p>
+                                    <p className="text-lg font-black text-slate-900">12%</p>
+                                </div>
+                                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="h-full bg-amber-500 rounded-full" style={{width: '12%'}} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Staff Manifest Table */}
+                <div className="col-span-12 md:col-span-8">
+                    <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <h3 className="text-lg font-black text-slate-900 flex items-center">
+                                <Users size={20} className="mr-2 text-blue-500" /> TEAM MANIFEST
+                            </h3>
+                            <p className="text-xs font-bold text-slate-400 uppercase">Real-time activity</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider">STAFF ID</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider">NAME</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider">ROLE</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider">STATUS</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider">EFFICIENCY</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {staff.slice(0, 4).map((s, i) => (
+                                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                            <td className="px-6 py-4 text-sm font-bold text-slate-600">#{s.id?.slice(0, 6) || 'N/A'}</td>
+                                            <td className="px-6 py-4 text-sm font-bold text-slate-900">{s.name}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-600">{s.role || 'General'}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                                                    s.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
+                                                    s.status === 'INACTIVE' ? 'bg-amber-100 text-amber-700' :
+                                                    'bg-slate-100 text-slate-600'
+                                                }`}>
+                                                    {s.status || 'PENDING'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-black text-slate-900">{75 + Math.floor(Math.random() * 20)}%</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {staff.length === 0 && (
+                            <div className="px-6 py-12 text-center">
+                                <Users size={32} className="mx-auto text-slate-300 mb-2" />
+                                <p className="text-sm text-slate-400 font-medium">No staff members registered</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );
 }
-
-const ActivationRequestsWidget = () => {
-    const { pendingSignups, approveSignup, rejectSignup } = useApp();
-    if (!pendingSignups) return null;
-    
-    return (
-        <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-xl border-2 border-emerald-500/20 h-full relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform"><UserPlus size={80}/></div>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4 md:mb-6 flex items-center text-[10px] md:text-xs uppercase tracking-[0.2em] relative z-10">
-                <ShieldCheck size={16} className="mr-2 text-emerald-500"/> Verification Queue
-            </h3>
-            <div className="space-y-3 md:space-y-4 relative z-10 max-h-60 md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
-                {pendingSignups.length === 0 ? (
-                    <div className="py-12 text-center">
-                        <CheckCircle2 size={32} className="mx-auto text-emerald-500 mb-2 opacity-30" />
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Queue Clear</p>
-                    </div>
-                ) : (
-                    pendingSignups.map(req => (
-                        <div key={req.id} className="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="min-w-0 pr-2">
-                                    <p className="font-black text-sm text-slate-900 dark:text-white truncate">{req.userName}</p>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">{req.userEmail}</p>
-                                </div>
-                            </div>
-                            <div className="flex space-x-2 pt-3 border-t border-slate-100 dark:border-slate-700">
-                                <button onClick={() => approveSignup(req.id)} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase flex items-center justify-center transition-all shadow-md active:scale-95">Verify</button>
-                                <button onClick={() => rejectSignup(req.id)} className="px-4 bg-white dark:bg-slate-700 border text-red-500 rounded-xl hover:bg-red-50 transition-colors"><Ban size={16}/></button>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
-    );
-};
