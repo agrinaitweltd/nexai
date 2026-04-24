@@ -498,40 +498,67 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true, message: 'Account created successfully.', user: newUser };
     }
 
-    // Regular signup: store in pending_registrations (NO auth user created yet)
-    // Admin must approve before an auth account is created
+    // Regular signup: create auth user as PENDING, then queue admin review.
     const preferredCurrency = CURRENCY_MAP[data.location] || 'USD';
-
-    // Use RPC function with jsonb parameter to bypass PostgREST schema cache
-    const { data: rpcResult, error: insertErr } = await supabase.rpc('insert_pending_registration', {
-      registration_data: {
-        email: data.email,
-        full_name: data.name,
-        phone: data.phone || null,
-        country: data.location || null,
-        sector: data.sector || 'GENERAL',
-        business_category: data.businessCategory || null,
-        business_type: data.businessType || null,
-        company_name: data.companyName || null,
-        preferred_currency: preferredCurrency,
-        tmp_password: data.password,
-        transaction_id: null,
-        payment_phone: null,
-        payment_method: null,
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          full_name: data.name,
+          role: data.role || 'ADMIN',
+          phone: data.phone || null,
+          country: data.location || null,
+          sector: data.sector || 'GENERAL',
+          business_category: data.businessCategory || null,
+          business_type: data.businessType || null,
+          company_name: data.companyName || null,
+          preferred_currency: preferredCurrency,
+          activation_status: 'PENDING',
+        }
       }
     });
 
-    if (insertErr || !rpcResult?.success) {
-      const errorMsg = rpcResult?.error || insertErr?.message || 'Registration failed';
-      if (errorMsg.toLowerCase().includes('email already exists')) {
+    if (authError) {
+      if (authError.message.toLowerCase().includes('already registered')) {
+        return { success: false, message: 'An account with this email already exists.' };
+      }
+      return { success: false, message: authError.message };
+    }
+
+    if (!authData.user) return { success: false, message: 'Signup failed — no user returned.' };
+
+    const pendingRow = {
+      id: authData.user.id,
+      email: data.email,
+      full_name: data.name,
+      phone: data.phone || null,
+      country: data.location || null,
+      sector: data.sector || 'GENERAL',
+      business_category: data.businessCategory || null,
+      business_type: data.businessType || null,
+      company_name: data.companyName || null,
+      preferred_currency: preferredCurrency,
+      transaction_id: null,
+      payment_phone: null,
+      payment_method: null,
+      status: 'PENDING',
+    };
+
+    const { error: insertErr } = await supabase
+      .from('pending_registrations')
+      .upsert(pendingRow, { onConflict: 'email' });
+
+    if (insertErr) {
+      if (insertErr.message?.toLowerCase().includes('unique') || insertErr.code === '23505') {
         return { success: false, message: 'An account with this email is already pending review.' };
       }
-      return { success: false, message: errorMsg };
+      return { success: false, message: insertErr.message };
     }
 
     // Build a minimal local user so Login.tsx can proceed to the PAYMENT step
     const localUser: User = profileToUser({
-      id: rpcResult.id, // ID from RPC result
+      id: authData.user.id,
       full_name: data.name,
       email: data.email,
       role: 'ADMIN',
@@ -569,26 +596,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const signup = pendingSignups.find(s => s.id === signupId);
     if (!signup) return;
 
-    // Call the admin-create-user Edge Function to provision the auth account
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      addNotification('Session expired. Please refresh the page and try again.', 'ALERT');
-      return;
-    }
-    const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || 'https://vlxfwcdnsdqgcqkdnpav.supabase.co';
-
     try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/admin-create-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ pendingId: signupId }),
-      });
+      // Mark pending registration approved and activate matching profile.
+      const { error: pendingErr } = await supabase
+        .from('pending_registrations')
+        .update({ status: 'APPROVED' })
+        .eq('id', signupId);
+      if (pendingErr) throw pendingErr;
 
-      const result = await res.json();
-      if (!result.success) throw new Error(result.error || 'Failed to create user');
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .update({ activation_status: 'ACTIVE', rejection_count: 0 })
+        .eq('email', signup.userEmail);
+      if (profileErr) throw profileErr;
     } catch (err: any) {
       addNotification(`Approval failed: ${err.message}`, 'ALERT');
       return;
