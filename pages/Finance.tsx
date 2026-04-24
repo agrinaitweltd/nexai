@@ -307,6 +307,20 @@ export default function Finance() {
     return usdAmount / toRate;
   };
 
+  const formatAccountCurrency = (amount: number, currency?: string) => {
+    const cur = (currency || user?.preferredCurrency || 'UGX').toUpperCase();
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: cur,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(amount);
+    } catch {
+      return `${cur} ${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    }
+  };
+
   const handleAccountCurrencyChange = (nextCurrency: string) => {
     if (editingAccount && accountFormBalance !== '') {
       const numericBalance = Number(accountFormBalance);
@@ -371,7 +385,7 @@ export default function Finance() {
     if (!fromAcct || !toAcct) return;
 
     if (fromAcct.balance < transferAmount && !transferOverdraft) {
-      setTransferError(`Insufficient funds. Balance: ${formatCurrency(fromAcct.balance)}. Enable overdraft to proceed.`);
+      setTransferError(`Insufficient funds. Balance: ${formatAccountCurrency(fromAcct.balance, fromAcct.currency)}. Enable overdraft to proceed.`);
       return;
     }
 
@@ -576,7 +590,7 @@ export default function Finance() {
                     {acct.name !== acct.provider && <p className="text-[9px] text-slate-400 truncate">{acct.name}</p>}
                   </div>
                 </div>
-                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{formatCurrency(acct.balance)}</p>
+                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{formatAccountCurrency(acct.balance, acct.currency)}</p>
                 <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-2">Updated {new Date(acct.lastUpdated).toLocaleDateString()}</p>
               </div>
             ))}
@@ -768,7 +782,7 @@ export default function Finance() {
                             <select className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-2xl font-black outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm" onChange={e => setNewTx({...newTx, accountId: e.target.value || undefined})}>
                                 <option value="">No specific account</option>
                                 {financeAccounts.map(acct => (
-                                    <option key={acct.id} value={acct.id}>{acct.provider} — {acct.name !== acct.provider ? acct.name + ' — ' : ''}{formatCurrency(acct.balance)}</option>
+                                    <option key={acct.id} value={acct.id}>{acct.provider} — {acct.name !== acct.provider ? acct.name + ' — ' : ''}{formatAccountCurrency(acct.balance, acct.currency)}</option>
                                 ))}
                             </select>
                         </div>
@@ -857,13 +871,16 @@ export default function Finance() {
                 >
                   <option value="">Select source account...</option>
                   {financeAccounts.map(a => (
-                    <option key={a.id} value={a.id}>{a.provider} {a.name !== a.provider ? `— ${a.name}` : ''} · {formatCurrency(a.balance)}</option>
+                    <option key={a.id} value={a.id}>{a.provider} {a.name !== a.provider ? `— ${a.name}` : ''} · {formatAccountCurrency(a.balance, a.currency)}</option>
                   ))}
                 </select>
                 {transferFromId && (
                   <p className="text-[10px] font-black text-slate-400 px-2">
                     Available: <span className={`${financeAccounts.find(a => a.id === transferFromId)?.balance! >= transferAmount ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {formatCurrency(financeAccounts.find(a => a.id === transferFromId)?.balance || 0)}
+                      {formatAccountCurrency(
+                        financeAccounts.find(a => a.id === transferFromId)?.balance || 0,
+                        financeAccounts.find(a => a.id === transferFromId)?.currency
+                      )}
                     </span>
                   </p>
                 )}
@@ -878,7 +895,7 @@ export default function Finance() {
                 >
                   <option value="">Select destination account...</option>
                   {financeAccounts.filter(a => a.id !== transferFromId).map(a => (
-                    <option key={a.id} value={a.id}>{a.provider} {a.name !== a.provider ? `— ${a.name}` : ''} · {formatCurrency(a.balance)}</option>
+                    <option key={a.id} value={a.id}>{a.provider} {a.name !== a.provider ? `— ${a.name}` : ''} · {formatAccountCurrency(a.balance, a.currency)}</option>
                   ))}
                 </select>
               </div>
