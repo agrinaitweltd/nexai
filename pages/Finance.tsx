@@ -389,17 +389,25 @@ export default function Finance() {
       return;
     }
 
+    const amountToDestination = convertAmount(
+      transferAmount,
+      fromAcct.currency || user?.preferredCurrency || 'UGX',
+      toAcct.currency || user?.preferredCurrency || 'UGX'
+    );
+
     // Deduct from source
     updateFinanceAccount({ ...fromAcct, balance: fromAcct.balance - transferAmount, lastUpdated: new Date().toISOString() });
-    // Add to destination
-    updateFinanceAccount({ ...toAcct, balance: toAcct.balance + transferAmount, lastUpdated: new Date().toISOString() });
+    // Add converted amount to destination account currency
+    updateFinanceAccount({ ...toAcct, balance: toAcct.balance + amountToDestination, lastUpdated: new Date().toISOString() });
     // Record as a TRANSFER so it doesn't inflate expenses or deflate net balance
     addTransaction({
       id: crypto.randomUUID(),
       type: 'TRANSFER',
       category: 'Transfer',
       amount: transferAmount,
-      description: transferNote || `Transfer: ${fromAcct.provider} → ${toAcct.provider}`,
+      description:
+        transferNote ||
+        `Transfer: ${fromAcct.provider} (${formatAccountCurrency(transferAmount, fromAcct.currency)}) → ${toAcct.provider} (${formatAccountCurrency(amountToDestination, toAcct.currency)})`,
       date: new Date().toISOString(),
       paymentMethod: 'BANK_TRANSFER',
       reference: `TRF-${Date.now()}`,
@@ -441,6 +449,7 @@ export default function Finance() {
 
   const handleTxSubmit = () => {
     if (newTx.amount && newTx.category) {
+        const preferred = user?.preferredCurrency || 'UGX';
         addTransaction({
             ...newTx,
             id: crypto.randomUUID(),
@@ -451,7 +460,8 @@ export default function Finance() {
         if (newTx.accountId) {
             const acct = financeAccounts.find(a => a.id === newTx.accountId);
             if (acct) {
-                const delta = newTx.type === 'INCOME' ? newTx.amount : -newTx.amount;
+            const convertedAmount = convertAmount(newTx.amount, preferred, acct.currency || preferred);
+            const delta = newTx.type === 'INCOME' ? convertedAmount : -convertedAmount;
                 updateFinanceAccount({ ...acct, balance: acct.balance + delta, lastUpdated: new Date().toISOString() });
             }
         }
@@ -901,7 +911,9 @@ export default function Finance() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Amount ({user?.preferredCurrency || 'USD'})</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">
+                  Amount ({financeAccounts.find(a => a.id === transferFromId)?.currency || user?.preferredCurrency || 'USD'})
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -911,6 +923,21 @@ export default function Finance() {
                   value={transferAmount || ''}
                   onChange={e => { setTransferAmount(parseFloat(e.target.value) || 0); setTransferError(''); }}
                 />
+                {transferFromId && transferToId && transferAmount > 0 && (() => {
+                  const fromAcct = financeAccounts.find(a => a.id === transferFromId);
+                  const toAcct = financeAccounts.find(a => a.id === transferToId);
+                  if (!fromAcct || !toAcct) return null;
+                  const converted = convertAmount(
+                    transferAmount,
+                    fromAcct.currency || user?.preferredCurrency || 'UGX',
+                    toAcct.currency || user?.preferredCurrency || 'UGX'
+                  );
+                  return (
+                    <p className="text-[10px] font-black text-slate-500 px-2">
+                      Destination receives: <span className="text-blue-600">{formatAccountCurrency(converted, toAcct.currency)}</span>
+                    </p>
+                  );
+                })()}
               </div>
 
               <div className="space-y-1.5">
