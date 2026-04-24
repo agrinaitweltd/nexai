@@ -383,11 +383,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ── Computed values ──────────────────────────────────────────
 
-  const balance = transactions.reduce((acc, curr) => {
+  const transactionDerivedBalance = transactions.reduce((acc, curr) => {
     if (curr.type === 'INCOME' || curr.type === 'INITIAL_CAPITAL') return acc + curr.amount;
     if (curr.type === 'TRANSFER') return acc; // inter-account moves don't affect net balance
     return acc - curr.amount;
   }, 0);
+
+  // Source-of-truth balance: sum of all financial accounts.
+  // Fallback to transaction-derived balance for older users with no accounts yet.
+  const balance = financeAccounts.length > 0
+    ? financeAccounts.reduce((sum, acct) => sum + (Number(acct.balance) || 0), 0)
+    : transactionDerivedBalance;
 
   const formatCurrency = (amount: number) => {
     const cur = user?.preferredCurrency || 'UGX';
