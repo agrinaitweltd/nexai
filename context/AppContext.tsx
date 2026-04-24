@@ -389,10 +389,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return acc - curr.amount;
   }, 0);
 
+  // Approximate FX rates to USD for cross-account balance aggregation.
+  // Values are intentionally simple and should be replaced by live rates if needed.
+  const FX_TO_USD: Record<string, number> = {
+    USD: 1,
+    EUR: 1.08,
+    GBP: 1.27,
+    UGX: 0.00027,
+    KES: 0.0077,
+    TZS: 0.00039,
+    RWF: 0.00074,
+    NGN: 0.00062,
+    GHS: 0.078,
+    ZAR: 0.054,
+    ETB: 0.017,
+    EGP: 0.02,
+    MAD: 0.1,
+    MUR: 0.022,
+    ZMW: 0.037,
+    BWP: 0.073,
+    NAD: 0.054,
+    AED: 0.272,
+    AUD: 0.66,
+    CAD: 0.74,
+    INR: 0.012,
+  };
+
+  const convertCurrency = (amount: number, fromCurrency?: string, toCurrency?: string): number => {
+    if (!fromCurrency || !toCurrency) return amount;
+    const from = fromCurrency.toUpperCase();
+    const to = toCurrency.toUpperCase();
+    if (from === to) return amount;
+
+    const fromRate = FX_TO_USD[from];
+    const toRate = FX_TO_USD[to];
+    if (!fromRate || !toRate) return amount;
+
+    const usdAmount = amount * fromRate;
+    return usdAmount / toRate;
+  };
+
+  const preferredCurrency = user?.preferredCurrency || 'UGX';
+
   // Source-of-truth balance: sum of all financial accounts.
   // Fallback to transaction-derived balance for older users with no accounts yet.
   const balance = financeAccounts.length > 0
-    ? financeAccounts.reduce((sum, acct) => sum + (Number(acct.balance) || 0), 0)
+    ? financeAccounts.reduce(
+        (sum, acct) => sum + convertCurrency(Number(acct.balance) || 0, acct.currency, preferredCurrency),
+        0
+      )
     : transactionDerivedBalance;
 
   const formatCurrency = (amount: number) => {
