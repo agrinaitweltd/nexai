@@ -61,6 +61,7 @@ export default function Inventory() {
             cost: amountPaid, 
             method: paymentAccountId ? (financeAccounts?.find(a => a.id === paymentAccountId)?.name || 'Account') : 'BANK_TRANSFER', 
             accountId: paymentAccountId || undefined,
+            supplierId: selectedSupplierId || undefined,
             supplierName: supplier?.name, 
             reference: referenceNum 
         } : undefined);

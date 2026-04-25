@@ -837,7 +837,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await supabase.from('inventory').insert(row);
     setInventory(prev => [...prev, item]);
 
-    if (financeOptions) {
+    if (financeOptions && financeOptions.cost > 0) {
       await addTransaction({
         id: 'tx-' + crypto.randomUUID().slice(0, 9),
         type: 'EXPENSE', category: 'Inventory', amount: financeOptions.cost,
@@ -845,6 +845,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         date: new Date().toISOString(), paymentMethod: financeOptions.method || 'BANK_TRANSFER',
         reference: financeOptions.reference
       });
+
+      // Deduct from the linked finance account balance
+      if (financeOptions.accountId) {
+        const acct = financeAccounts.find(a => a.id === financeOptions.accountId);
+        if (acct) {
+          const updated = { ...acct, balance: acct.balance - financeOptions.cost, lastUpdated: new Date().toISOString() };
+          await supabase.from('finance_accounts').update({ balance: updated.balance, last_updated: updated.lastUpdated }).eq('id', acct.id);
+          setFinanceAccounts(prev => prev.map(a => a.id === acct.id ? updated : a));
+        }
+      }
+
+      // Update supplier's totalOrders and totalValue
+      if (financeOptions.supplierId) {
+        const supplier = clients.find(c => c.id === financeOptions.supplierId);
+        if (supplier) {
+          const updatedSupplier = { ...supplier, totalOrders: supplier.totalOrders + 1, totalValue: supplier.totalValue + financeOptions.cost };
+          await supabase.from('clients').update({ total_orders: updatedSupplier.totalOrders, total_value: updatedSupplier.totalValue }).eq('id', supplier.id);
+          setClients(prev => prev.map(c => c.id === supplier.id ? updatedSupplier : c));
+        }
+      }
     }
 
     // Low stock alert check
