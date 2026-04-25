@@ -48,6 +48,13 @@ export default function Exports() {
             return `${cur} ${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
         }
     };
+
+    const formatMissionDate = (value?: string) => {
+        if (!value) return 'Not set';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return 'Not set';
+        return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    };
   
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -62,6 +69,9 @@ export default function Exports() {
   const [paymentAccountId, setPaymentAccountId] = useState('');
   const [paymentOverdraft, setPaymentOverdraft] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [missionFilter, setMissionFilter] = useState<'ALL' | 'EXPORT' | 'LOCAL'>('ALL');
+    const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'IN_TRANSIT' | 'DELIVERED' | 'PAID'>('ALL');
 
   const [newOrder, setNewOrder] = useState<Partial<ExportOrder>>({
     unit: 'tonnes',
@@ -86,6 +96,25 @@ export default function Exports() {
   const calculateTotal = (qty: number, price: number, ship: number) => {
       return (qty * price) + ship;
   };
+
+    const missionList = exports.slice().reverse();
+    const filteredExports = missionList.filter(order => {
+        const missionMatch = missionFilter === 'ALL' || order.missionType === missionFilter;
+        const statusMatch = statusFilter === 'ALL' || order.status === statusFilter;
+        const search = searchTerm.trim().toLowerCase();
+        const searchMatch =
+            !search ||
+            order.buyerName.toLowerCase().includes(search) ||
+            (order.productName || '').toLowerCase().includes(search) ||
+            (order.destinationCountry || order.buyerCountry || '').toLowerCase().includes(search) ||
+            order.shipmentNumber.toLowerCase().includes(search);
+        return missionMatch && statusMatch && searchMatch;
+    });
+
+    const totalMissionValue = exports.reduce((sum, order) => sum + order.totalValue, 0);
+    const totalSettled = exports.reduce((sum, order) => sum + order.amountPaid, 0);
+    const unsettledCount = exports.filter(order => order.amountPaid < order.totalValue).length;
+    const inTransitCount = exports.filter(order => order.status === 'IN_TRANSIT').length;
 
   const handleTypeSelect = (type: 'EXPORT' | 'LOCAL') => {
       setMissionType(type);
@@ -223,27 +252,96 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
 
   return (
     <div className="space-y-6">
-       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div>
-            <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Mission Control</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Unified command for Global Export and Local Supply chains.</p>
-        </div>
-        <button 
-            onClick={() => setShowTypeSelector(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center"
-        >
-            <Plus size={18} className="mr-2" />
-            <span>Initialize Mission</span>
-        </button>
+            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-cyan-500 via-blue-600 to-emerald-600 p-6 md:p-10 shadow-2xl">
+                <div className="absolute -top-16 -right-12 w-52 h-52 rounded-full bg-white/10 blur-2xl" />
+                <div className="absolute -bottom-20 -left-12 w-64 h-64 rounded-full bg-black/20 blur-2xl" />
+                <div className="relative z-10 space-y-6">
+                    <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-100 mb-2">Operations Deck</p>
+                            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">Mission Control</h1>
+                            <p className="text-cyan-50/90 font-medium mt-2 max-w-xl">Unified command for export and local supply missions, with live progress and settlement tracking.</p>
+                        </div>
+                        <button
+                            onClick={() => setShowTypeSelector(true)}
+                            className="bg-white text-slate-900 hover:bg-cyan-50 px-7 py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center"
+                        >
+                            <Plus size={18} className="mr-2" />
+                            <span>Initialize Mission</span>
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+                        <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-4">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-100">Mission Value</p>
+                            <p className="text-lg md:text-2xl text-white font-black mt-1 truncate">{formatCurrency(totalMissionValue)}</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-4">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-100">Settled</p>
+                            <p className="text-lg md:text-2xl text-white font-black mt-1 truncate">{formatCurrency(totalSettled)}</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-4">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-100">In Transit</p>
+                            <p className="text-lg md:text-2xl text-white font-black mt-1">{inTransitCount}</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-4">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-100">Needs Settlement</p>
+                            <p className="text-lg md:text-2xl text-white font-black mt-1">{unsettledCount}</p>
+                        </div>
+                    </div>
+                </div>
       </div>
 
+            <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 p-4 md:p-5 shadow-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+                    <input
+                        className="lg:col-span-2 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-semibold dark:text-white outline-none focus:ring-4 focus:ring-cyan-500/20"
+                        placeholder="Search by buyer, shipment ref, destination, product"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    <select
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-cyan-500/20"
+                        value={missionFilter}
+                        onChange={e => setMissionFilter(e.target.value as 'ALL' | 'EXPORT' | 'LOCAL')}
+                    >
+                        <option value="ALL">All Mission Types</option>
+                        <option value="EXPORT">Export Missions</option>
+                        <option value="LOCAL">Local Missions</option>
+                    </select>
+                    <select
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-cyan-500/20"
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value as 'ALL' | 'PENDING' | 'IN_TRANSIT' | 'DELIVERED' | 'PAID')}
+                    >
+                        <option value="ALL">All Statuses</option>
+                        <option value="PENDING">Processing</option>
+                        <option value="IN_TRANSIT">In Transit</option>
+                        <option value="DELIVERED">Complete</option>
+                        <option value="PAID">Settled</option>
+                    </select>
+                </div>
+            </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 pb-20">
-        {exports.length === 0 ? (
+                {filteredExports.length === 0 ? (
              <div className="col-span-full py-20 text-center bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800 transition-colors">
                 <Ship size={64} className="mx-auto text-slate-200 dark:text-slate-700 mb-6" />
-                <p className="text-slate-400 font-bold uppercase tracking-[0.2em]">No Supply Missions Logged</p>
+                                <p className="text-slate-400 font-bold uppercase tracking-[0.2em]">No Missions Match Current Filters</p>
+                                {(searchTerm || missionFilter !== 'ALL' || statusFilter !== 'ALL') && (
+                                    <button
+                                        onClick={() => {
+                                            setSearchTerm('');
+                                            setMissionFilter('ALL');
+                                            setStatusFilter('ALL');
+                                        }}
+                                        className="mt-5 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        Reset Filters
+                                    </button>
+                                )}
              </div>
-        ) : exports.slice().reverse().map(order => (
+                ) : filteredExports.map(order => (
           <div key={order.id} className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 p-8 transition-all hover:shadow-2xl hover:border-emerald-500 group relative overflow-hidden flex flex-col h-full">
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
                   {order.missionType === 'EXPORT' ? <Globe size={120} /> : <Truck size={120} />}
@@ -263,6 +361,11 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                           <span>•</span>
                           <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded tracking-tighter">{order.shipmentNumber}</span>
                       </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300">Created {formatMissionDate(order.date)}</span>
+                          <span className="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-[9px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-300">Depart {formatMissionDate(order.departureDate)}</span>
+                          <span className="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-300">ETA {formatMissionDate(order.arrivalDate)}</span>
+                      </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <button onClick={() => generateMissionPDF(order)} className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 hover:text-emerald-600 transition-all shadow-sm"><Download size={18} /></button>
@@ -279,7 +382,7 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                   </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 relative z-10">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 relative z-10">
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Port</p>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{order.destinationPort || 'Local Hub'}</span>
@@ -295,6 +398,14 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Weight</p>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{order.quantity} {order.unit}</span>
+                  </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Departure</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{formatMissionDate(order.departureDate)}</span>
+                  </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">ETA</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{formatMissionDate(order.arrivalDate)}</span>
                   </div>
               </div>
 
