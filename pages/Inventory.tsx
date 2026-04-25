@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { InventoryItem, Client } from '../types';
-import { Search, PlusCircle, Truck, DollarSign, Hash, User, Settings2, Trash2, MapPin, AlertTriangle, Check, X, ChevronRight } from 'lucide-react';
+import { Search, PlusCircle, Truck, DollarSign, Hash, User, Settings2, Trash2, MapPin, AlertTriangle, Check, X, ChevronRight, UserPlus, Building2, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Inventory() {
-  const { inventory, addToInventory, bulkUpdateInventory, deleteInventoryItems, user, clients, financeAccounts } = useApp();
+  const { inventory, addToInventory, bulkUpdateInventory, deleteInventoryItems, user, clients, financeAccounts, addClient } = useApp();
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -23,9 +23,15 @@ export default function Inventory() {
   const [isExpense, setIsExpense] = useState(false);
   const [unitPrice, setUnitPrice] = useState<number>(0);
   const [costAmount, setCostAmount] = useState<number>(0);
+  const [amountPaid, setAmountPaid] = useState<number>(0);
   const [paymentAccountId, setPaymentAccountId] = useState<string>('');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('');
   const [referenceNum, setReferenceNum] = useState<string>('');
+
+  // New Supplier form
+  const [showNewSupplier, setShowNewSupplier] = useState(false);
+  const [newSupplier, setNewSupplier] = useState({ name: '', country: '', email: '', phone: '' });
+  const [isSavingSupplier, setIsSavingSupplier] = useState(false);
 
   const filteredInventory = inventory.filter(item => 
     item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,8 +57,8 @@ export default function Inventory() {
             lastUpdated: new Date().toISOString(),
             location: newItem.location || 'Main Warehouse',
             costPerUnit: unitPrice > 0 ? unitPrice : undefined
-        } as InventoryItem, isExpense ? { 
-            cost: costAmount, 
+        } as InventoryItem, isExpense && amountPaid > 0 ? { 
+            cost: amountPaid, 
             method: paymentAccountId ? (financeAccounts?.find(a => a.id === paymentAccountId)?.name || 'Account') : 'BANK_TRANSFER', 
             accountId: paymentAccountId || undefined,
             supplierName: supplier?.name, 
@@ -64,9 +70,12 @@ export default function Inventory() {
         setIsExpense(false);
         setCostAmount(0);
         setUnitPrice(0);
+        setAmountPaid(0);
         setSelectedSupplierId('');
         setReferenceNum('');
         setPaymentAccountId('');
+        setShowNewSupplier(false);
+        setNewSupplier({ name: '', country: '', email: '', phone: '' });
     }
   };
 
@@ -108,6 +117,27 @@ export default function Inventory() {
       deleteInventoryItems(Array.from(selectedIds));
       setSelectedIds(new Set());
     }
+  };
+
+  const handleSaveSupplier = async () => {
+    if (!newSupplier.name) return;
+    setIsSavingSupplier(true);
+    const saved: import('../types').Client = {
+      id: crypto.randomUUID(),
+      name: newSupplier.name,
+      type: 'SUPPLIER',
+      country: newSupplier.country || '',
+      email: newSupplier.email || '',
+      phone: newSupplier.phone || '',
+      totalOrders: 0,
+      totalValue: 0,
+      joinedDate: new Date().toISOString(),
+    };
+    await addClient(saved);
+    setSelectedSupplierId(saved.id);
+    setShowNewSupplier(false);
+    setNewSupplier({ name: '', country: '', email: '', phone: '' });
+    setIsSavingSupplier(false);
   };
 
   const PRODUCT_CATALOG: Record<string, string[]> = {
@@ -425,7 +455,17 @@ export default function Inventory() {
                                     <User size={13} className="mr-2 text-emerald-500" /> Supplier Details
                                 </h3>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Supplier</label>
+                                    <div className="flex items-center justify-between px-2 mb-1">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Supplier</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewSupplier(v => !v)}
+                                            className="flex items-center text-[9px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
+                                        >
+                                            {showNewSupplier ? <ChevronUp size={11} className="mr-1" /> : <UserPlus size={11} className="mr-1" />}
+                                            {showNewSupplier ? 'Cancel' : 'New Supplier'}
+                                        </button>
+                                    </div>
                                     <select
                                         className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-emerald-500/20 font-bold dark:text-white shadow-inner text-sm"
                                         value={selectedSupplierId}
@@ -435,6 +475,61 @@ export default function Inventory() {
                                         {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </div>
+
+                                {showNewSupplier && (
+                                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+                                        <p className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest flex items-center">
+                                            <Building2 size={11} className="mr-1.5" /> Save New Supplier
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="col-span-2 space-y-1">
+                                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Name *</label>
+                                                <input
+                                                    className="w-full bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/60 p-2.5 rounded-xl outline-none text-sm font-bold dark:text-white focus:ring-2 focus:ring-emerald-500/30"
+                                                    placeholder="Supplier company name"
+                                                    value={newSupplier.name}
+                                                    onChange={e => setNewSupplier({ ...newSupplier, name: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Country</label>
+                                                <input
+                                                    className="w-full bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/60 p-2.5 rounded-xl outline-none text-sm font-bold dark:text-white focus:ring-2 focus:ring-emerald-500/30"
+                                                    placeholder="e.g. Uganda"
+                                                    value={newSupplier.country}
+                                                    onChange={e => setNewSupplier({ ...newSupplier, country: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Phone</label>
+                                                <input
+                                                    className="w-full bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/60 p-2.5 rounded-xl outline-none text-sm font-bold dark:text-white focus:ring-2 focus:ring-emerald-500/30"
+                                                    placeholder="+256..."
+                                                    value={newSupplier.phone}
+                                                    onChange={e => setNewSupplier({ ...newSupplier, phone: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="col-span-2 space-y-1">
+                                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Email</label>
+                                                <input
+                                                    className="w-full bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/60 p-2.5 rounded-xl outline-none text-sm font-bold dark:text-white focus:ring-2 focus:ring-emerald-500/30"
+                                                    placeholder="supplier@company.com"
+                                                    value={newSupplier.email}
+                                                    onChange={e => setNewSupplier({ ...newSupplier, email: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveSupplier}
+                                            disabled={!newSupplier.name || isSavingSupplier}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center"
+                                        >
+                                            <Building2 size={13} className="mr-2" />
+                                            {isSavingSupplier ? 'Saving...' : 'Save Supplier'}
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Invoice / Reference #</label>
                                     <input
@@ -481,6 +576,32 @@ export default function Inventory() {
                                                     readOnly={unitPrice > 0}
                                                     onChange={e => setCostAmount(parseFloat(e.target.value) || 0)}
                                                 />
+                                            </div>
+                                        </div>
+
+                                        {/* Amount Paid + Balance Due */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Amount Paid Now</label>
+                                                <input
+                                                    type="number"
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-bold dark:text-white shadow-inner text-sm"
+                                                    placeholder="0.00"
+                                                    value={amountPaid || ''}
+                                                    onChange={e => setAmountPaid(parseFloat(e.target.value) || 0)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Balance Due</label>
+                                                <div className={`w-full p-3.5 rounded-xl font-black text-sm shadow-inner ${
+                                                    costAmount - amountPaid > 0
+                                                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                                                        : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
+                                                }`}>
+                                                    {(costAmount - amountPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {costAmount - amountPaid > 0 && <span className="ml-1 text-[9px] uppercase tracking-widest">Owing</span>}
+                                                    {costAmount - amountPaid <= 0 && amountPaid > 0 && <span className="ml-1 text-[9px] uppercase tracking-widest">Paid</span>}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
