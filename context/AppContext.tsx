@@ -93,7 +93,7 @@ function rowToHarvest(r: any): Harvest {
   return { id: r.id, farmId: r.farm_id, cropId: r.crop_id, cropName: r.crop_name, grade: r.grade, quantity: r.quantity, unit: r.unit, date: r.date, status: r.status, notes: r.notes, history: r.history ?? [] };
 }
 function rowToInventory(r: any): InventoryItem {
-  return { id: r.id, productName: r.product_name, grade: r.grade, quantity: r.quantity, unit: r.unit, location: r.location, lastUpdated: r.last_updated, costPerUnit: r.cost_per_unit, lowStockThreshold: r.low_stock_threshold };
+  return { id: r.id, productName: r.product_name, grade: r.grade, quantity: r.quantity, unit: r.unit, location: r.location, lastUpdated: r.last_updated, costPerUnit: r.cost_per_unit, lowStockThreshold: r.low_stock_threshold, totalCost: r.total_cost ?? undefined, amountPaid: r.amount_paid_supplier ?? undefined, supplierId: r.supplier_id ?? undefined, supplierName: r.supplier_name ?? undefined, purchaseReference: r.purchase_reference ?? undefined };
 }
 function rowToAnimal(r: any): Animal {
   return { id: r.id, type: r.type, breed: r.breed, quantity: r.quantity, status: r.status, location: r.location, age: r.age, notes: r.notes };
@@ -220,6 +220,7 @@ interface AppContextType {
   bulkUpdateInventory: (ids: string[], updates: Partial<InventoryItem>) => Promise<void>;
   deleteInventoryItems: (ids: string[]) => Promise<void>;
   deductInventory: (productName: string, grade: string, quantity: number) => Promise<void>;
+  payInventoryBalance: (itemId: string, amount: number, accountId: string | undefined, method: string) => Promise<void>;
   approvePurchaseOrder: (id: string) => Promise<void>;
   addPurchaseOrder: (order: PurchaseOrder, initialPayment: number, method: string) => Promise<boolean>;
   updatePurchaseOrderStatus: (id: string, status: string) => Promise<void>;
@@ -833,14 +834,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addToInventory = async (item: InventoryItem, financeOptions?: any) => {
     if (!user) return;
-    const row = { id: item.id, user_id: user.id, product_name: item.productName, grade: item.grade, quantity: item.quantity, unit: item.unit, location: item.location, last_updated: item.lastUpdated, cost_per_unit: item.costPerUnit || null, low_stock_threshold: item.lowStockThreshold || null };
+    const totalCost = financeOptions?.totalCost ?? (financeOptions?.cost ?? null);
+    const amountPaidNow = financeOptions?.cost ?? 0;
+    const row = {
+      id: item.id, user_id: user.id, product_name: item.productName, grade: item.grade,
+      quantity: item.quantity, unit: item.unit, location: item.location, last_updated: item.lastUpdated,
+      cost_per_unit: item.costPerUnit || null, low_stock_threshold: item.lowStockThreshold || null,
+      total_cost: totalCost, amount_paid_supplier: amountPaidNow > 0 ? amountPaidNow : null,
+      supplier_id: financeOptions?.supplierId || null, supplier_name: financeOptions?.supplierName || null,
+      purchase_reference: financeOptions?.reference || null,
+    };
     await supabase.from('inventory').insert(row);
-    setInventory(prev => [...prev, item]);
+    const itemWithPayment: InventoryItem = {
+      ...item,
+      totalCost: totalCost ?? undefined,
+      amountPaid: amountPaidNow > 0 ? amountPaidNow : undefined,
+      supplierId: financeOptions?.supplierId,
+      supplierName: financeOptions?.supplierName,
+      purchaseReference: financeOptions?.reference,
+    };
+    setInventory(prev => [...prev, itemWithPayment]);
 
-    if (financeOptions && financeOptions.cost > 0) {
+    if (financeOptions && amountPaidNow > 0) {
       await addTransaction({
         id: 'tx-' + crypto.randomUUID().slice(0, 9),
-        type: 'EXPENSE', category: 'Inventory', amount: financeOptions.cost,
+        type: 'EXPENSE', category: 'Inventory', amount: amountPaidNow,
         description: `Stock Acquisition: ${item.productName} (${financeOptions.supplierName || 'General Supplier'})`,
         date: new Date().toISOString(), paymentMethod: financeOptions.method || 'BANK_TRANSFER',
         reference: financeOptions.reference
@@ -850,7 +868,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (financeOptions.accountId) {
         const acct = financeAccounts.find(a => a.id === financeOptions.accountId);
         if (acct) {
-          const updated = { ...acct, balance: acct.balance - financeOptions.cost, lastUpdated: new Date().toISOString() };
+          const updated = { ...acct, balance: acct.balance - amountPaidNow, lastUpdated: new Date().toISOString() };
           await supabase.from('finance_accounts').update({ balance: updated.balance, last_updated: updated.lastUpdated }).eq('id', acct.id);
           setFinanceAccounts(prev => prev.map(a => a.id === acct.id ? updated : a));
         }
@@ -860,7 +878,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (financeOptions.supplierId) {
         const supplier = clients.find(c => c.id === financeOptions.supplierId);
         if (supplier) {
-          const updatedSupplier = { ...supplier, totalOrders: supplier.totalOrders + 1, totalValue: supplier.totalValue + financeOptions.cost };
+          const updatedSupplier = { ...supplier, totalOrders: supplier.totalOrders + 1, totalValue: supplier.totalValue + amountPaidNow };
           await supabase.from('clients').update({ total_orders: updatedSupplier.totalOrders, total_value: updatedSupplier.totalValue }).eq('id', supplier.id);
           setClients(prev => prev.map(c => c.id === supplier.id ? updatedSupplier : c));
         }
@@ -870,6 +888,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Low stock alert check
     if (item.lowStockThreshold && item.quantity <= item.lowStockThreshold) {
       addNotification(`Low stock alert: ${item.productName} is at ${item.quantity} ${item.unit}`, 'ALERT', '/app/inventory');
+    }
+  };
+
+  const payInventoryBalance = async (itemId: string, amount: number, accountId: string | undefined, method: string) => {
+    const item = inventory.find(i => i.id === itemId);
+    if (!item || amount <= 0) return;
+    const newPaid = (item.amountPaid || 0) + amount;
+    const now = new Date().toISOString();
+    await supabase.from('inventory').update({ amount_paid_supplier: newPaid, last_updated: now }).eq('id', itemId);
+    setInventory(prev => prev.map(i => i.id === itemId ? { ...i, amountPaid: newPaid, lastUpdated: now } : i));
+
+    await addTransaction({
+      id: 'tx-' + crypto.randomUUID().slice(0, 9),
+      type: 'EXPENSE', category: 'Inventory', amount,
+      description: `Supplier Payment: ${item.productName} (${item.supplierName || 'Supplier'})`,
+      date: now, paymentMethod: method as any,
+      reference: item.purchaseReference,
+    });
+
+    if (accountId) {
+      const acct = financeAccounts.find(a => a.id === accountId);
+      if (acct) {
+        const updated = { ...acct, balance: acct.balance - amount, lastUpdated: now };
+        await supabase.from('finance_accounts').update({ balance: updated.balance, last_updated: now }).eq('id', acct.id);
+        setFinanceAccounts(prev => prev.map(a => a.id === acct.id ? updated : a));
+      }
+    }
+
+    if (item.supplierId) {
+      const supplier = clients.find(c => c.id === item.supplierId);
+      if (supplier) {
+        const updatedSupplier = { ...supplier, totalValue: supplier.totalValue + amount };
+        await supabase.from('clients').update({ total_value: updatedSupplier.totalValue }).eq('id', supplier.id);
+        setClients(prev => prev.map(c => c.id === supplier.id ? updatedSupplier : c));
+      }
     }
   };
 
@@ -1201,7 +1254,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery,
       addAnimal, addStaff, payStaff, assignTask, updateTaskStatus, updateStaffPermissions, addClient, replayTutorial, updateDashboardWidgets, updateDashboardTheme,
       selectSubscription,
-      addDocument, deleteDocument, sendMessage, markMessageRead, addAnnouncement, bulkUpdateInventory, deleteInventoryItems, deductInventory, approvePurchaseOrder, addPurchaseOrder, updatePurchaseOrderStatus, payPurchaseOrder,
+      addDocument, deleteDocument, sendMessage, markMessageRead, addAnnouncement, bulkUpdateInventory, deleteInventoryItems, deductInventory, payInventoryBalance, approvePurchaseOrder, addPurchaseOrder, updatePurchaseOrderStatus, payPurchaseOrder,
       addDepartment, updateDepartment, deleteDepartment,
       financeAccounts, addFinanceAccount, updateFinanceAccount, deleteFinanceAccount,
       balance, formatCurrency, getAllUsers

@@ -255,6 +255,12 @@ export interface InventoryItem {
   lastUpdated: string;
   costPerUnit?: number;
   lowStockThreshold?: number;
+  // Purchase payment tracking
+  totalCost?: number;
+  amountPaid?: number;
+  supplierId?: string;
+  supplierName?: string;
+  purchaseReference?: string;
 }
 
 export interface ExportOrder {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { InventoryItem, Client } from '../types';
-import { Search, PlusCircle, Truck, DollarSign, Hash, User, Settings2, Trash2, MapPin, AlertTriangle, Check, X, ChevronRight, UserPlus, Building2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, PlusCircle, Truck, DollarSign, Hash, User, Settings2, Trash2, MapPin, AlertTriangle, Check, X, ChevronRight, UserPlus, Building2, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 
 export default function Inventory() {
-  const { inventory, addToInventory, bulkUpdateInventory, deleteInventoryItems, user, clients, financeAccounts, addClient } = useApp();
+  const { inventory, addToInventory, bulkUpdateInventory, deleteInventoryItems, user, clients, financeAccounts, addClient, payInventoryBalance, formatCurrency } = useApp();
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -33,6 +33,13 @@ export default function Inventory() {
   const [newSupplier, setNewSupplier] = useState({ name: '', country: '', email: '', phone: '' });
   const [isSavingSupplier, setIsSavingSupplier] = useState(false);
 
+  // Pay-off modal
+  const [payOffItem, setPayOffItem] = useState<InventoryItem | null>(null);
+  const [payOffAmount, setPayOffAmount] = useState<number>(0);
+  const [payOffAccountId, setPayOffAccountId] = useState<string>('');
+  const [payOffMethod, setPayOffMethod] = useState<string>('BANK_TRANSFER');
+  const [isPayingOff, setIsPayingOff] = useState(false);
+
   const filteredInventory = inventory.filter(item => 
     item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.grade.toLowerCase().includes(searchTerm.toLowerCase())
@@ -57,8 +64,9 @@ export default function Inventory() {
             lastUpdated: new Date().toISOString(),
             location: newItem.location || 'Main Warehouse',
             costPerUnit: unitPrice > 0 ? unitPrice : undefined
-        } as InventoryItem, isExpense && amountPaid > 0 ? { 
-            cost: amountPaid, 
+        } as InventoryItem, isExpense ? { 
+            cost: amountPaid > 0 ? amountPaid : costAmount,
+            totalCost: costAmount > 0 ? costAmount : undefined,
             method: paymentAccountId ? (financeAccounts?.find(a => a.id === paymentAccountId)?.name || 'Account') : 'BANK_TRANSFER', 
             accountId: paymentAccountId || undefined,
             supplierId: selectedSupplierId || undefined,
@@ -139,6 +147,22 @@ export default function Inventory() {
     setShowNewSupplier(false);
     setNewSupplier({ name: '', country: '', email: '', phone: '' });
     setIsSavingSupplier(false);
+  };
+
+  const handlePayOff = async () => {
+    if (!payOffItem || payOffAmount <= 0) return;
+    setIsPayingOff(true);
+    await payInventoryBalance(
+      payOffItem.id,
+      payOffAmount,
+      payOffAccountId || undefined,
+      payOffMethod
+    );
+    setIsPayingOff(false);
+    setPayOffItem(null);
+    setPayOffAmount(0);
+    setPayOffAccountId('');
+    setPayOffMethod('BANK_TRANSFER');
   };
 
   const PRODUCT_CATALOG: Record<string, string[]> = {
@@ -273,6 +297,7 @@ export default function Inventory() {
                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quantity</th>
                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Supplier Balance</th>
                         <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
@@ -289,8 +314,10 @@ export default function Inventory() {
                     ) : (
                         filteredInventory.map(item => {
                             const isLow = item.quantity < (item.lowStockThreshold || 500);
+                            const balanceDue = item.totalCost != null ? item.totalCost - (item.amountPaid || 0) : 0;
+                            const hasBalance = balanceDue > 0.005;
                             return (
-                                <tr key={item.id} className={`hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${selectedIds.has(item.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
+                                <tr key={item.id} className={`hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${selectedIds.has(item.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''} ${hasBalance ? 'border-l-2 border-amber-400' : ''}`}>
                                     <td className="px-6 py-4">
                                         <input 
                                           type="checkbox" 
@@ -333,6 +360,26 @@ export default function Inventory() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
+                                        {hasBalance ? (
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-amber-600 dark:text-amber-400 font-black text-xs">{formatCurrency(balanceDue)} owing</span>
+                                                {item.supplierName && <span className="text-[9px] text-slate-400 truncate max-w-[100px]">{item.supplierName}</span>}
+                                                <button
+                                                    onClick={() => { setPayOffItem(item); setPayOffAmount(balanceDue); }}
+                                                    className="flex items-center text-[9px] font-black uppercase tracking-widest text-amber-600 hover:text-white hover:bg-amber-500 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 px-2 py-1 rounded-lg transition-all w-fit"
+                                                >
+                                                    <CreditCard size={9} className="mr-1" /> Pay Off
+                                                </button>
+                                            </div>
+                                        ) : item.totalCost != null ? (
+                                            <span className="flex items-center text-[9px] font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg w-fit">
+                                                <Check size={9} className="mr-1" /> Fully Paid
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-300 dark:text-slate-600 text-[9px]">—</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
                                         <button className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 text-xs font-bold uppercase tracking-widest">Details</button>
                                     </td>
                                 </tr>
@@ -343,6 +390,92 @@ export default function Inventory() {
             </table>
         </div>
       </div>
+
+      {/* Pay Off Balance Modal */}
+      {payOffItem && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-md">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl border border-white/5 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white text-lg leading-none">Pay Supplier Balance</h3>
+                <p className="text-slate-500 text-xs mt-1">{payOffItem.productName} — {payOffItem.supplierName || 'Supplier'}</p>
+              </div>
+              <button onClick={() => setPayOffItem(null)} className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:rotate-90 transition-all"><X size={16}/></button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Cost</p>
+                  <p className="font-black text-sm text-slate-900 dark:text-white">{formatCurrency(payOffItem.totalCost || 0)}</p>
+                </div>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
+                  <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Paid So Far</p>
+                  <p className="font-black text-sm text-emerald-600">{formatCurrency(payOffItem.amountPaid || 0)}</p>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3">
+                  <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1">Balance Due</p>
+                  <p className="font-black text-sm text-amber-600">{formatCurrency((payOffItem.totalCost || 0) - (payOffItem.amountPaid || 0))}</p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Amount to Pay Now</label>
+                <input
+                  type="number"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-bold dark:text-white shadow-inner"
+                  placeholder="0.00"
+                  value={payOffAmount || ''}
+                  onChange={e => setPayOffAmount(parseFloat(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Debit Account</label>
+                <select
+                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-bold dark:text-white shadow-inner text-sm"
+                  value={payOffAccountId}
+                  onChange={e => setPayOffAccountId(e.target.value)}
+                >
+                  <option value="">-- No account (manual) --</option>
+                  {(financeAccounts || []).map(a => (
+                    <option key={a.id} value={a.id}>{a.provider} ({a.currency}) — {a.balance.toLocaleString()}</option>
+                  ))}
+                </select>
+                {payOffAccountId && (() => {
+                  const acc = financeAccounts.find(a => a.id === payOffAccountId);
+                  if (!acc) return null;
+                  const rem = acc.balance - payOffAmount;
+                  return rem < 0
+                    ? <p className="text-[10px] text-red-500 font-bold mt-1 px-1 flex items-center"><AlertTriangle size={10} className="mr-1"/> Shortfall: {acc.currency} {Math.abs(rem).toLocaleString()}</p>
+                    : <p className="text-[10px] text-emerald-500 font-bold mt-1 px-1 flex items-center"><Check size={10} className="mr-1"/> After payment: {acc.currency} {rem.toLocaleString()}</p>;
+                })()}
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Payment Method</label>
+                <select
+                  className="w-full bg-slate-50 dark:bg-slate-800 border-none p-3.5 rounded-xl outline-none focus:ring-4 focus:ring-amber-500/20 font-bold dark:text-white shadow-inner text-sm"
+                  value={payOffMethod}
+                  onChange={e => setPayOffMethod(e.target.value)}
+                >
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CASH">Cash</option>
+                  <option value="MOBILE_MONEY">Mobile Money</option>
+                  <option value="CHEQUE">Cheque</option>
+                </select>
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+              <button onClick={() => setPayOffItem(null)} className="px-5 py-2.5 text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all text-sm">Cancel</button>
+              <button
+                onClick={handlePayOff}
+                disabled={payOffAmount <= 0 || isPayingOff}
+                className="px-8 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center"
+              >
+                <CreditCard size={13} className="mr-2" />
+                {isPayingOff ? 'Processing...' : 'Confirm Payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stock In Modal - Mission Builder Style */}
       {showModal && (
