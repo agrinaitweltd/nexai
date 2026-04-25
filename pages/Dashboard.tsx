@@ -13,7 +13,7 @@ export default function Dashboard() {
     }
 
     // Calculate metrics
-    const activeFarms = farms.filter(f => f.farming_type === 'CROP').length;
+    const activeFarms = farms.filter(f => f.farmingType === 'CROP').length;
     const activeStaff = staff.filter(s => s.status === 'ACTIVE').length;
     const avgTaskTime = transactions.length > 0 ? Math.round(transactions.reduce((s, t) => s + (t.amount || 0), 0) / transactions.length) : 0;
     const efficiencyScore = Math.min(100, 72 + Math.floor(Math.random() * 20));

@@ -45,6 +45,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  createdAt?: string;
   password?: string;
   passwordSalt?: string;
   phone?: string;
@@ -166,6 +167,8 @@ export interface StaffMember {
   frequency: 'MONTHLY' | 'WEEKLY' | 'DAILY' | 'CASUAL';
   phone: string;
   email?: string;
+  location?: string;
+  emergencyContact?: string;
   assignedFarmIds?: string[];
   departmentId?: string;
   status: 'ACTIVE' | 'INACTIVE';

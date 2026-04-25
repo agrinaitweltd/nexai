@@ -590,10 +590,10 @@ export default function Finance() {
                   <button onClick={() => deleteFinanceAccount(acct.id)} className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
                 </div>
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden ${acct.type === 'mobile_money' ? 'bg-yellow-50 dark:bg-yellow-900/20' : acct.type === 'digital_wallet' ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden ${acct.type === 'MOBILE_MONEY' ? 'bg-yellow-50 dark:bg-yellow-900/20' : acct.type === 'WALLET' ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
                     {getBankLogoUrl(acct.provider) ? (
                       <img src={getBankLogoUrl(acct.provider)!} alt={acct.provider} className="w-8 h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-                    ) : acct.type === 'mobile_money' ? <Smartphone size={18} className="text-yellow-600" /> : acct.type === 'digital_wallet' ? <CreditCard size={18} className="text-purple-600" /> : <Landmark size={18} className="text-blue-600" />}
+                    ) : acct.type === 'MOBILE_MONEY' ? <Smartphone size={18} className="text-yellow-600" /> : acct.type === 'WALLET' ? <CreditCard size={18} className="text-purple-600" /> : <Landmark size={18} className="text-blue-600" />}
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{acct.provider}</p>

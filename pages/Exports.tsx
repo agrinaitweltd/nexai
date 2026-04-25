@@ -6,6 +6,48 @@ import { jsPDF } from 'jspdf';
 
 export default function Exports() {
   const { exports, createExport, updateExportPayment, updateExportStatus, inventory, clients, user, formatCurrency, financeAccounts, updateFinanceAccount } = useApp();
+
+    const FX_TO_USD: Record<string, number> = {
+        USD: 1,
+        EUR: 1.08,
+        GBP: 1.27,
+        UGX: 0.00027,
+        KES: 0.0077,
+        TZS: 0.00039,
+        RWF: 0.00074,
+        NGN: 0.00062,
+        GHS: 0.078,
+        ZAR: 0.054,
+        ETB: 0.017,
+        AED: 0.272,
+        AUD: 0.66,
+        CAD: 0.74,
+        INR: 0.012,
+    };
+
+    const convertAmount = (amount: number, fromCurrency?: string, toCurrency?: string): number => {
+        const from = (fromCurrency || user?.preferredCurrency || 'UGX').toUpperCase();
+        const to = (toCurrency || user?.preferredCurrency || 'UGX').toUpperCase();
+        if (from === to) return amount;
+        const fromRate = FX_TO_USD[from];
+        const toRate = FX_TO_USD[to];
+        if (!fromRate || !toRate) return amount;
+        return (amount * fromRate) / toRate;
+    };
+
+    const formatAccountCurrency = (amount: number, currency?: string) => {
+        const cur = (currency || user?.preferredCurrency || 'UGX').toUpperCase();
+        try {
+            return new Intl.NumberFormat(undefined, {
+                style: 'currency',
+                currency: cur,
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(amount);
+        } catch {
+            return `${cur} ${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        }
+    };
   
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -83,14 +125,7 @@ export default function Exports() {
 
     const totalValue = calculateTotal(newOrder.quantity || 0, newOrder.pricePerUnit || 0, newOrder.shippingCost || 0);
 
-    // Validate initial payment account balance
-    if (initialPaymentAccountId && initialPayment > 0) {
-      const acct = financeAccounts.find(a => a.id === initialPaymentAccountId);
-      if (acct && acct.balance < initialPayment && !initialPaymentOverdraft) {
-        setError(`Insufficient funds in ${acct.provider}. Balance: ${formatCurrency(acct.balance)}. Check "Allow overdraft" to proceed.`);
-        return;
-      }
-    }
+        // Initial payment is a customer remittance (inflow), so no balance check is required.
 
     const order = {
         ...newOrder,
@@ -108,11 +143,12 @@ export default function Exports() {
     const success = await createExport(order, initialPayment, paymentMethod);
     
     if (success) {
-        // Deduct from payment account if selected
+                // Credit receiving account if selected
         if (initialPaymentAccountId && initialPayment > 0) {
           const acct = financeAccounts.find(a => a.id === initialPaymentAccountId);
           if (acct) {
-            updateFinanceAccount({ ...acct, balance: acct.balance - initialPayment, lastUpdated: new Date().toISOString() });
+                        const initialPaymentInAcctCurrency = convertAmount(initialPayment, user?.preferredCurrency, acct.currency);
+                        updateFinanceAccount({ ...acct, balance: acct.balance + initialPaymentInAcctCurrency, lastUpdated: new Date().toISOString() });
           }
         }
 
@@ -657,7 +693,7 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                                   </div>
                                   {financeAccounts.length > 0 && (
                                       <div className="space-y-1.5">
-                                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Pay from Account</label>
+                                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Receive into Account</label>
                                           <select
                                               className="w-full bg-white/10 border-none text-white p-3 rounded-xl font-bold text-xs outline-none"
                                               value={initialPaymentAccountId}
@@ -665,22 +701,13 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                                           >
                                               <option value="">Cash / Unlinked</option>
                                               {financeAccounts.map(a => (
-                                                  <option key={a.id} value={a.id}>{a.provider}: {formatCurrency(a.balance)}</option>
+                                                  <option key={a.id} value={a.id}>{a.provider}: {formatAccountCurrency(a.balance, a.currency)}</option>
                                               ))}
                                           </select>
                                           {initialPaymentAccountId && initialPayment > 0 && (() => {
                                               const acct = financeAccounts.find(a => a.id === initialPaymentAccountId);
-                                              if (acct && acct.balance < initialPayment) return (
-                                                  <div className="space-y-2">
-                                                      <p className="text-[9px] font-bold text-red-400">⚠ Insufficient funds ({formatCurrency(acct.balance)} available)</p>
-                                                      <button
-                                                          type="button"
-                                                          onClick={() => setInitialPaymentOverdraft(!initialPaymentOverdraft)}
-                                                          className={`w-full py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${initialPaymentOverdraft ? 'border-amber-400 text-amber-300 bg-amber-500/20' : 'border-white/20 text-white/50'}`}
-                                                      >
-                                                          {initialPaymentOverdraft ? 'Overdraft ON — will go negative' : 'Allow overdraft'}
-                                                      </button>
-                                                  </div>
+                                              if (acct) return (
+                                                  <p className="text-[9px] font-bold text-emerald-300">This amount will be credited to {acct.provider}.</p>
                                               );
                                               return null;
                                           })()}
@@ -770,7 +797,7 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
 
                             {financeAccounts.length > 0 && (
                               <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] px-2 block">Pay from Account</label>
+                                                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] px-2 block">Receive into Account</label>
                                 <select
                                   className="w-full border-none bg-slate-50 dark:bg-slate-950 dark:text-white p-4 rounded-xl md:rounded-2xl font-bold outline-none focus:ring-4 focus:ring-emerald-500/20 shadow-inner text-sm appearance-none"
                                   value={paymentAccountId}
@@ -778,23 +805,14 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                                 >
                                   <option value="">No linked account (cash/external)</option>
                                   {financeAccounts.map(a => (
-                                    <option key={a.id} value={a.id}>{a.provider}{a.name !== a.provider ? ` — ${a.name}` : ''} · Balance: {formatCurrency(a.balance)}</option>
+                                                                        <option key={a.id} value={a.id}>{a.provider}{a.name !== a.provider ? ` — ${a.name}` : ''} · Balance: {formatAccountCurrency(a.balance, a.currency)}</option>
                                   ))}
                                 </select>
                                 {paymentAccountId && paymentAmount > 0 && (() => {
                                   const acct = financeAccounts.find(a => a.id === paymentAccountId);
-                                  if (acct && acct.balance < paymentAmount) return (
-                                    <div className="space-y-2 px-1">
-                                      <p className="text-[10px] font-bold text-red-500">⚠ Insufficient — {formatCurrency(acct.balance)} available</p>
-                                      <button
-                                        type="button"
-                                        onClick={() => setPaymentOverdraft(!paymentOverdraft)}
-                                        className={`w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${paymentOverdraft ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-500'}`}
-                                      >
-                                        {paymentOverdraft ? '✓ Overdraft enabled — account will go negative' : 'Allow overdraft to proceed'}
-                                      </button>
-                                    </div>
-                                  );
+                                                                    if (acct) return (
+                                                                        <p className="text-[10px] font-bold text-emerald-600 px-1">This payment will be added to {acct.provider}.</p>
+                                                                    );
                                   return null;
                                 })()}
                               </div>
@@ -809,12 +827,9 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                           setPaymentError('');
                           if (paymentAccountId && paymentAmount > 0) {
                             const acct = financeAccounts.find(a => a.id === paymentAccountId);
-                            if (acct && acct.balance < paymentAmount && !paymentOverdraft) {
-                              setPaymentError(`Insufficient funds. Balance: ${formatCurrency(acct.balance)}`);
-                              return;
-                            }
+                                                        const paymentInAcctCurrency = acct ? convertAmount(paymentAmount, user?.preferredCurrency, acct.currency) : 0;
                             if (acct) {
-                              updateFinanceAccount({ ...acct, balance: acct.balance - paymentAmount, lastUpdated: new Date().toISOString() });
+                                                            updateFinanceAccount({ ...acct, balance: acct.balance + paymentInAcctCurrency, lastUpdated: new Date().toISOString() });
                             }
                           }
                           updateExportPayment(selectedExport.id, paymentAmount, paymentMethod);

@@ -65,11 +65,11 @@ export default function Vault() {
       y += 15;
       doc.setFontSize(11);
       doc.text(`Total Items: ${inventory.length}`, 15, y); y += 8;
-      doc.text(`Total Value: ${formatCurrency(inventory.reduce((a, b) => a + b.quantity * b.unitPrice, 0))}`, 15, y); y += 15;
+      doc.text(`Total Value: ${formatCurrency(inventory.reduce((a, b) => a + b.quantity * (b.costPerUnit || 0), 0))}`, 15, y); y += 15;
       inventory.forEach(item => {
         if (y > 270) { doc.addPage(); y = 20; }
         doc.setFontSize(9);
-        doc.text(`${item.productName} - ${item.quantity} ${item.unit} @ ${formatCurrency(item.unitPrice)} = ${formatCurrency(item.quantity * item.unitPrice)}`, 15, y);
+        doc.text(`${item.productName} - ${item.quantity} ${item.unit} @ ${formatCurrency(item.costPerUnit || 0)} = ${formatCurrency(item.quantity * (item.costPerUnit || 0))}`, 15, y);
         y += 6;
       });
     } else if (reportType === 'staff') {
@@ -100,7 +100,7 @@ export default function Vault() {
         if (y > 270) { doc.addPage(); y = 20; }
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${f.name} - ${f.location} (${f.size} ${f.unit})`, 15, y);
+        doc.text(`${f.name} - ${f.location} (${f.size})`, 15, y);
         doc.setFont('helvetica', 'normal');
         y += 7;
       });
