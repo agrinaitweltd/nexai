@@ -620,11 +620,12 @@ export default function Inventory() {
                                             {paymentAccountId && (() => {
                                                 const acc = financeAccounts?.find(a => a.id === paymentAccountId);
                                                 if (!acc) return null;
-                                                const shortfall = costAmount - acc.balance;
-                                                return shortfall > 0 ? (
-                                                    <p className="text-[10px] text-red-500 font-bold mt-1 px-2 flex items-center"><AlertTriangle size={10} className="mr-1" /> Shortfall: {(acc.currency || user?.preferredCurrency)} {shortfall.toLocaleString()}</p>
+                                                const paying = amountPaid > 0 ? amountPaid : costAmount;
+                                                const remaining = acc.balance - paying;
+                                                return paying <= 0 ? null : remaining < 0 ? (
+                                                    <p className="text-[10px] text-red-500 font-bold mt-1 px-2 flex items-center"><AlertTriangle size={10} className="mr-1" /> Shortfall: {(acc.currency || user?.preferredCurrency)} {Math.abs(remaining).toLocaleString()} — insufficient funds</p>
                                                 ) : (
-                                                    <p className="text-[10px] text-emerald-500 font-bold mt-1 px-2 flex items-center"><Check size={10} className="mr-1" /> Remaining: {(acc.currency || user?.preferredCurrency)} {(acc.balance - costAmount).toLocaleString()}</p>
+                                                    <p className="text-[10px] text-emerald-500 font-bold mt-1 px-2 flex items-center"><Check size={10} className="mr-1" /> After payment: {(acc.currency || user?.preferredCurrency)} {remaining.toLocaleString()} remaining</p>
                                                 );
                                             })()}
                                         </div>
