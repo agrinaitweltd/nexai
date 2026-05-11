@@ -56,6 +56,9 @@ function profileToUser(p: any): User {
     assignedFarmIds: p.assigned_farm_ids ?? [],
     departmentId: p.department_id ?? undefined,
     permissions: p.permissions ?? [],
+    lastLoginAt: p.last_login_at ?? undefined,
+    lastPasswordChangedAt: p.last_password_changed_at ?? undefined,
+    lastLoginLocation: p.last_login_location ?? undefined,
   };
 }
 
@@ -91,6 +94,9 @@ function userToProfileUpdate(u: Partial<User>): Record<string, any> {
   if (u.assignedFarmIds !== undefined)  map.assigned_farm_ids = u.assignedFarmIds;
   if (u.departmentId !== undefined)     map.department_id = u.departmentId;
   if (u.permissions !== undefined)      map.permissions = u.permissions;
+  if (u.lastLoginAt !== undefined)      map.last_login_at = u.lastLoginAt;
+  if (u.lastPasswordChangedAt !== undefined) map.last_password_changed_at = u.lastPasswordChangedAt;
+  if (u.lastLoginLocation !== undefined) map.last_login_location = u.lastLoginLocation;
   return map;
 }
 
@@ -508,7 +514,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (profile.activation_status === 'PENDING') { await supabase.auth.signOut(); return 'PENDING'; }
     if (profile.activation_status === 'REJECTED') { await supabase.auth.signOut(); return 'REJECTED'; }
 
-    const u = profileToUser(profile);
+    const now = new Date().toISOString();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+    await supabase.from('profiles').update({ last_login_at: now, last_login_location: tz }).eq('id', data.user.id);
+
+    const u = profileToUser({ ...profile, last_login_at: now, last_login_location: tz });
     const isSuper = profile.role === 'SUPER_ADMIN';
     setUser(u);
     setIsSuperAdmin(isSuper);

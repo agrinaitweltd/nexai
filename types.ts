@@ -77,6 +77,9 @@ export interface User {
   ucdaNumber?: string; 
   resetToken?: string;
   resetTokenExpiry?: number;
+  lastLoginAt?: string;
+  lastPasswordChangedAt?: string;
+  lastLoginLocation?: string;
 }
 
 export interface PendingSignup {

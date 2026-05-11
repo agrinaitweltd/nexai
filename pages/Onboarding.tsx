@@ -32,30 +32,149 @@ const COUNTRY_ACCOUNT_OPTIONS: Record<string, Array<{ provider: string; type: Fi
   Uganda: [
     { provider: 'Stanbic Bank Uganda', type: 'BANK' },
     { provider: 'Equity Bank Uganda', type: 'BANK' },
+    { provider: 'Centenary Bank', type: 'BANK' },
+    { provider: 'DFCU Bank', type: 'BANK' },
+    { provider: 'Absa Bank Uganda', type: 'BANK' },
+    { provider: 'Bank of Africa Uganda', type: 'BANK' },
+    { provider: 'Cairo Bank Uganda', type: 'BANK' },
+    { provider: 'PostBank Uganda', type: 'BANK' },
+    { provider: 'Finance Trust Bank', type: 'BANK' },
     { provider: 'MTN MoMo', type: 'MOBILE_MONEY' },
     { provider: 'Airtel Money', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
   ],
   Kenya: [
     { provider: 'Equity Bank Kenya', type: 'BANK' },
     { provider: 'KCB Bank Kenya', type: 'BANK' },
+    { provider: 'Co-operative Bank of Kenya', type: 'BANK' },
+    { provider: 'Absa Bank Kenya', type: 'BANK' },
+    { provider: 'NCBA Bank Kenya', type: 'BANK' },
+    { provider: 'Standard Chartered Kenya', type: 'BANK' },
+    { provider: 'I&M Bank Kenya', type: 'BANK' },
+    { provider: 'Family Bank Kenya', type: 'BANK' },
+    { provider: 'Stanbic Bank Kenya', type: 'BANK' },
     { provider: 'M-Pesa', type: 'MOBILE_MONEY' },
+    { provider: 'Airtel Money Kenya', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
   ],
   Tanzania: [
     { provider: 'CRDB Bank', type: 'BANK' },
     { provider: 'NMB Bank', type: 'BANK' },
+    { provider: 'NBC Bank Tanzania', type: 'BANK' },
+    { provider: 'Absa Bank Tanzania', type: 'BANK' },
+    { provider: 'Stanbic Bank Tanzania', type: 'BANK' },
+    { provider: 'Bank of Africa Tanzania', type: 'BANK' },
+    { provider: 'Equity Bank Tanzania', type: 'BANK' },
     { provider: 'M-Pesa Tanzania', type: 'MOBILE_MONEY' },
     { provider: 'Airtel Money Tanzania', type: 'MOBILE_MONEY' },
+    { provider: 'Tigo Pesa', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
   ],
   Nigeria: [
     { provider: 'GTBank', type: 'BANK' },
     { provider: 'Access Bank', type: 'BANK' },
-    { provider: 'Cash Reserve', type: 'CASH' },
+    { provider: 'Zenith Bank', type: 'BANK' },
+    { provider: 'First Bank of Nigeria', type: 'BANK' },
+    { provider: 'United Bank for Africa (UBA)', type: 'BANK' },
+    { provider: 'Stanbic IBTC Bank', type: 'BANK' },
+    { provider: 'Fidelity Bank Nigeria', type: 'BANK' },
+    { provider: 'Sterling Bank', type: 'BANK' },
+    { provider: 'OPay', type: 'MOBILE_MONEY' },
+    { provider: 'Palmpay', type: 'MOBILE_MONEY' },
+    { provider: 'MTN MoMo Nigeria', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
+  ],
+  Ghana: [
+    { provider: 'GCB Bank', type: 'BANK' },
+    { provider: 'Absa Bank Ghana', type: 'BANK' },
+    { provider: 'Ecobank Ghana', type: 'BANK' },
+    { provider: 'Stanbic Bank Ghana', type: 'BANK' },
+    { provider: 'Fidelity Bank Ghana', type: 'BANK' },
+    { provider: 'MTN Mobile Money Ghana', type: 'MOBILE_MONEY' },
+    { provider: 'AirtelTigo Money', type: 'MOBILE_MONEY' },
+    { provider: 'Vodafone Cash', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
+  ],
+  Rwanda: [
+    { provider: 'Bank of Kigali', type: 'BANK' },
+    { provider: 'Equity Bank Rwanda', type: 'BANK' },
+    { provider: 'I&M Bank Rwanda', type: 'BANK' },
+    { provider: 'KCB Bank Rwanda', type: 'BANK' },
+    { provider: 'Cogebanque', type: 'BANK' },
+    { provider: 'MTN MoMo Rwanda', type: 'MOBILE_MONEY' },
+    { provider: 'Airtel Money Rwanda', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
+  ],
+  'South Africa': [
+    { provider: 'Absa Bank South Africa', type: 'BANK' },
+    { provider: 'Standard Bank South Africa', type: 'BANK' },
+    { provider: 'FNB (First National Bank)', type: 'BANK' },
+    { provider: 'Nedbank', type: 'BANK' },
+    { provider: 'Capitec Bank', type: 'BANK' },
+    { provider: 'Discovery Bank', type: 'BANK' },
+    { provider: 'Investec', type: 'BANK' },
+    { provider: 'Cash Wallet', type: 'CASH' },
+  ],
+  Ethiopia: [
+    { provider: 'Commercial Bank of Ethiopia', type: 'BANK' },
+    { provider: 'Dashen Bank', type: 'BANK' },
+    { provider: 'Awash Bank', type: 'BANK' },
+    { provider: 'Bank of Abyssinia', type: 'BANK' },
+    { provider: 'Zemen Bank', type: 'BANK' },
+    { provider: 'Telebirr', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
+  ],
+  Zambia: [
+    { provider: 'Zanaco', type: 'BANK' },
+    { provider: 'First National Bank Zambia', type: 'BANK' },
+    { provider: 'Stanbic Bank Zambia', type: 'BANK' },
+    { provider: 'Absa Bank Zambia', type: 'BANK' },
+    { provider: 'MTN MoMo Zambia', type: 'MOBILE_MONEY' },
+    { provider: 'Airtel Money Zambia', type: 'MOBILE_MONEY' },
+    { provider: 'Cash Wallet', type: 'CASH' },
   ],
 };
 
 const DEFAULT_ACCOUNT_OPTIONS: Array<{ provider: string; type: FinanceAccount['type'] }> = [
   { provider: 'Primary Bank Account', type: 'BANK' },
+  { provider: 'Savings Account', type: 'BANK' },
   { provider: 'Operating Cash Wallet', type: 'CASH' },
+  { provider: 'Mobile Money Wallet', type: 'MOBILE_MONEY' },
+];
+
+const AGRI_PRODUCTS = [
+  '-- Select a product --',
+  // Grains & Cereals
+  'Maize (Corn)', 'Wheat', 'Rice', 'Sorghum', 'Millet', 'Finger Millet (Wimbi)', 'Barley', 'Oats',
+  // Legumes & Pulses
+  'Beans (Common)', 'Soybeans', 'Groundnuts (Peanuts)', 'Cowpeas', 'Pigeon Peas', 'Lentils', 'Chickpeas',
+  // Cash Crops
+  'Coffee Arabica', 'Coffee Robusta', 'Tea Leaves', 'Cocoa Beans', 'Tobacco', 'Cotton Lint', 'Cotton Seed',
+  'Sugarcane', 'Vanilla', 'Pyrethrum',
+  // Oilseeds
+  'Sunflower Seeds', 'Sesame Seeds (Simsim)', 'Palm Fruit / CPO', 'Castor Seeds',
+  // Roots & Tubers
+  'Cassava', 'Sweet Potato', 'Irish Potato', 'Yams', 'Arrow Roots',
+  // Fruits
+  'Banana (Dessert)', 'Banana (Matoke / Cooking)', 'Avocado', 'Mango', 'Pineapple', 'Passion Fruit',
+  'Papaya', 'Watermelon', 'Orange', 'Lemon', 'Guava',
+  // Vegetables
+  'Tomatoes', 'Onions', 'Cabbage', 'Carrot', 'Pepper (Green/Red)', 'Eggplant (Brinjal)', 'Garlic',
+  'Cucumber', 'Pumpkin', 'Spinach / Sukuma Wiki',
+  // Tree Nuts
+  'Macadamia Nuts', 'Cashew Nuts', 'Walnuts',
+  // Livestock Products
+  'Cattle (Live)', 'Goats (Live)', 'Sheep (Live)', 'Pigs (Live)',
+  'Poultry (Chickens)', 'Eggs (Trays)', 'Milk (Fresh Litres)', 'Beef (Carcass kg)',
+  'Hides & Skins',
+  // Aquaculture
+  'Tilapia Fish', 'Catfish', 'Dried Fish',
+  // Apiculture
+  'Honey', 'Beeswax',
+  // Processed / Value-Added
+  'Maize Flour', 'Rice (Milled)', 'Sunflower Oil', 'Cassava Flour', 'Dried Beans',
+  // Other
+  'Timber / Logs', 'Charcoal', 'Other',
 ];
 
 const CROP_STAGE_OPTIONS: Array<{ label: string; status: CropStatus; daysAgo: number }> = [
@@ -559,7 +678,15 @@ export default function Onboarding() {
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                   <div className="md:col-span-2">
                     <label className={labelCls}>Existing Inventory Product</label>
-                    <input className={inputCls} value={inventoryDraft.productName} onChange={e => setInventoryDraft({...inventoryDraft, productName: e.target.value})} placeholder="Maize Grain" />
+                    <select
+                      className={inputCls}
+                      value={inventoryDraft.productName}
+                      onChange={e => setInventoryDraft({...inventoryDraft, productName: e.target.value === '-- Select a product --' ? '' : e.target.value})}
+                    >
+                      {AGRI_PRODUCTS.map(p => (
+                        <option key={p} value={p === '-- Select a product --' ? '' : p} className="bg-slate-900">{p}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className={labelCls}>Grade</label>

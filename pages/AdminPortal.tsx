@@ -5,13 +5,13 @@ import {
     Users, ShieldCheck, UserMinus, CheckCircle2, XCircle, 
     Smartphone, Mail, Hash, Building, Globe, Filter, 
     Search, LogOut, RefreshCw, Trash2, Ban, Settings, Activity, Wallet, Landmark, UserPlus, X, Shield, Lock, ChevronRight, LayoutDashboard, Briefcase, Plus, SendHorizontal,
-    DollarSign, Package, TrendingUp, FileText, BarChart3
+    DollarSign, Package, TrendingUp, FileText, BarChart3, Clock, MapPin, Key, Eye, AlertTriangle, CreditCard, Fingerprint
 } from 'lucide-react';
 import { User, PendingSignup, Sector } from '../types';
 
 export default function AdminPortal() {
     const { user, logout, pendingSignups, approveSignup, rejectSignup, getAllUsers, deleteUser, changeUserStatus, register, transactions, farms, staff, inventory, exports: exportOrders, formatCurrency, balance, messages, announcements } = useApp();
-    const [activeView, setActiveView] = useState<'REQUESTS' | 'USERS' | 'ANALYTICS'>('REQUESTS');
+    const [activeView, setActiveView] = useState<'REQUESTS' | 'USERS' | 'ANALYTICS' | 'SECURITY'>('REQUESTS');
     const [searchTerm, setSearchTerm] = useState('');
     const [users, setUsers] = useState<User[]>([]);
     
@@ -196,6 +196,12 @@ export default function AdminPortal() {
                         >
                             <BarChart3 size={13} className="mr-1.5 md:mr-2" /> Analytics
                         </button>
+                        <button 
+                            onClick={() => setActiveView('SECURITY')}
+                            className={`shrink-0 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center ${activeView === 'SECURITY' ? 'bg-amber-500 text-black shadow-xl' : 'text-slate-500 hover:text-amber-400'}`}
+                        >
+                            <Shield size={13} className="mr-1.5 md:mr-2" /> Security
+                        </button>
                     </div>
 
                     <div className="flex items-center gap-2 md:gap-4 px-1 md:px-2">
@@ -223,57 +229,95 @@ export default function AdminPortal() {
                         {filteredRequests.length === 0 ? (
                             <div className="col-span-full py-20 md:py-40 text-center bg-slate-950/50 border border-white/5 rounded-2xl md:rounded-[4rem]">
                                 <Activity size={48} className="mx-auto text-slate-900 mb-4 md:mb-8" />
-                                <p className="text-slate-600 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[10px] md:text-xs">No Signal Detected in Pipeline</p>
+                                <p className="text-slate-600 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[10px] md:text-xs">No Pending Audit Requests</p>
                             </div>
                         ) : filteredRequests.map(req => (
-                            <div key={req.id} className="bg-slate-900 border border-white/5 p-5 md:p-12 rounded-2xl md:rounded-[3.5rem] hover:border-emerald-500/20 transition-all group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-6 md:p-12 opacity-5"><ShieldCheck size={100} /></div>
-                                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-5 md:mb-10 relative z-10 gap-3">
-                                    <div className="min-w-0">
-                                        <h3 className="text-xl md:text-3xl font-black text-white tracking-tighter leading-none mb-1 md:mb-2 truncate">{req.userName}</h3>
-                                        <p className="text-slate-500 font-bold uppercase text-[9px] md:text-[10px] tracking-widest truncate">{req.userEmail}</p>
+                            <div key={req.id} className="bg-slate-900 border border-white/5 p-5 md:p-8 rounded-2xl md:rounded-[2rem] hover:border-emerald-500/30 transition-all group relative overflow-hidden">
+                                {/* Background watermark */}
+                                <div className="absolute top-0 right-0 p-6 opacity-[0.03]"><CreditCard size={120} /></div>
+
+                                {/* Header row */}
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-5 relative z-10 gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                                            <span className="text-emerald-400 font-black text-sm">{req.userName.charAt(0)}</span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h3 className="text-base md:text-xl font-black text-white tracking-tighter leading-none mb-0.5 truncate">{req.userName}</h3>
+                                            <p className="text-slate-500 font-mono text-[9px] md:text-[10px] truncate">{req.userEmail}</p>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
-                                        <span className="text-[7px] md:text-[8px] font-black px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full uppercase tracking-widest">Audit Required</span>
-                                        {req.country && <span className="text-[7px] font-black px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full uppercase tracking-widest">{req.country}</span>}
-                                        {!req.transactionId && <span className="text-[7px] font-black px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full uppercase tracking-widest animate-pulse">Not Verified Yet</span>}
+                                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                                        <span className={`text-[7px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border ${
+                                            req.paymentMethod === 'MTN' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                            req.paymentMethod === 'AIRTEL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                            req.paymentMethod === 'MPESA' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                            req.paymentMethod === 'BANK' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                            'bg-slate-700 text-slate-400 border-slate-600'
+                                        }`}>
+                                            {req.paymentMethod === 'MTN' ? '● MTN MoMo' :
+                                             req.paymentMethod === 'AIRTEL' ? '● Airtel Money' :
+                                             req.paymentMethod === 'MPESA' ? '● M-Pesa' :
+                                             req.paymentMethod === 'BANK' ? '● Bank Transfer' :
+                                             '● Unverified'}
+                                        </span>
+                                        {req.country && <span className="text-[7px] font-black px-3 py-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full uppercase tracking-widest">{req.country}</span>}
+                                        {!req.transactionId && <span className="text-[7px] font-black px-3 py-1.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full uppercase tracking-widest animate-pulse">⚠ No TX ID</span>}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mb-5 md:mb-8 relative z-10">
-                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
-                                        <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Gate Token</p>
-                                        <p className="text-[9px] md:text-[10px] font-black text-slate-300 font-mono tracking-tighter truncate">{req.transactionId || <span className="text-slate-700 italic">Pending</span>}</p>
+                                {/* Transaction ID - prominent */}
+                                <div className="mb-4 p-4 bg-black/60 border border-white/5 rounded-xl relative z-10">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Fingerprint size={12} className="text-emerald-500 shrink-0" />
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Transaction ID / Reference</p>
                                     </div>
-                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
-                                        <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Origin Phone</p>
-                                        <p className="text-[9px] md:text-[10px] font-black text-slate-300 truncate">{req.paymentPhone || <span className="text-slate-700 italic">Pending</span>}</p>
+                                    {req.transactionId ? (
+                                        <p className="font-mono text-sm md:text-base font-black text-emerald-400 tracking-wider break-all">{req.transactionId}</p>
+                                    ) : (
+                                        <p className="text-amber-400/70 text-xs font-bold italic">No transaction ID submitted — payment unverified</p>
+                                    )}
+                                </div>
+
+                                {/* Detail grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3 mb-4 relative z-10">
+                                    <div className="bg-black/40 p-3 rounded-xl border border-white/[0.04]">
+                                        <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Smartphone size={8} /> Phone</p>
+                                        <p className="text-[9px] md:text-[10px] font-bold text-slate-300 truncate">{req.paymentPhone || <span className="text-slate-700 italic">N/A</span>}</p>
                                     </div>
-                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
-                                        <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Method</p>
+                                    <div className="bg-black/40 p-3 rounded-xl border border-white/[0.04]">
+                                        <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1 flex items-center gap-1"><CreditCard size={8} /> Method</p>
                                         <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-wider ${
                                             req.paymentMethod === 'MTN' ? 'text-yellow-400' :
                                             req.paymentMethod === 'AIRTEL' ? 'text-red-400' :
                                             req.paymentMethod === 'MPESA' ? 'text-green-400' :
                                             'text-blue-400'
-                                        }`}>{req.paymentMethod || 'N/A'}</p>
+                                        }`}>{req.paymentMethod || 'Unknown'}</p>
                                     </div>
-                                    <div className="bg-black/50 p-3 md:p-5 rounded-xl md:rounded-2xl border border-white/5">
-                                        <p className="text-[7px] md:text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 md:mb-2">Log Date</p>
-                                        <p className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase">{new Date(req.date).toLocaleDateString()}</p>
+                                    <div className="bg-black/40 p-3 rounded-xl border border-white/[0.04]">
+                                        <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Clock size={8} /> Submitted</p>
+                                        <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase">{new Date(req.date).toLocaleDateString()}</p>
+                                        <p className="text-[8px] font-bold text-slate-600">{new Date(req.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                                    </div>
+                                    <div className="bg-black/40 p-3 rounded-xl border border-white/[0.04]">
+                                        <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1 flex items-center gap-1"><ShieldCheck size={8} /> Status</p>
+                                        <p className={`text-[9px] font-black uppercase tracking-wider ${req.transactionId ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                            {req.transactionId ? 'TX Provided' : 'Pending TX'}
+                                        </p>
                                     </div>
                                 </div>
 
+                                {/* Bank details if applicable */}
                                 {req.paymentMethod === 'BANK' && (req.bankName || req.accountName) && (
-                                    <div className="flex gap-3 mb-5 md:mb-6 relative z-10">
+                                    <div className="flex gap-2 mb-4 relative z-10">
                                         {req.bankName && (
-                                            <div className="flex-1 bg-blue-500/5 border border-blue-500/10 p-3 md:p-4 rounded-xl">
-                                                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Bank</p>
+                                            <div className="flex-1 bg-blue-500/5 border border-blue-500/15 p-3 rounded-xl">
+                                                <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Bank Name</p>
                                                 <p className="text-[10px] font-bold text-blue-300 truncate">{req.bankName}</p>
                                             </div>
                                         )}
                                         {req.accountName && (
-                                            <div className="flex-1 bg-blue-500/5 border border-blue-500/10 p-3 md:p-4 rounded-xl">
+                                            <div className="flex-1 bg-blue-500/5 border border-blue-500/15 p-3 rounded-xl">
                                                 <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-1">Account Name</p>
                                                 <p className="text-[10px] font-bold text-blue-300 truncate">{req.accountName}</p>
                                             </div>
@@ -281,22 +325,22 @@ export default function AdminPortal() {
                                     </div>
                                 )}
 
-                                <div className="flex space-x-3 md:space-x-4 relative z-10 pt-4 md:pt-6 border-t border-white/5">
+                                <div className="flex space-x-3 relative z-10 pt-4 border-t border-white/5">
                                     <button 
                                         onClick={() => handleApprove(req.id)}
                                         disabled={processingId === req.id}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shadow-xl shadow-emerald-500/10 flex items-center justify-center active:scale-95"
+                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 md:py-4 rounded-xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all shadow-xl shadow-emerald-500/10 flex items-center justify-center active:scale-95"
                                     >
                                         {processingId === req.id
                                             ? <><RefreshCw size={13} className="mr-2 animate-spin" /> Authorizing...</>
-                                            : <><CheckCircle2 size={15} className="mr-2" /> Authorize</>}
+                                            : <><CheckCircle2 size={15} className="mr-2" /> Approve Access</>}
                                     </button>
                                     <button 
                                         onClick={() => handlePurge(req.id)}
                                         disabled={processingId === req.id}
-                                        className="px-5 md:px-10 bg-white/5 hover:bg-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed text-slate-600 hover:text-red-500 py-3 md:py-5 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all border border-white/5"
+                                        className="px-5 md:px-8 bg-white/5 hover:bg-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed text-slate-600 hover:text-red-500 py-3 md:py-4 rounded-xl font-black uppercase text-[9px] md:text-[10px] tracking-widest transition-all border border-white/5 flex items-center gap-2"
                                     >
-                                        Purge
+                                        <XCircle size={13} /> Reject
                                     </button>
                                 </div>
                             </div>
@@ -434,6 +478,148 @@ export default function AdminPortal() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── SECURITY VIEW ─────────────────────────────────────── */}
+                {activeView === 'SECURITY' && (
+                    <div className="space-y-6">
+                        {/* Security KPI row */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
+                            <div className="bg-slate-900 border border-amber-500/10 p-4 md:p-5 rounded-xl md:rounded-2xl">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Clock size={12} className="text-amber-400" />
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Active Today</p>
+                                </div>
+                                <p className="text-2xl font-black text-white tracking-tighter">
+                                    {users.filter(u => u.lastLoginAt && (Date.now() - new Date(u.lastLoginAt).getTime()) < 86400000).length}
+                                </p>
+                            </div>
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-5 rounded-xl md:rounded-2xl">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <MapPin size={12} className="text-blue-400" />
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Unique Locations</p>
+                                </div>
+                                <p className="text-2xl font-black text-white tracking-tighter">
+                                    {new Set(users.map(u => u.lastLoginLocation).filter(Boolean)).size || 0}
+                                </p>
+                            </div>
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-5 rounded-xl md:rounded-2xl">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Key size={12} className="text-violet-400" />
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Never Logged In</p>
+                                </div>
+                                <p className="text-2xl font-black text-white tracking-tighter">
+                                    {users.filter(u => !u.lastLoginAt).length}
+                                </p>
+                            </div>
+                            <div className="bg-slate-900 border border-white/5 p-4 md:p-5 rounded-xl md:rounded-2xl">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <AlertTriangle size={12} className="text-rose-400" />
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Inactive 30d+</p>
+                                </div>
+                                <p className="text-2xl font-black text-rose-400 tracking-tighter">
+                                    {users.filter(u => u.lastLoginAt && (Date.now() - new Date(u.lastLoginAt).getTime()) > 30 * 86400000).length}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Security table */}
+                        <div className="bg-slate-900 border border-white/5 rounded-2xl overflow-hidden">
+                            <div className="px-5 md:px-8 py-4 md:py-5 border-b border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Shield size={14} className="text-amber-400" />
+                                    <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">User Security Audit Log</h3>
+                                </div>
+                                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">{users.length} accounts</span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left min-w-[700px]">
+                                    <thead className="bg-black/40 border-b border-white/5">
+                                        <tr>
+                                            <th className="px-5 py-4 text-[8px] font-black text-slate-600 uppercase tracking-widest">User</th>
+                                            <th className="px-5 py-4 text-[8px] font-black text-slate-600 uppercase tracking-widest">Last Login</th>
+                                            <th className="px-5 py-4 text-[8px] font-black text-slate-600 uppercase tracking-widest">Login Location (Timezone)</th>
+                                            <th className="px-5 py-4 text-[8px] font-black text-slate-600 uppercase tracking-widest">Password Changed</th>
+                                            <th className="px-5 py-4 text-[8px] font-black text-slate-600 uppercase tracking-widest">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {users.length === 0 ? (
+                                            <tr><td colSpan={5} className="px-5 py-16 text-center text-slate-700 font-bold uppercase tracking-widest text-[10px]">No users registered</td></tr>
+                                        ) : users.map(u => {
+                                            const daysSinceLogin = u.lastLoginAt
+                                                ? Math.floor((Date.now() - new Date(u.lastLoginAt).getTime()) / 86400000)
+                                                : null;
+                                            const loginRecent = daysSinceLogin !== null && daysSinceLogin < 7;
+                                            const loginStale = daysSinceLogin !== null && daysSinceLogin >= 30;
+
+                                            return (
+                                                <tr key={u.id} className="hover:bg-white/[0.03] transition-colors">
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${u.activationStatus === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-600'}`}>
+                                                                {u.name.charAt(0)}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-white truncate">{u.name}</p>
+                                                                <p className="text-[8px] text-slate-600 truncate">{u.email}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        {u.lastLoginAt ? (
+                                                            <div>
+                                                                <p className={`text-[10px] font-bold ${loginRecent ? 'text-emerald-400' : loginStale ? 'text-rose-400' : 'text-slate-300'}`}>
+                                                                    {new Date(u.lastLoginAt).toLocaleDateString()} {new Date(u.lastLoginAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                                                                </p>
+                                                                <p className="text-[8px] text-slate-600 mt-0.5">
+                                                                    {daysSinceLogin === 0 ? 'Today' : daysSinceLogin === 1 ? 'Yesterday' : `${daysSinceLogin}d ago`}
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[9px] text-slate-700 italic font-bold">Never logged in</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        {u.lastLoginLocation ? (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <MapPin size={10} className="text-blue-400 shrink-0" />
+                                                                <span className="text-[10px] font-bold text-blue-300 truncate max-w-[160px]">{u.lastLoginLocation}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[9px] text-slate-700 italic">No location data</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        {u.lastPasswordChangedAt ? (
+                                                            <div>
+                                                                <p className="text-[10px] font-bold text-violet-300">{new Date(u.lastPasswordChangedAt).toLocaleDateString()}</p>
+                                                                <p className="text-[8px] text-slate-600 mt-0.5">
+                                                                    {Math.floor((Date.now() - new Date(u.lastPasswordChangedAt).getTime()) / 86400000)}d ago
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[9px] text-slate-700 italic">Not recorded</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded-full border w-fit ${
+                                                                u.activationStatus === 'ACTIVE' ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5' :
+                                                                u.activationStatus === 'PENDING' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' :
+                                                                'border-rose-500/20 text-rose-500 bg-rose-500/5'
+                                                            }`}>{u.activationStatus}</span>
+                                                            {loginStale && <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded-full border border-rose-500/20 text-rose-400 bg-rose-500/5 w-fit">Inactive</span>}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
