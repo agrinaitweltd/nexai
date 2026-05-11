@@ -106,9 +106,9 @@ export default function Layout() {
             : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <Icon size={17} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200 transition-colors'} />
-          <span className="text-[13px] font-semibold tracking-[-0.01em]">{label}</span>
+          <span className="text-[13px] font-semibold tracking-[-0.01em] truncate">{label}</span>
         </div>
         {badge ? (
           <span className="min-w-[20px] h-5 px-1.5 text-[10px] font-black rounded-full bg-red-500 text-white flex items-center justify-center shrink-0">
@@ -255,9 +255,9 @@ export default function Layout() {
               {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
               <span>{isOnline ? 'Online' : 'Offline'}</span>
             </div>
-            <div className="hidden lg:flex flex-col items-end">
+            <div className="hidden lg:flex flex-col items-end max-w-[180px]">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Balance</span>
-                <span className="text-sm font-bold text-white">{formatCurrency(balance)}</span>
+              <span className="text-sm font-bold text-white truncate">{formatCurrency(balance)}</span>
             </div>
 
             <div className="relative">
@@ -289,7 +289,7 @@ export default function Layout() {
                                 onClick={() => handleNotificationClick(note)}
                                 className={`p-4 border-b border-white/[0.04] cursor-pointer hover:bg-white/[0.05] transition-all ${!note.read ? 'bg-blue-500/[0.06]' : ''}`}
                             >
-                                <p className={`text-sm leading-tight ${!note.read ? 'font-bold text-white' : 'text-slate-400'}`}>{note.message}</p>
+                                <p className={`text-sm leading-tight break-words ${!note.read ? 'font-bold text-white' : 'text-slate-400'}`}>{note.message}</p>
                                 <p className="text-[9px] text-slate-600 mt-1.5 font-bold uppercase tracking-wider">{new Date(note.date).toLocaleString()}</p>
                             </div>
                         ))
@@ -355,10 +355,10 @@ export default function Layout() {
                       key={item.to}
                       to={item.to}
                       onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-white/[0.07] hover:text-white transition-all text-[13px] font-semibold"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-white/[0.07] hover:text-white transition-all text-[13px] font-semibold min-w-0"
                     >
-                      <Search size={12} className="text-slate-600" />
-                      {item.label}
+                      <Search size={12} className="text-slate-600 shrink-0" />
+                      <span className="truncate">{item.label}</span>
                     </Link>
                   ))
                 }

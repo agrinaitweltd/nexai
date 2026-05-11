@@ -11,19 +11,19 @@ import {
 const StatCard = ({ label, value, sub, icon: Icon, color, trend }: {
     label: string; value: string | number; sub?: string; icon: any; color: string; trend?: 'up' | 'down' | null;
 }) => (
-    <div className="bg-[#131f35] border border-white/[0.06] rounded-2xl p-5 flex flex-col gap-3 hover:border-white/10 transition-all hover:bg-[#162238]">
+    <div className="bg-[#131f35] border border-white/[0.06] rounded-2xl p-5 flex flex-col gap-3 hover:border-white/10 transition-all hover:bg-[#162238] min-w-0 overflow-hidden">
         <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</span>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate pr-2">{label}</span>
             <div className={`w-9 h-9 rounded-xl ${color} flex items-center justify-center shrink-0`}>
                 <Icon size={16} />
             </div>
         </div>
-        <p className="text-3xl font-black text-white tracking-tight">{value}</p>
+        <p className="text-2xl md:text-3xl font-black text-white tracking-tight break-words leading-tight">{value}</p>
         {sub && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 min-w-0">
                 {trend === 'up' && <TrendingUp size={11} className="text-emerald-400" />}
                 {trend === 'down' && <TrendingDown size={11} className="text-red-400" />}
-                <p className={`text-[11px] font-semibold ${trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-red-400' : 'text-slate-500'}`}>{sub}</p>
+                <p className={`text-[11px] font-semibold truncate ${trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-red-400' : 'text-slate-500'}`}>{sub}</p>
             </div>
         )}
     </div>
@@ -63,7 +63,7 @@ export default function Dashboard() {
             <div className="flex items-start justify-between">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Operations Dashboard</h1>
-                    <p className="text-slate-500 text-sm mt-1">{user.companyName} &mdash; {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p className="text-slate-500 text-sm mt-1 break-words">{user.companyName} &mdash; {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="hidden md:flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -153,7 +153,7 @@ export default function Dashboard() {
                                 { label: 'Ask NexaAI', to: '/app/agro-ai', color: 'text-pink-400', bg: 'bg-pink-500/10 hover:bg-pink-500/20' },
                             ].map(a => (
                                 <Link key={a.to} to={a.to} className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${a.bg} transition-all group`}>
-                                    <span className={`text-[12px] font-semibold ${a.color}`}>{a.label}</span>
+                                    <span className={`text-[12px] font-semibold ${a.color} truncate pr-2`}>{a.label}</span>
                                     <ArrowRight size={12} className={`${a.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
                                 </Link>
                             ))}
@@ -175,9 +175,9 @@ export default function Dashboard() {
                                             <div className="w-7 h-7 rounded-full bg-[#1a5cad] flex items-center justify-center text-white text-[10px] font-black shrink-0">
                                                 {s.name?.charAt(0).toUpperCase()}
                                             </div>
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-white leading-tight">{s.name}</p>
-                                                <p className="text-[10px] text-slate-500">{s.role || 'Staff'}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-[12px] font-semibold text-white leading-tight truncate">{s.name}</p>
+                                                <p className="text-[10px] text-slate-500 truncate">{s.role || 'Staff'}</p>
                                             </div>
                                         </div>
                                         <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
