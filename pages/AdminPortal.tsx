@@ -70,7 +70,7 @@ export default function AdminPortal() {
     const [securityPromptOpen, setSecurityPromptOpen] = useState(false);
     const [securityPromptLabel, setSecurityPromptLabel] = useState('');
     const [securityPromptPositions, setSecurityPromptPositions] = useState<number[]>([]);
-    const [securityPromptInput, setSecurityPromptInput] = useState('');
+    const [securityPromptSelections, setSecurityPromptSelections] = useState<string[]>(['', '', '']);
     const [securityPromptError, setSecurityPromptError] = useState('');
 
     const expectedSecurityAnswerRef = useRef('');
@@ -93,14 +93,14 @@ export default function AdminPortal() {
         sensitiveActionRef.current = action;
         setSecurityPromptLabel(label);
         setSecurityPromptPositions(positions);
-        setSecurityPromptInput('');
+        setSecurityPromptSelections(['', '', '']);
         setSecurityPromptError('');
         setSecurityPromptOpen(true);
     }, [randomSecurityPositions]);
 
     const closeSensitiveActionPrompt = useCallback(() => {
         setSecurityPromptOpen(false);
-        setSecurityPromptInput('');
+        setSecurityPromptSelections(['', '', '']);
         setSecurityPromptError('');
         expectedSecurityAnswerRef.current = '';
         sensitiveActionRef.current = null;
@@ -108,20 +108,15 @@ export default function AdminPortal() {
 
     const submitSensitiveActionPrompt = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        const normalized = securityPromptInput.replace(/\s+/g, '').toLowerCase();
-        if (normalized !== expectedSecurityAnswerRef.current) {
-            setSecurityPromptError('Memory check failed. Try again.');
+        const joined = securityPromptSelections.join('').toLowerCase();
+        if (joined !== expectedSecurityAnswerRef.current) {
+            setSecurityPromptError('Incorrect characters. Please try again.');
             return;
         }
         const action = sensitiveActionRef.current;
         closeSensitiveActionPrompt();
         if (action) await action();
-    }, [closeSensitiveActionPrompt, securityPromptInput]);
-
-    const securityPromptPositionsText = useMemo(
-        () => securityPromptPositions.join(', '),
-        [securityPromptPositions]
-    );
+    }, [closeSensitiveActionPrompt, securityPromptSelections]);
 
     const refreshUsers = useCallback(async () => {
         const next = await getAllUsers();
@@ -719,44 +714,60 @@ export default function AdminPortal() {
 
             {securityPromptOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[210] p-4 animate-in fade-in duration-200">
-                    <div className="bg-[#131f35] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-                        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-                            <div>
-                                <h3 className="text-[14px] font-bold text-white">Confirm {securityPromptLabel}</h3>
-                                <p className="text-[11px] text-slate-500">Security memory check required</p>
-                            </div>
-                            <button onClick={closeSensitiveActionPrompt} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all">
+                    <div className="bg-[#0f1c2e] border border-white/10 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+                        <div className="flex items-start justify-between p-8 pb-0">
+                            <h2 className="text-2xl font-black text-white leading-tight">Your memorable information</h2>
+                            <button onClick={closeSensitiveActionPrompt} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all ml-4 mt-1 shrink-0">
                                 <X size={14} />
                             </button>
                         </div>
 
-                        <form onSubmit={submitSensitiveActionPrompt} className="p-5 space-y-4">
-                            <div className="bg-[#0b1526] border border-white/[0.06] rounded-xl p-3">
-                                <p className="text-[11px] text-slate-400">Enter characters at positions:</p>
-                                <p className="text-[13px] font-bold text-[#4da6ff]">{securityPromptPositionsText}</p>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Memory Characters</label>
-                                <input
-                                    required
-                                    autoFocus
-                                    value={securityPromptInput}
-                                    onChange={e => {
-                                        setSecurityPromptInput(e.target.value);
-                                        if (securityPromptError) setSecurityPromptError('');
-                                    }}
-                                    placeholder="Example: oie"
-                                    className="w-full bg-[#0b1526] border border-white/[0.08] text-white placeholder:text-slate-600 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#1a6fc4]/60 transition-all"
-                                />
-                                {securityPromptError && <p className="text-[11px] text-red-400">{securityPromptError}</p>}
+                        <form onSubmit={submitSensitiveActionPrompt} className="p-8 pt-5 space-y-4">
+                            <p className="text-[13px] text-slate-300 leading-relaxed">
+                                <strong>Please enter characters {securityPromptPositions[0]}, {securityPromptPositions[1]} and {securityPromptPositions[2]} from your memorable information then click on the continue button.</strong>
+                            </p>
+                            <p className="text-[13px] text-slate-300">
+                                <strong>We'll never ask you to enter your FULL memorable information.</strong>
+                            </p>
+                            <p className="text-[12px] text-emerald-400">This login step improves security.</p>
+
+                            <div className="grid grid-cols-3 gap-5 pt-2">
+                                {securityPromptPositions.map((pos, i) => (
+                                    <div key={pos} className="flex flex-col gap-2">
+                                        <label className="text-[13px] text-slate-300 font-semibold">Character {pos} :</label>
+                                        <div className="relative">
+                                            <select
+                                                required
+                                                value={securityPromptSelections[i]}
+                                                onChange={e => {
+                                                    const next = [...securityPromptSelections];
+                                                    next[i] = e.target.value;
+                                                    setSecurityPromptSelections(next);
+                                                    if (securityPromptError) setSecurityPromptError('');
+                                                }}
+                                                className="w-full appearance-none bg-[#131f35] border border-white/20 text-white rounded-lg px-3 py-2.5 text-[13px] outline-none focus:border-[#4da6ff]/60 transition-all cursor-pointer pr-8"
+                                            >
+                                                <option value="">Select</option>
+                                                {'abcdefghijklmnopqrstuvwxyz'.split('').map(c => (
+                                                    <option key={c} value={c}>{c}</option>
+                                                ))}
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
+                                                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-1">
+                            {securityPromptError && <p className="text-[12px] text-red-400">{securityPromptError}</p>}
+
+                            <div className="flex justify-end gap-3 pt-3">
                                 <button type="button" onClick={closeSensitiveActionPrompt} className="px-4 py-2.5 rounded-xl text-[12px] font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all">
                                     Cancel
                                 </button>
-                                <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#1a6fc4] hover:bg-[#2a7fd4] text-white text-[12px] font-bold transition-all">
-                                    Confirm Action
+                                <button type="submit" className="px-6 py-2.5 rounded-xl bg-[#1a6fc4] hover:bg-[#2a7fd4] text-white text-[12px] font-bold transition-all">
+                                    Continue
                                 </button>
                             </div>
                         </form>
