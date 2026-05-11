@@ -28,6 +28,7 @@ function profileToUser(p: any): User {
     name: p.full_name,
     email: p.email,
     role: p.role === 'SUPER_ADMIN' ? 'ADMIN' : p.role,
+    createdAt: p.created_at ?? undefined,
     phone: p.phone ?? undefined,
     location: p.country ?? undefined,
     sector: p.sector ?? 'GENERAL',
@@ -770,6 +771,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { data: { session } } = await supabase.auth.getSession();
     const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || 'https://vlxfwcdnsdqgcqkdnpav.supabase.co';
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .maybeSingle();
+
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/admin-delete-user`, {
         method: 'POST',
@@ -780,10 +787,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         body: JSON.stringify({ userId }),
       });
       const result = await res.json();
-      if (!result.success) throw new Error(result.error || 'Delete failed');
-    } catch {
-      // Fallback: delete profile only (auth user will remain but cannot log in without profile)
-      await supabase.from('profiles').delete().eq('id', userId);
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Delete failed');
+      }
+    } catch (err: any) {
+      addNotification(`User deletion failed: ${err.message || 'Unknown error'}`, 'ALERT');
+      throw err;
+    }
+
+    if (profile?.email) {
+      const { error } = await supabase.from('pending_registrations').delete().eq('email', profile.email);
+      if (error && isMissingRelationError(error)) {
+        await supabase.from('pending_signups').delete().eq('user_email', profile.email);
+      }
     }
 
     addNotification('User permanently deleted.', 'ALERT');

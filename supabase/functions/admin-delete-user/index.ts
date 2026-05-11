@@ -35,12 +35,25 @@ Deno.serve(async (req) => {
     const { userId } = await req.json();
     if (!userId) return new Response(JSON.stringify({ error: 'userId required' }), { status: 400, headers: corsHeaders });
 
+    const { data: targetProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .maybeSingle();
+
     // Delete from auth.users (this cascades to profiles via FK)
     const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (deleteErr) { 
-      // Profile-only fallback if auth delete fails
-      await supabaseAdmin.from('profiles').delete().eq('id', userId);
-      return new Response(JSON.stringify({ success: true, warning: deleteErr.message }), { headers: corsHeaders });
+      const msg = deleteErr.message?.toLowerCase() || '';
+      if (msg.includes('not found') || msg.includes('no rows')) {
+        await supabaseAdmin.from('profiles').delete().eq('id', userId);
+      } else {
+        return new Response(JSON.stringify({ error: deleteErr.message || 'Failed to delete auth user' }), { status: 500, headers: corsHeaders });
+      }
+    }
+
+    if (targetProfile?.email) {
+      await supabaseAdmin.from('pending_registrations').delete().eq('email', targetProfile.email);
     }
 
     return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });

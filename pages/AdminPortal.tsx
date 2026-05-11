@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { NexaLogo } from '../components/NexaLogo';
 import { 
@@ -29,21 +29,39 @@ export default function AdminPortal() {
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [processingId, setProcessingId] = useState<string | null>(null);
 
+    const refreshUsers = useCallback(async () => {
+        const nextUsers = await getAllUsers();
+        setUsers(nextUsers);
+    }, [getAllUsers]);
+
     const handleApprove = async (id: string) => {
         setProcessingId(id);
         await approveSignup(id);
+        await refreshUsers();
         setProcessingId(null);
     };
 
     const handlePurge = async (id: string) => {
         setProcessingId(id);
         await rejectSignup(id);
+        await refreshUsers();
         setProcessingId(null);
     };
 
+    const handleDeleteUser = async (id: string) => {
+        setProcessingId(id);
+        try {
+            await deleteUser(id);
+            setUsers(prev => prev.filter(u => u.id !== id));
+            await refreshUsers();
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
     useEffect(() => {
-        getAllUsers().then(setUsers);
-    }, [pendingSignups, activeView]);
+        refreshUsers();
+    }, [pendingSignups, activeView, refreshUsers]);
 
     const handleProvision = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -57,6 +75,7 @@ export default function AdminPortal() {
             if (res.success) {
                 setShowProvisionModal(false);
                 setProvisionForm({ name: '', email: '', password: '', companyName: '', businessType: 'General Agriculture', sector: 'GENERAL', role: 'ADMIN' });
+                await refreshUsers();
                 setActiveView('USERS');
             } else {
                 alert(res.message);
@@ -409,7 +428,7 @@ export default function AdminPortal() {
                                                 <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest">{u.activationStatus}</span>
                                             </td>
                                             <td className="px-4 md:px-10 py-4 md:py-8 text-right">
-                                                <button onClick={() => deleteUser(u.id)} className="p-2 md:p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-all" title="Purge Node"><Trash2 size={16}/></button>
+                                                <button onClick={() => handleDeleteUser(u.id)} disabled={processingId === u.id} className="p-2 md:p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed" title="Purge Node"><Trash2 size={16}/></button>
                                             </td>
                                         </tr>
                                     ))}
