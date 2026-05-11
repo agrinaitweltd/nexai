@@ -361,7 +361,7 @@ function SignupSuccessScreen({ name, email, onContinue, onSignOut }: SignupSucce
 }
 
 export default function Login() {
-  const { login, register, submitVerification, resetUserStatus, requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery } = useApp();
+    const { login, register, submitVerification, resetUserStatus, requestPasswordReset, resetPassword, isPasswordRecovery, clearPasswordRecovery, logout } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -465,6 +465,19 @@ export default function Login() {
     setStrength({ score, label, color });
   };
 
+    const completeApprovedLogin = async () => {
+        if (isMobileDevice() && !getSavedAuth()) {
+            const { supabase: sb } = await import('../supabaseClient');
+            const { data: { session } } = await sb.auth.getSession();
+            setLoggedInUserId(session?.user?.id || '');
+            setLoggedInEmail(email);
+            setShowSaveLoginSheet(true);
+            return;
+        }
+
+        navigate('/app', { replace: true });
+    };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -473,17 +486,25 @@ export default function Login() {
     try {
         const result = await login(email, password);
         if (result === true) {
-            // On mobile with no saved auth, offer to save login
-            if (isMobileDevice() && !getSavedAuth()) {
-                // Get the user id from supabase session for biometric setup
-                const { supabase: sb } = await import('../supabaseClient');
-                const { data: { session } } = await sb.auth.getSession();
-                setLoggedInUserId(session?.user?.id || '');
-                setLoggedInEmail(email);
-                setShowSaveLoginSheet(true);
+            const { supabase: sb } = await import('../supabaseClient');
+            const { data: { session } } = await sb.auth.getSession();
+            const profileRes = session?.user?.id
+                ? await sb.from('profiles').select('full_name, email, setup_complete').eq('id', session.user.id).maybeSingle()
+                : { data: null };
+
+            if (profileRes.data && profileRes.data.setup_complete === false) {
+                setPendingUser({
+                    id: session?.user?.id || '',
+                    name: profileRes.data.full_name,
+                    email: profileRes.data.email,
+                    role: 'ADMIN',
+                    sector: 'GENERAL',
+                });
+                setView('SIGNUP_SUCCESS');
                 setIsLoading(false);
             } else {
-                navigate('/app', { replace: true });
+                await completeApprovedLogin();
+                setIsLoading(false);
             }
         } else if (result === 'PENDING') {
             setView('AWAITING');
@@ -545,7 +566,7 @@ export default function Login() {
 
         if (result.success && result.user) {
             setPendingUser(result.user);
-            setView('SIGNUP_SUCCESS');
+            setView('PAYMENT');
         } else {
             setError(result.message);
         }
@@ -1087,10 +1108,10 @@ export default function Login() {
             {/* SIGNUP SUCCESS VIEW */}
             {view === 'SIGNUP_SUCCESS' && (
                 <SignupSuccessScreen
-                    name={name}
-                    email={newEmail}
-                    onContinue={() => setView('PAYMENT')}
-                    onSignOut={() => { setView('LOGIN'); }}
+                    name={pendingUser?.name || name}
+                    email={pendingUser?.email || newEmail}
+                    onContinue={() => { void completeApprovedLogin(); }}
+                    onSignOut={() => { void logout(); setView('LOGIN'); }}
                 />
             )}
 

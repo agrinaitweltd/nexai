@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { User, InventoryItem, Farm } from '../types';
+import { FinanceAccount, InventoryItem, Crop, CropStatus, Unit } from '../types';
 import { ChevronRight, Check, Package, Users, Building, Flag, Phone, Mail, Hash, Globe, Scale, Landmark, ShieldCheck, UserCheck, AlertCircle, FileText, X, ArrowRight, Smartphone, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -9,13 +9,75 @@ import { QRCodeSVG } from 'qrcode.react';
 const inputCls = "w-full bg-white/[0.06] border border-white/10 text-white placeholder-white/25 rounded-2xl px-5 py-3.5 font-bold text-sm outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all";
 const labelCls = "block text-[9px] font-black text-white/40 uppercase tracking-[0.4em] px-1 mb-2";
 
+const COUNTRY_CURRENCY_MAP: Record<string, string> = {
+  Uganda: 'UGX',
+  Kenya: 'KES',
+  Tanzania: 'TZS',
+  Nigeria: 'NGN',
+  Ghana: 'GHS',
+  'South Africa': 'ZAR',
+  Rwanda: 'RWF',
+  Ethiopia: 'ETB',
+  Egypt: 'EGP',
+  Morocco: 'MAD',
+  Mauritius: 'MUR',
+  Zambia: 'ZMW',
+  Botswana: 'BWP',
+  Namibia: 'NAD',
+  'United States': 'USD',
+  'United Kingdom': 'GBP',
+};
+
+const COUNTRY_ACCOUNT_OPTIONS: Record<string, Array<{ provider: string; type: FinanceAccount['type'] }>> = {
+  Uganda: [
+    { provider: 'Stanbic Bank Uganda', type: 'BANK' },
+    { provider: 'Equity Bank Uganda', type: 'BANK' },
+    { provider: 'MTN MoMo', type: 'MOBILE_MONEY' },
+    { provider: 'Airtel Money', type: 'MOBILE_MONEY' },
+  ],
+  Kenya: [
+    { provider: 'Equity Bank Kenya', type: 'BANK' },
+    { provider: 'KCB Bank Kenya', type: 'BANK' },
+    { provider: 'M-Pesa', type: 'MOBILE_MONEY' },
+  ],
+  Tanzania: [
+    { provider: 'CRDB Bank', type: 'BANK' },
+    { provider: 'NMB Bank', type: 'BANK' },
+    { provider: 'M-Pesa Tanzania', type: 'MOBILE_MONEY' },
+    { provider: 'Airtel Money Tanzania', type: 'MOBILE_MONEY' },
+  ],
+  Nigeria: [
+    { provider: 'GTBank', type: 'BANK' },
+    { provider: 'Access Bank', type: 'BANK' },
+    { provider: 'Cash Reserve', type: 'CASH' },
+  ],
+};
+
+const DEFAULT_ACCOUNT_OPTIONS: Array<{ provider: string; type: FinanceAccount['type'] }> = [
+  { provider: 'Primary Bank Account', type: 'BANK' },
+  { provider: 'Operating Cash Wallet', type: 'CASH' },
+];
+
+const CROP_STAGE_OPTIONS: Array<{ label: string; status: CropStatus; daysAgo: number }> = [
+  { label: 'Just planted', status: 'PLANTED', daysAgo: 7 },
+  { label: 'Early growth', status: 'GROWING', daysAgo: 30 },
+  { label: 'Mid-season', status: 'GROWING', daysAgo: 60 },
+  { label: 'Nearly ready', status: 'READY', daysAgo: 90 },
+  { label: 'Harvest-ready', status: 'READY', daysAgo: 120 },
+];
+
+const UNITS: Unit[] = ['kg', 'tonnes', 'bags', 'liters', 'pieces', 'heads'];
+
 export default function Onboarding() {
-  const { user, completeOnboarding, addFarm, updateUser } = useApp();
+  const { user, completeOnboarding, addFarm, updateUser, addFinanceAccount, addToInventory, addCrop } = useApp();
   const [step, setStep] = useState(1);
   const totalSteps = 5;
   const [stepError, setStepError] = useState('');
   const [showQrCode, setShowQrCode] = useState(false);
-  const [selectedActivationProvider, setSelectedActivationProvider] = useState<'MTN' | 'AIRTEL'>('MTN');
+
+  const selectedCountry = user?.location || 'Uganda';
+  const accountOptions = COUNTRY_ACCOUNT_OPTIONS[selectedCountry] || DEFAULT_ACCOUNT_OPTIONS;
+  const defaultCurrency = user?.preferredCurrency || COUNTRY_CURRENCY_MAP[selectedCountry] || 'USD';
 
   const isDesktop = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -39,11 +101,95 @@ export default function Onboarding() {
       businessSize: 'Small (1-10 Employees)',
       ucdaNumber: ''
   });
+
+  const [preferredCurrency, setPreferredCurrency] = useState(defaultCurrency);
+  const [financeDraft, setFinanceDraft] = useState({
+    name: 'Primary Operating Account',
+    provider: accountOptions[0]?.provider || 'Primary Bank Account',
+    type: accountOptions[0]?.type || 'BANK',
+    balance: user?.initialBalance ? String(user.initialBalance) : '',
+  });
+  const [financeAccountsSeed, setFinanceAccountsSeed] = useState<FinanceAccount[]>([]);
+
+  const [inventoryDraft, setInventoryDraft] = useState({
+    productName: '',
+    grade: 'Standard',
+    quantity: '',
+    unit: 'kg' as Unit,
+    location: '',
+  });
+  const [inventorySeed, setInventorySeed] = useState<InventoryItem[]>([]);
+
+  const [cropDraft, setCropDraft] = useState({
+    name: '',
+    variety: '',
+    stageLabel: CROP_STAGE_OPTIONS[0].label,
+  });
+  const [cropSeed, setCropSeed] = useState<Array<Crop & { stageLabel: string }>>([]);
   
   const [farmName, setFarmName] = useState('');
   const [farmLocation, setFarmLocation] = useState('');
+
+  const buildDraftFinanceAccount = (): FinanceAccount | null => {
+    if (!financeDraft.name.trim() || financeDraft.balance === '' || Number.isNaN(Number(financeDraft.balance))) return null;
+    return {
+      id: 'fa-' + crypto.randomUUID().slice(0, 9),
+      name: financeDraft.name,
+      provider: financeDraft.provider,
+      type: financeDraft.type,
+      currency: preferredCurrency,
+      balance: Number(financeDraft.balance),
+      country: selectedCountry,
+      lastUpdated: new Date().toISOString(),
+    };
+  };
+
+  const buildDraftInventoryItem = (): InventoryItem | null => {
+    if (!inventoryDraft.productName.trim() || inventoryDraft.quantity === '' || Number.isNaN(Number(inventoryDraft.quantity))) return null;
+    return {
+      id: 'inv-' + crypto.randomUUID().slice(0, 9),
+      productName: inventoryDraft.productName,
+      grade: inventoryDraft.grade || 'Standard',
+      quantity: Number(inventoryDraft.quantity),
+      unit: inventoryDraft.unit,
+      location: inventoryDraft.location || farmLocation || 'Main Store',
+      lastUpdated: new Date().toISOString(),
+    };
+  };
+
+  const buildDraftCrop = (farmId: string): (Crop & { stageLabel: string }) | null => {
+    if (!cropDraft.name.trim()) return null;
+    const stage = CROP_STAGE_OPTIONS.find(option => option.label === cropDraft.stageLabel) || CROP_STAGE_OPTIONS[0];
+    return {
+      id: 'c-' + crypto.randomUUID().slice(0, 9),
+      farmId,
+      name: cropDraft.name,
+      variety: cropDraft.variety || 'General Variety',
+      status: stage.status,
+      plantedDate: new Date(Date.now() - stage.daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+      stageLabel: stage.label,
+    };
+  };
+
+  const totalOpeningBalance = useMemo(() => {
+    const draft = buildDraftFinanceAccount();
+    return [...financeAccountsSeed, ...(draft ? [draft] : [])].reduce((sum, acct) => sum + acct.balance, 0);
+  }, [financeAccountsSeed, financeDraft, preferredCurrency, selectedCountry]);
   
   const handleFinish = async () => {
+    const accountsToCreate = [...financeAccountsSeed];
+    const draftAccount = buildDraftFinanceAccount();
+    if (draftAccount) accountsToCreate.push(draftAccount);
+
+    const inventoryToCreate = [...inventorySeed];
+    const draftInventory = buildDraftInventoryItem();
+    if (draftInventory) inventoryToCreate.push(draftInventory);
+
+    const facilityId = farmName.trim() ? 'f-' + crypto.randomUUID().slice(0, 9) : '';
+    const cropsToCreate = [...cropSeed];
+    const draftCrop = facilityId ? buildDraftCrop(facilityId) : null;
+    if (draftCrop) cropsToCreate.push(draftCrop);
+
     await updateUser({
         companyName: companyDetails.name,
         companyAddress: companyDetails.address,
@@ -54,9 +200,35 @@ export default function Onboarding() {
         directors: companyDetails.directors,
         businessSize: companyDetails.businessSize,
         ucdaNumber: companyDetails.ucdaNumber,
-        setupComplete: true
+        preferredCurrency,
+        initialBalance: totalOpeningBalance
     });
-    completeOnboarding();
+
+    for (const account of accountsToCreate) {
+      await addFinanceAccount(account);
+    }
+
+    if (facilityId) {
+      await addFarm({
+        id: facilityId,
+        name: farmName,
+        location: farmLocation || 'Main Hub',
+        size: 'N/A',
+        farmingType: 'CROP',
+        staffIds: [],
+        initialAssets: inventoryToCreate.map(item => item.productName),
+      });
+    }
+
+    for (const item of inventoryToCreate) {
+      await addToInventory(item);
+    }
+
+    for (const crop of cropsToCreate) {
+      await addCrop(crop);
+    }
+
+    await completeOnboarding();
   };
 
   const validateStep = (targetStep: number): boolean => {
@@ -73,6 +245,15 @@ export default function Onboarding() {
       if (!companyDetails.tin.trim()) { setStepError('Tax Identification Number (TIN) is required.'); return false; }
       if (!companyDetails.directors.trim()) { setStepError('At least one director name is required.'); return false; }
     }
+    if (step === 3) {
+      const hasAccount = financeAccountsSeed.length > 0 || buildDraftFinanceAccount();
+      if (!hasAccount) { setStepError('Add at least one finance account and current balance to continue.'); return false; }
+    }
+    if (step === 4) {
+      const hasDraftCrop = !!cropDraft.name.trim();
+      const hasAnyCrop = cropSeed.length > 0 || hasDraftCrop;
+      if (hasAnyCrop && !farmName.trim()) { setStepError('Add the primary facility name before recording planted crops.'); return false; }
+    }
     return true;
   };
 
@@ -82,27 +263,41 @@ export default function Onboarding() {
     }
   };
 
-  const handleAddFarm = () => {
-    if (farmName) {
-        addFarm({
-            id: 'f-' + crypto.randomUUID().slice(0, 9),
-            name: farmName,
-            location: farmLocation || 'Main Hub',
-            size: 'N/A',
-            farmingType: 'CROP',
-            staffIds: [],
-            initialAssets: []
-        });
-        setFarmName('');
-        setFarmLocation('');
+  const handleAddFinanceAccount = () => {
+    const account = buildDraftFinanceAccount();
+    if (!account) return;
+    setFinanceAccountsSeed(prev => [...prev, account]);
+    setFinanceDraft({
+      name: 'Reserve Account',
+      provider: accountOptions[0]?.provider || 'Primary Bank Account',
+      type: accountOptions[0]?.type || 'BANK',
+      balance: '',
+    });
+  };
+
+  const handleAddInventoryItem = () => {
+    const item = buildDraftInventoryItem();
+    if (!item) return;
+    setInventorySeed(prev => [...prev, item]);
+    setInventoryDraft({ productName: '', grade: 'Standard', quantity: '', unit: 'kg', location: '' });
+  };
+
+  const handleAddCropSeed = () => {
+    if (!farmName.trim()) {
+      setStepError('Set the primary facility name before adding planted crops.');
+      return;
     }
+    const crop = buildDraftCrop('pending-farm');
+    if (!crop) return;
+    setCropSeed(prev => [...prev, crop]);
+    setCropDraft({ name: '', variety: '', stageLabel: CROP_STAGE_OPTIONS[0].label });
   };
 
   const STEPS = [
     { label: 'Corporate',  sub: 'Business profile'     },
     { label: 'Fiscal',     sub: 'Tax & registration'   },
-    { label: 'Operating',  sub: 'Facilities & assets'  },
-    { label: 'Activate',   sub: 'Subscription'         },
+    { label: 'Treasury',   sub: 'Accounts & currency'  },
+    { label: 'Operating',  sub: 'Facilities & stock'   },
     { label: 'Complete',   sub: 'Launch hub'            },
   ];
 
@@ -258,93 +453,191 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* ── STEP 3: Operating Framework ──────────────────── */}
+          {/* ── STEP 3: Treasury Setup ───────────────────────── */}
           {step === 3 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-6 duration-500 pt-6 md:pt-10">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-violet-400 mb-3">Step 3 of 5</p>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tighter leading-none mb-2">
-                  <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">Operating Framework</span>
+                  <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">Treasury Setup</span>
                 </h2>
-                <p className="text-white/40 font-medium text-sm">Define your initial operational assets.</p>
+                <p className="text-white/40 font-medium text-sm">Configure the accounts, currency, and opening balances for your selected country.</p>
               </div>
-              <div className="space-y-4">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelCls}>Initial Production Unit Name</label>
-                  <input className={inputCls} placeholder="e.g. Masaka Regional Hub" value={farmName} onChange={e => setFarmName(e.target.value)} />
+                  <label className={labelCls}>Country</label>
+                  <input className={inputCls + ' opacity-80'} value={selectedCountry} readOnly />
                 </div>
                 <div>
-                  <label className={labelCls}>Facility Location</label>
-                  <input className={inputCls} placeholder="e.g. Bukakata, Masaka District" value={farmLocation} onChange={e => setFarmLocation(e.target.value)} />
+                  <label className={labelCls}>Operating Currency</label>
+                  <select className={inputCls} value={preferredCurrency} onChange={e => setPreferredCurrency(e.target.value)}>
+                    {[COUNTRY_CURRENCY_MAP[selectedCountry] || 'USD', 'USD', 'EUR', 'GBP'].filter((value, index, arr) => arr.indexOf(value) === index).map(currency => (
+                      <option key={currency} value={currency} className="bg-slate-900">{currency}</option>
+                    ))}
+                  </select>
                 </div>
-                <button
-                  onClick={handleAddFarm}
-                  className="w-full bg-white/[0.04] border-2 border-dashed border-violet-400/20 hover:border-violet-400/40 text-violet-400/60 hover:text-violet-400 font-black uppercase text-[10px] tracking-widest py-5 rounded-2xl transition-all"
-                >
-                  + Initialize Facility Node
-                </button>
+
+                <div>
+                  <label className={labelCls}>Account Name</label>
+                  <input className={inputCls} value={financeDraft.name} onChange={e => setFinanceDraft({...financeDraft, name: e.target.value})} placeholder="Primary Operating Account" />
+                </div>
+                <div>
+                  <label className={labelCls}>Bank / Wallet Provider</label>
+                  <select className={inputCls} value={financeDraft.provider} onChange={e => {
+                    const option = accountOptions.find(item => item.provider === e.target.value);
+                    setFinanceDraft({...financeDraft, provider: e.target.value, type: option?.type || financeDraft.type});
+                  }}>
+                    {accountOptions.map(option => (
+                      <option key={option.provider} value={option.provider} className="bg-slate-900">{option.provider}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Account Type</label>
+                  <select className={inputCls} value={financeDraft.type} onChange={e => setFinanceDraft({...financeDraft, type: e.target.value as FinanceAccount['type']})}>
+                    {['BANK', 'MOBILE_MONEY', 'CASH', 'WALLET'].map(type => (
+                      <option key={type} value={type} className="bg-slate-900">{type.replace('_', ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Current Balance</label>
+                  <input className={inputCls} type="number" min="0" step="0.01" value={financeDraft.balance} onChange={e => setFinanceDraft({...financeDraft, balance: e.target.value})} placeholder="2500000" />
+                </div>
+              </div>
+
+              <button onClick={handleAddFinanceAccount} className="w-full bg-white/[0.04] border-2 border-dashed border-violet-400/20 hover:border-violet-400/40 text-violet-400/60 hover:text-violet-400 font-black uppercase text-[10px] tracking-widest py-4 rounded-2xl transition-all">
+                + Add Another Account
+              </button>
+
+              <div className="bg-white/[0.04] border border-white/8 rounded-2xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Treasury Snapshot</p>
+                  <p className="text-sm font-black text-emerald-400">{preferredCurrency} {totalOpeningBalance.toLocaleString()}</p>
+                </div>
+                <div className="space-y-3">
+                  {[...financeAccountsSeed, ...(buildDraftFinanceAccount() ? [buildDraftFinanceAccount()!] : [])].length === 0 ? (
+                    <p className="text-xs text-white/30 font-medium">No operating accounts added yet.</p>
+                  ) : [...financeAccountsSeed, ...(buildDraftFinanceAccount() ? [buildDraftFinanceAccount()!] : [])].map(account => (
+                    <div key={account.id} className="flex items-center justify-between text-xs font-bold text-white/60 border border-white/6 rounded-xl px-4 py-3 bg-black/20">
+                      <div>
+                        <p className="text-white">{account.name}</p>
+                        <p className="text-white/30 text-[10px] uppercase tracking-widest">{account.provider} • {account.type.replace('_', ' ')}</p>
+                      </div>
+                      <span className="text-emerald-400">{account.currency} {account.balance.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* ── STEP 4: Activation Payment ────────────────────── */}
+          {/* ── STEP 4: Operating Baseline ────────────────────── */}
           {step === 4 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-6 duration-500 pt-6 md:pt-10">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-violet-400 mb-3">Step 4 of 5</p>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tighter leading-none mb-2">
-                  <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">Account Activation</span>
+                  <span className="bg-gradient-to-r from-violet-300 via-fuchsia-200 to-cyan-300 bg-clip-text text-transparent">Operating Baseline</span>
                 </h2>
-                <p className="text-white/40 font-medium text-sm">Activate your hub for <span className="text-white/70 font-black">UGX 15,000/mo</span>. Choose your payment method.</p>
+                <p className="text-white/40 font-medium text-sm">Capture what the business already has on the ground before launch.</p>
               </div>
 
-              {/* Provider toggle */}
-              <div className="flex p-1.5 bg-white/[0.04] border border-white/8 rounded-2xl max-w-xs gap-1.5">
-                <button type="button" onClick={() => setSelectedActivationProvider('MTN')}
-                  className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'MTN' ? 'bg-[#ffcc00] text-[#003366] shadow-lg' : 'text-white/40 hover:text-white/60'}`}>
-                  MTN MoMo
-                </button>
-                <button type="button" onClick={() => setSelectedActivationProvider('AIRTEL')}
-                  className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${selectedActivationProvider === 'AIRTEL' ? 'bg-red-600 text-white shadow-lg' : 'text-white/40 hover:text-white/60'}`}>
-                  Airtel
-                </button>
-              </div>
-
-              {/* Payment card */}
-              <div className="max-w-md">
-                <div className={`w-full rounded-2xl p-6 md:p-8 border text-left overflow-hidden relative transition-all duration-500 ${selectedActivationProvider === 'MTN' ? 'bg-gradient-to-br from-[#ffcc00] to-[#e6b800] border-[#cc9900]/30 text-[#003366]' : 'bg-gradient-to-br from-slate-900/80 to-black/80 border-white/10 text-white backdrop-blur-sm'}`}>
-                  <div className="flex justify-between items-start mb-8">
-                    <p className={`text-[9px] font-black uppercase tracking-[0.4em] ${selectedActivationProvider === 'MTN' ? 'text-[#003366]/60' : 'text-violet-400'}`}>Monthly Activation</p>
-                    <Globe size={18} className="opacity-30" />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Primary Facility / Farm Name</label>
+                    <input className={inputCls} placeholder="e.g. Masaka Regional Hub" value={farmName} onChange={e => setFarmName(e.target.value)} />
                   </div>
-                  <div className="space-y-8">
-                    {selectedActivationProvider === 'MTN' ? (
-                      <div>
-                        <p className="text-[10px] font-black text-[#003366]/60 uppercase tracking-widest mb-3">Mobile Money Recipient</p>
-                        <p className="text-xl md:text-2xl font-black tracking-tighter">+256 768 638225</p>
-                        <p className="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-50">Nexa Intelligence Hub</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Mobile Money Recipient</p>
-                        <p className="text-xl md:text-2xl font-black tracking-tighter">+256 758 762690</p>
-                        <p className="text-[10px] font-bold uppercase tracking-widest mt-1 text-white/40">Nexa Intelligence Hub</p>
-                      </div>
-                    )}
-                    <div className={`flex justify-between items-end border-t pt-6 ${selectedActivationProvider === 'MTN' ? 'border-[#003366]/10' : 'border-white/8'}`}>
-                      <div>
-                        <p className={`text-[8px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'opacity-40' : 'text-white/30'}`}>Amount</p>
-                        <p className="font-black text-emerald-500 text-xs">UGX 15,000/mo</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-[8px] font-black uppercase tracking-widest ${selectedActivationProvider === 'MTN' ? 'opacity-40' : 'text-white/30'}`}>Status</p>
-                        <p className={`font-black uppercase text-xs animate-pulse ${selectedActivationProvider === 'MTN' ? 'text-[#003366]' : 'text-violet-300'}`}>Awaiting Payment</p>
-                      </div>
+                  <div>
+                    <label className={labelCls}>Facility Location</label>
+                    <input className={inputCls} placeholder="e.g. Bukakata, Masaka District" value={farmLocation} onChange={e => setFarmLocation(e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                  <div className="md:col-span-2">
+                    <label className={labelCls}>Existing Inventory Product</label>
+                    <input className={inputCls} value={inventoryDraft.productName} onChange={e => setInventoryDraft({...inventoryDraft, productName: e.target.value})} placeholder="Maize Grain" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Grade</label>
+                    <input className={inputCls} value={inventoryDraft.grade} onChange={e => setInventoryDraft({...inventoryDraft, grade: e.target.value})} placeholder="Grade A" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Quantity</label>
+                    <input className={inputCls} type="number" min="0" value={inventoryDraft.quantity} onChange={e => setInventoryDraft({...inventoryDraft, quantity: e.target.value})} placeholder="120" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Unit</label>
+                    <select className={inputCls} value={inventoryDraft.unit} onChange={e => setInventoryDraft({...inventoryDraft, unit: e.target.value as Unit})}>
+                      {UNITS.map(unit => <option key={unit} value={unit} className="bg-slate-900">{unit}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <button onClick={handleAddInventoryItem} className="w-full bg-white/[0.04] border-2 border-dashed border-cyan-400/20 hover:border-cyan-400/40 text-cyan-300/70 hover:text-cyan-300 font-black uppercase text-[10px] tracking-widest py-4 rounded-2xl transition-all">
+                  + Add Inventory Product
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  <div>
+                    <label className={labelCls}>Planted Crop</label>
+                    <input className={inputCls} value={cropDraft.name} onChange={e => setCropDraft({...cropDraft, name: e.target.value})} placeholder="Coffee Arabica" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Variety</label>
+                    <input className={inputCls} value={cropDraft.variety} onChange={e => setCropDraft({...cropDraft, variety: e.target.value})} placeholder="SL28" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Season Progress</label>
+                    <select className={inputCls} value={cropDraft.stageLabel} onChange={e => setCropDraft({...cropDraft, stageLabel: e.target.value})}>
+                      {CROP_STAGE_OPTIONS.map(option => <option key={option.label} value={option.label} className="bg-slate-900">{option.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <button onClick={handleAddCropSeed} className="w-full bg-white/[0.04] border-2 border-dashed border-violet-400/20 hover:border-violet-400/40 text-violet-300/70 hover:text-violet-300 font-black uppercase text-[10px] tracking-widest py-4 rounded-2xl transition-all">
+                  + Add Existing Planted Crop
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/[0.04] border border-white/8 rounded-2xl p-5">
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Inventory Snapshot</p>
+                    <div className="space-y-3 max-h-56 overflow-y-auto">
+                      {[...inventorySeed, ...(buildDraftInventoryItem() ? [buildDraftInventoryItem()!] : [])].length === 0 ? (
+                        <p className="text-xs text-white/30 font-medium">No products added yet.</p>
+                      ) : [...inventorySeed, ...(buildDraftInventoryItem() ? [buildDraftInventoryItem()!] : [])].map(item => (
+                        <div key={item.id} className="flex items-center justify-between text-xs font-bold text-white/60 border border-white/6 rounded-xl px-4 py-3 bg-black/20">
+                          <div>
+                            <p className="text-white">{item.productName}</p>
+                            <p className="text-white/30 text-[10px] uppercase tracking-widest">{item.grade} • {item.location}</p>
+                          </div>
+                          <span className="text-cyan-300">{item.quantity} {item.unit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white/[0.04] border border-white/8 rounded-2xl p-5">
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Crop Snapshot</p>
+                    <div className="space-y-3 max-h-56 overflow-y-auto">
+                      {[...cropSeed, ...(farmName.trim() && buildDraftCrop('pending-farm') ? [buildDraftCrop('pending-farm')!] : [])].length === 0 ? (
+                        <p className="text-xs text-white/30 font-medium">No planted crops added yet.</p>
+                      ) : [...cropSeed, ...(farmName.trim() && buildDraftCrop('pending-farm') ? [buildDraftCrop('pending-farm')!] : [])].map(crop => (
+                        <div key={crop.id} className="flex items-center justify-between text-xs font-bold text-white/60 border border-white/6 rounded-xl px-4 py-3 bg-black/20">
+                          <div>
+                            <p className="text-white">{crop.name}</p>
+                            <p className="text-white/30 text-[10px] uppercase tracking-widest">{crop.variety} • {crop.stageLabel}</p>
+                          </div>
+                          <span className="text-violet-300">{crop.status}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
-              <p className="text-white/25 text-[10px] font-bold uppercase tracking-wider">Send payment above, then proceed to complete setup.</p>
             </div>
           )}
 
@@ -400,6 +693,8 @@ export default function Onboarding() {
                     { label: 'Business Profile', ok: !!companyDetails.name },
                     { label: 'TIN Identified', ok: !!companyDetails.tin },
                     { label: 'Registry Linked', ok: !!companyDetails.regNumber },
+                    { label: 'Treasury Configured', ok: totalOpeningBalance > 0 },
+                    { label: 'Ops Baseline Loaded', ok: !!farmName || inventorySeed.length > 0 || cropSeed.length > 0 || !!inventoryDraft.productName || !!cropDraft.name },
                   ].map(item => (
                     <div key={item.label} className="flex justify-between items-center text-xs font-bold text-white/50">
                       <span>{item.label}</span>
@@ -428,7 +723,7 @@ export default function Onboarding() {
               </div>
             </div>
           )}
-          {isDesktop && step > 1 && step < 4 && (
+          {isDesktop && step > 1 && step < 5 && (
             <div className="mt-8">
               {!showQrCode ? (
                 <button onClick={() => setShowQrCode(true)} className="flex items-center gap-2 px-5 py-2.5 bg-white/[0.04] border border-white/8 rounded-xl text-white/30 hover:text-violet-400 transition-colors text-[10px] font-black uppercase tracking-widest">
