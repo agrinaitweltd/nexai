@@ -580,38 +580,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true, message: 'Account created successfully.', user: newUser };
     }
 
-    // Regular signup: create auth user as PENDING, then queue admin review.
+    // Regular signup: store a pending registration only. Auth user is created after admin approval.
     const preferredCurrency = CURRENCY_MAP[data.location] || 'USD';
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          full_name: data.name,
-          role: data.role || 'ADMIN',
-          phone: data.phone || null,
-          country: data.location || null,
-          sector: data.sector || 'GENERAL',
-          business_category: data.businessCategory || null,
-          business_type: data.businessType || null,
-          company_name: data.companyName || null,
-          preferred_currency: preferredCurrency,
-          activation_status: 'PENDING',
-        }
-      }
-    });
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id, activation_status')
+      .eq('email', data.email)
+      .maybeSingle();
 
-    if (authError) {
-      if (authError.message.toLowerCase().includes('already registered')) {
-        return { success: false, message: 'An account with this email already exists.' };
+    if (existingProfile) {
+      if (existingProfile.activation_status === 'PENDING') {
+        return { success: false, message: 'This account is already awaiting admin approval.' };
       }
-      return { success: false, message: authError.message };
+      return { success: false, message: 'An account with this email already exists.' };
     }
 
-    if (!authData.user) return { success: false, message: 'Signup failed — no user returned.' };
-
+    const pendingId = 'pr-' + crypto.randomUUID().slice(0, 9);
     const pendingRow = {
-      id: authData.user.id,
+      id: pendingId,
       email: data.email,
       full_name: data.name,
       phone: data.phone || null,
@@ -624,18 +610,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       transaction_id: null,
       payment_phone: null,
       payment_method: null,
+      _tmp_password: data.password,
       status: 'PENDING',
     };
 
     const { error: insertErr } = await supabase
       .from('pending_registrations')
-      .upsert(pendingRow, { onConflict: 'email' });
+      .insert(pendingRow);
 
     if (insertErr) {
       if (isMissingRelationError(insertErr) || isRlsPolicyError(insertErr)) {
         const legacyPendingRow = {
-          id: authData.user.id,
-          user_id: authData.user.id,
+          id: pendingId,
+          user_id: pendingId,
           user_name: data.name,
           user_email: data.email,
           transaction_id: null,
@@ -670,7 +657,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Build a minimal local user so Login.tsx can proceed to the PAYMENT step
     const localUser: User = profileToUser({
-      id: authData.user.id,
+      id: pendingId,
       full_name: data.name,
       email: data.email,
       role: 'ADMIN',
@@ -722,29 +709,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const signup = pendingSignups.find(s => s.id === signupId);
     if (!signup) return;
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || 'https://vlxfwcdnsdqgcqkdnpav.supabase.co';
+
     try {
-      // Mark pending registration approved and activate matching profile.
-      const { error: pendingErr } = await supabase
+      const { error: pendingCheckErr } = await supabase
         .from('pending_registrations')
-        .update({ status: 'APPROVED' })
-        .eq('id', signupId);
-      if (pendingErr) {
-        if (isMissingRelationError(pendingErr)) {
-          const { error: legacyApproveErr } = await supabase
-            .from('pending_signups')
-            .delete()
-            .eq('id', signupId);
-          if (legacyApproveErr) throw legacyApproveErr;
-        } else {
-          throw pendingErr;
+        .select('id')
+        .eq('id', signupId)
+        .single();
+
+      if (pendingCheckErr && isMissingRelationError(pendingCheckErr)) {
+        const { error: legacyApproveErr } = await supabase
+          .from('pending_signups')
+          .delete()
+          .eq('id', signupId);
+        if (legacyApproveErr) throw legacyApproveErr;
+      } else {
+        // Create the real auth user only after admin approval.
+        const res = await fetch(`${supabaseUrl}/functions/v1/admin-create-user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ pendingId: signupId }),
+        });
+
+        const result = await res.json();
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || 'Approval failed');
         }
       }
-
-      const { error: profileErr } = await supabase
-        .from('profiles')
-        .update({ activation_status: 'ACTIVE', rejection_count: 0 })
-        .eq('email', signup.userEmail);
-      if (profileErr) throw profileErr;
     } catch (err: any) {
       addNotification(`Approval failed: ${err.message}`, 'ALERT');
       return;
@@ -852,7 +848,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const getAllUsers = async (): Promise<User[]> => {
-    const { data } = await supabase.from('profiles').select('*');
+    const { data } = await supabase.from('profiles').select('*').neq('activation_status', 'PENDING');
     return (data ?? []).map(profileToUser);
   };
 

@@ -44,16 +44,13 @@ Deno.serve(async (req) => {
     if (pendingErr || !pending) {
       return new Response(JSON.stringify({ error: 'Pending registration not found' }), { status: 404, headers: corsHeaders });
     }
-
-
-
-    // Use the tmp_password from pending_registrations to create the user
-    if (!pending.tmp_password) {
+    // Use the temporary password captured at registration time.
+    if (!pending._tmp_password) {
       return new Response(JSON.stringify({ error: 'No password found for this registration.' }), { status: 400, headers: corsHeaders });
     }
     const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: pending.email,
-      password: pending.tmp_password,
+      password: pending._tmp_password,
       email_confirm: true,
       user_metadata: {
         full_name: pending.full_name,
@@ -69,6 +66,9 @@ Deno.serve(async (req) => {
       }
     });
     if (createErr || !newUser.user) {
+      if (createErr?.message?.toLowerCase().includes('already registered')) {
+        return new Response(JSON.stringify({ error: 'This user already exists in Supabase auth.' }), { status: 409, headers: corsHeaders });
+      }
       return new Response(JSON.stringify({ error: createErr?.message || 'Failed to create user' }), { status: 500, headers: corsHeaders });
     }
 
