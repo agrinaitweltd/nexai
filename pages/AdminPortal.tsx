@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { NexaLogo } from '../components/NexaLogo';
 import {
@@ -11,6 +11,8 @@ import {
 import { User, PendingSignup, Sector } from '../types';
 
 type View = 'OVERVIEW' | 'REQUESTS' | 'USERS' | 'ANALYTICS' | 'SECURITY';
+
+const ADMIN_MEMORY_CODE = 'oliver';
 
 interface NavData { pending: number; totalUsers: number; }
 
@@ -47,7 +49,7 @@ const KpiCard = ({ label, value, sub, icon: Icon, accent }: {
 export default function AdminPortal() {
     const {
         user, logout, pendingSignups, approveSignup, rejectSignup,
-        getAllUsers, deleteUser, register,
+        getAllUsers, deleteUser, register, requestPasswordReset,
         transactions, farms, staff, inventory,
         exports: exportOrders, messages, announcements
     } = useApp();
@@ -61,10 +63,65 @@ export default function AdminPortal() {
     const [showProvisionModal, setShowProvisionModal] = useState(false);
     const [isProvisioning, setIsProvisioning] = useState(false);
     const [provisionForm, setProvisionForm] = useState({
-        name: '', email: '', password: '', companyName: '',
+        name: '', email: '', companyName: '',
         businessType: 'General Agriculture', sector: 'GENERAL' as Sector,
         role: 'ADMIN' as 'ADMIN' | 'STAFF'
     });
+    const [securityPromptOpen, setSecurityPromptOpen] = useState(false);
+    const [securityPromptLabel, setSecurityPromptLabel] = useState('');
+    const [securityPromptPositions, setSecurityPromptPositions] = useState<number[]>([]);
+    const [securityPromptInput, setSecurityPromptInput] = useState('');
+    const [securityPromptError, setSecurityPromptError] = useState('');
+
+    const expectedSecurityAnswerRef = useRef('');
+    const sensitiveActionRef = useRef<(() => Promise<void>) | null>(null);
+
+    const randomSecurityPositions = useCallback((): number[] => {
+        const pool = [1, 2, 3, 4, 5, 6];
+        const picked: number[] = [];
+        while (picked.length < 3 && pool.length) {
+            const idx = Math.floor(Math.random() * pool.length);
+            picked.push(pool[idx]);
+            pool.splice(idx, 1);
+        }
+        return picked;
+    }, []);
+
+    const openSensitiveActionPrompt = useCallback((label: string, action: () => Promise<void>) => {
+        const positions = randomSecurityPositions();
+        expectedSecurityAnswerRef.current = positions.map(pos => ADMIN_MEMORY_CODE[pos - 1]).join('').toLowerCase();
+        sensitiveActionRef.current = action;
+        setSecurityPromptLabel(label);
+        setSecurityPromptPositions(positions);
+        setSecurityPromptInput('');
+        setSecurityPromptError('');
+        setSecurityPromptOpen(true);
+    }, [randomSecurityPositions]);
+
+    const closeSensitiveActionPrompt = useCallback(() => {
+        setSecurityPromptOpen(false);
+        setSecurityPromptInput('');
+        setSecurityPromptError('');
+        expectedSecurityAnswerRef.current = '';
+        sensitiveActionRef.current = null;
+    }, []);
+
+    const submitSensitiveActionPrompt = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault();
+        const normalized = securityPromptInput.replace(/\s+/g, '').toLowerCase();
+        if (normalized !== expectedSecurityAnswerRef.current) {
+            setSecurityPromptError('Memory check failed. Try again.');
+            return;
+        }
+        const action = sensitiveActionRef.current;
+        closeSensitiveActionPrompt();
+        if (action) await action();
+    }, [closeSensitiveActionPrompt, securityPromptInput]);
+
+    const securityPromptPositionsText = useMemo(
+        () => securityPromptPositions.join(', '),
+        [securityPromptPositions]
+    );
 
     const refreshUsers = useCallback(async () => {
         const next = await getAllUsers();
@@ -74,41 +131,56 @@ export default function AdminPortal() {
     useEffect(() => { refreshUsers(); }, [pendingSignups, refreshUsers]);
 
     const handleApprove = async (id: string) => {
-        setProcessingId(id);
-        await approveSignup(id);
-        await refreshUsers();
-        setProcessingId(null);
+        openSensitiveActionPrompt('Approve Request', async () => {
+            setProcessingId(id);
+            await approveSignup(id);
+            await refreshUsers();
+            setProcessingId(null);
+        });
     };
 
     const handleReject = async (id: string) => {
-        setProcessingId(id);
-        await rejectSignup(id);
-        await refreshUsers();
-        setProcessingId(null);
+        openSensitiveActionPrompt('Reject Request', async () => {
+            setProcessingId(id);
+            await rejectSignup(id);
+            await refreshUsers();
+            setProcessingId(null);
+        });
     };
 
     const handleDeleteUser = async (id: string) => {
-        setProcessingId(id);
-        try {
-            await deleteUser(id);
-            setUsers(prev => prev.filter(u => u.id !== id));
-        } finally {
-            setProcessingId(null);
-        }
+        openSensitiveActionPrompt('Delete User', async () => {
+            setProcessingId(id);
+            try {
+                await deleteUser(id);
+                setUsers(prev => prev.filter(u => u.id !== id));
+            } finally {
+                setProcessingId(null);
+            }
+        });
     };
 
     const handleProvision = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsProvisioning(true);
-        try {
-            const res = await register({ ...provisionForm, activationStatus: 'ACTIVE', setupComplete: false });
-            if (res.success) {
-                setShowProvisionModal(false);
-                setProvisionForm({ name: '', email: '', password: '', companyName: '', businessType: 'General Agriculture', sector: 'GENERAL', role: 'ADMIN' });
-                await refreshUsers();
-                setActiveView('USERS');
-            } else { alert(res.message); }
-        } finally { setIsProvisioning(false); }
+        openSensitiveActionPrompt('Create User', async () => {
+            setIsProvisioning(true);
+            try {
+                const tempPassword = `Nx!${Math.random().toString(36).slice(-8)}A1`;
+                const res = await register({ ...provisionForm, password: tempPassword, activationStatus: 'ACTIVE', setupComplete: false });
+                if (res.success) {
+                    await requestPasswordReset(provisionForm.email);
+                    setShowProvisionModal(false);
+                    setProvisionForm({ name: '', email: '', companyName: '', businessType: 'General Agriculture', sector: 'GENERAL', role: 'ADMIN' });
+                    await refreshUsers();
+                    setActiveView('USERS');
+                    alert('User created and password reset link sent.');
+                } else {
+                    alert(res.message);
+                }
+            } finally {
+                setIsProvisioning(false);
+            }
+        });
     };
 
     const filteredUsers = users.filter(u =>
@@ -610,7 +682,6 @@ export default function AdminPortal() {
                                     { label: 'Full Name',      key: 'name',        type: 'text',     placeholder: 'Jane Smith' },
                                     { label: 'Email Address',  key: 'email',       type: 'email',    placeholder: 'jane@company.com' },
                                     { label: 'Company Name',   key: 'companyName', type: 'text',     placeholder: 'Agri Partners Ltd' },
-                                    { label: 'Password',       key: 'password',    type: 'password', placeholder: '••••••••' },
                                 ].map(f => (
                                     <div key={f.key} className="space-y-1.5">
                                         <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{f.label}</label>
@@ -639,6 +710,53 @@ export default function AdminPortal() {
                                 <button type="button" onClick={() => setShowProvisionModal(false)} className="px-5 py-2.5 rounded-xl text-[12px] font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all">Cancel</button>
                                 <button type="submit" disabled={isProvisioning} className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-bold flex items-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-emerald-500/20">
                                     {isProvisioning ? <><RefreshCw size={12} className="animate-spin" /> Creating…</> : <><SendHorizontal size={12} /> Create User</>}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {securityPromptOpen && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[210] p-4 animate-in fade-in duration-200">
+                    <div className="bg-[#131f35] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+                            <div>
+                                <h3 className="text-[14px] font-bold text-white">Confirm {securityPromptLabel}</h3>
+                                <p className="text-[11px] text-slate-500">Security memory check required</p>
+                            </div>
+                            <button onClick={closeSensitiveActionPrompt} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all">
+                                <X size={14} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={submitSensitiveActionPrompt} className="p-5 space-y-4">
+                            <div className="bg-[#0b1526] border border-white/[0.06] rounded-xl p-3">
+                                <p className="text-[11px] text-slate-400">Enter characters at positions:</p>
+                                <p className="text-[13px] font-bold text-[#4da6ff]">{securityPromptPositionsText}</p>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Memory Characters</label>
+                                <input
+                                    required
+                                    autoFocus
+                                    value={securityPromptInput}
+                                    onChange={e => {
+                                        setSecurityPromptInput(e.target.value);
+                                        if (securityPromptError) setSecurityPromptError('');
+                                    }}
+                                    placeholder="Example: oie"
+                                    className="w-full bg-[#0b1526] border border-white/[0.08] text-white placeholder:text-slate-600 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#1a6fc4]/60 transition-all"
+                                />
+                                {securityPromptError && <p className="text-[11px] text-red-400">{securityPromptError}</p>}
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-1">
+                                <button type="button" onClick={closeSensitiveActionPrompt} className="px-4 py-2.5 rounded-xl text-[12px] font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                                    Cancel
+                                </button>
+                                <button type="submit" className="px-5 py-2.5 rounded-xl bg-[#1a6fc4] hover:bg-[#2a7fd4] text-white text-[12px] font-bold transition-all">
+                                    Confirm Action
                                 </button>
                             </div>
                         </form>
