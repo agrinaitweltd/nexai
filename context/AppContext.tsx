@@ -10,6 +10,11 @@ import { supabase } from '../supabaseClient';
 const MAX_REJECTIONS = 3;
 const SUPER_ADMIN_EMAIL = 'admin@nexaagri.com';
 
+const isMissingRelationError = (err: any): boolean => {
+  const msg = (err?.message || '').toLowerCase();
+  return err?.code === '42P01' || msg.includes('does not exist') || msg.includes('could not find the table');
+};
+
 // ── Supabase row ↔ App object mappers ────────────────────────
 
 function profileToUser(p: any): User {
@@ -309,10 +314,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loadPendingSignups = useCallback(async () => {
     // Explicitly select columns (exclude tmp_password to avoid PostgREST schema cache issues)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('pending_registrations')
       .select('id, email, full_name, phone, country, sector, business_category, business_type, company_name, preferred_currency, transaction_id, payment_phone, payment_method, bank_name, account_name, status, created_at')
       .eq('status', 'PENDING');
+    if (error && isMissingRelationError(error)) {
+      const { data: legacyData } = await supabase
+        .from('pending_signups')
+        .select('id, user_id, user_name, user_email, transaction_id, payment_phone, payment_method, bank_name, account_name, date, created_at');
+      setPendingSignups((legacyData ?? []).map((r: any): PendingSignup => ({
+        id: r.id,
+        userId: r.user_id,
+        userName: r.user_name,
+        userEmail: r.user_email,
+        transactionId: r.transaction_id || '',
+        paymentPhone: r.payment_phone || '',
+        paymentMethod: r.payment_method || 'MTN',
+        bankName: r.bank_name,
+        accountName: r.account_name,
+        country: '',
+        date: r.date || r.created_at,
+      })));
+      return;
+    }
     setPendingSignups((data ?? []).map((r: any): PendingSignup => ({
       id: r.id,
       userId: r.id, // no auth user yet; use pending_registration id
@@ -602,10 +626,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .upsert(pendingRow, { onConflict: 'email' });
 
     if (insertErr) {
-      if (insertErr.message?.toLowerCase().includes('unique') || insertErr.code === '23505') {
-        return { success: false, message: 'An account with this email is already pending review.' };
+      if (isMissingRelationError(insertErr)) {
+        const legacyPendingRow = {
+          id: authData.user.id,
+          user_id: authData.user.id,
+          user_name: data.name,
+          user_email: data.email,
+          transaction_id: null,
+          payment_phone: null,
+          payment_method: null,
+          bank_name: null,
+          account_name: null,
+        };
+        const { error: legacyInsertErr } = await supabase
+          .from('pending_signups')
+          .upsert(legacyPendingRow, { onConflict: 'id' });
+
+        if (legacyInsertErr) {
+          if (legacyInsertErr.message?.toLowerCase().includes('unique') || legacyInsertErr.code === '23505') {
+            return { success: false, message: 'An account with this email is already pending review.' };
+          }
+          return { success: false, message: legacyInsertErr.message };
+        }
+      } else {
+        if (insertErr.message?.toLowerCase().includes('unique') || insertErr.code === '23505') {
+          return { success: false, message: 'An account with this email is already pending review.' };
+        }
+        return { success: false, message: insertErr.message };
       }
-      return { success: false, message: insertErr.message };
     }
 
     // Build a minimal local user so Login.tsx can proceed to the PAYMENT step
@@ -638,6 +686,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       account_name: v.accountName || null,
     }).eq('id', v.userId);
 
+    if (error && isMissingRelationError(error)) {
+      const { error: legacyErr } = await supabase.from('pending_signups').update({
+        transaction_id: v.transactionId,
+        payment_phone: v.paymentPhone,
+        payment_method: v.paymentMethod,
+        bank_name: v.bankName || null,
+        account_name: v.accountName || null,
+      }).eq('user_id', v.userId);
+      if (!legacyErr) {
+        await loadPendingSignups();
+      }
+      return;
+    }
+
     if (!error) {
       // Refresh pending list so admin sees the updated payment info
       await loadPendingSignups();
@@ -654,7 +716,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .from('pending_registrations')
         .update({ status: 'APPROVED' })
         .eq('id', signupId);
-      if (pendingErr) throw pendingErr;
+      if (pendingErr) {
+        if (isMissingRelationError(pendingErr)) {
+          const { error: legacyApproveErr } = await supabase
+            .from('pending_signups')
+            .delete()
+            .eq('id', signupId);
+          if (legacyApproveErr) throw legacyApproveErr;
+        } else {
+          throw pendingErr;
+        }
+      }
 
       const { error: profileErr } = await supabase
         .from('profiles')
@@ -674,7 +746,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const signup = pendingSignups.find(s => s.id === signupId);
     if (!signup) return;
     // DELETE the row entirely so the email is freed and the user can re-register
-    await supabase.from('pending_registrations').delete().eq('id', signupId);
+    const { error } = await supabase.from('pending_registrations').delete().eq('id', signupId);
+    if (error && isMissingRelationError(error)) {
+      await supabase.from('pending_signups').delete().eq('id', signupId);
+    }
     setPendingSignups(prev => prev.filter(s => s.id !== signupId));
     addNotification(`Registration for ${signup.userName} purged. They may re-apply.`, 'ALERT');
   };
@@ -709,7 +784,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const resetUserStatus = async (email: string) => {
     // Delete any pending_registration row to free the unique email constraint for re-registration
-    await supabase.from('pending_registrations').delete().eq('email', email);
+    const { error } = await supabase.from('pending_registrations').delete().eq('email', email);
+    if (error && isMissingRelationError(error)) {
+      await supabase.from('pending_signups').delete().eq('user_email', email);
+    }
     // Also reset profile status in case they have an existing profile
     await supabase.from('profiles').update({ activation_status: 'PENDING' }).eq('email', email);
   };
