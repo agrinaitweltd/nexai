@@ -15,6 +15,11 @@ const isMissingRelationError = (err: any): boolean => {
   return err?.code === '42P01' || msg.includes('does not exist') || msg.includes('could not find the table');
 };
 
+const isRlsPolicyError = (err: any): boolean => {
+  const msg = (err?.message || '').toLowerCase();
+  return err?.code === '42501' || msg.includes('row-level security policy');
+};
+
 // ── Supabase row ↔ App object mappers ────────────────────────
 
 function profileToUser(p: any): User {
@@ -626,7 +631,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .upsert(pendingRow, { onConflict: 'email' });
 
     if (insertErr) {
-      if (isMissingRelationError(insertErr)) {
+      if (isMissingRelationError(insertErr) || isRlsPolicyError(insertErr)) {
         const legacyPendingRow = {
           id: authData.user.id,
           user_id: authData.user.id,
@@ -643,6 +648,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .upsert(legacyPendingRow, { onConflict: 'id' });
 
         if (legacyInsertErr) {
+          if (isRlsPolicyError(insertErr) && isMissingRelationError(legacyInsertErr)) {
+            return {
+              success: false,
+              message: 'Signup is blocked by database policy. Run supabase/fix_pending_registrations_rls.sql in Supabase SQL Editor, then try again.'
+            };
+          }
           if (legacyInsertErr.message?.toLowerCase().includes('unique') || legacyInsertErr.code === '23505') {
             return { success: false, message: 'An account with this email is already pending review.' };
           }
