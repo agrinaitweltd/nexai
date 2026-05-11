@@ -382,30 +382,30 @@ doc.text(`${order.missionType === 'EXPORT' ? 'International Trade' : 'Domestic S
                   </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 relative z-10">
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Port</p>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{order.destinationPort || 'Local Hub'}</span>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-3 md:gap-4 mb-6 relative z-10">
+                  <div className="p-3 md:p-4 min-w-0 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">Target Port</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block whitespace-normal break-words leading-snug">{order.destinationPort || 'Local Hub'}</span>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Provider</p>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{order.transportProvider || 'Internal'}</span>
+                  <div className="p-3 md:p-4 min-w-0 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">Provider</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block whitespace-normal break-words leading-snug">{order.transportProvider || 'Internal'}</span>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Origin</p>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{order.originLocation || 'Dispatch'}</span>
+                  <div className="p-3 md:p-4 min-w-0 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">Origin</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block whitespace-normal break-words leading-snug">{order.originLocation || 'Dispatch'}</span>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Weight</p>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{order.quantity} {order.unit}</span>
+                  <div className="p-3 md:p-4 min-w-0 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">Weight</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block whitespace-normal break-words leading-snug">{order.quantity} {order.unit}</span>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Departure</p>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{formatMissionDate(order.departureDate)}</span>
+                  <div className="p-3 md:p-4 min-w-0 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">Departure</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block whitespace-normal break-words leading-snug">{formatMissionDate(order.departureDate)}</span>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">ETA</p>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">{formatMissionDate(order.arrivalDate)}</span>
+                  <div className="p-3 md:p-4 min-w-0 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">ETA</p>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block whitespace-normal break-words leading-snug">{formatMissionDate(order.arrivalDate)}</span>
                   </div>
               </div>
 
