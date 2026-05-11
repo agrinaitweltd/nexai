@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 const { Link, useLocation, useNavigate, Outlet } = ReactRouterDOM as any;
 import { useApp } from '../context/AppContext';
-import { 
-  LayoutDashboard, Warehouse, Ship, DollarSign, LogOut, 
-  Menu, Bell, X, Cat, Users, Briefcase, Settings, HelpCircle, FileStack, MessageSquare, BarChart3, Search, Clock, ShieldAlert, ChevronRight, Wallet, CheckCircle2, User as UserIcon, Tractor, FlaskConical, Palette, Bot
+import {
+  LayoutDashboard, Warehouse, Ship, DollarSign, LogOut,
+  Menu, Bell, X, Cat, Users, Briefcase, Settings, HelpCircle, FileStack, MessageSquare, BarChart3, Search, Clock, ShieldAlert, ChevronRight, Wallet, CheckCircle2, User as UserIcon, Tractor, FlaskConical, Palette, Bot,
+  Wifi, WifiOff, Command
 } from 'lucide-react';
 import { NexaLogo } from './NexaLogo';
 import { getSavedAuth, isSessionPinVerified, setSessionPinVerified, MobileUnlockPrompt, clearSavedAuth } from './MobileAuth';
@@ -44,6 +45,31 @@ export default function Layout() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const unreadMsgs = messages.filter(m => !m.read && m.type === 'INBOX').length;
+  const pendingReqs = (requisitions || []).filter((r: any) => r.status === 'PENDING').length;
+
+  // Online / offline status
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+
+  // Search bar
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); }
+      if (e.key === 'Escape') setSearchOpen(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+  useEffect(() => { if (searchOpen) setTimeout(() => searchRef.current?.focus(), 50); }, [searchOpen]);
   
   const isLivestock = user?.sector === 'LIVESTOCK' || user?.businessType?.toLowerCase().includes('livestock');
   const isAdmin = user?.role === 'ADMIN';
@@ -112,7 +138,7 @@ export default function Layout() {
   }, [location.pathname]);
 
   return (
-    <div className={`flex h-screen bg-[#0b1526] overflow-hidden transition-colors ${theme}`}>
+    <div className={`flex h-screen bg-[#0b1526] overflow-hidden transition-colors dark ${theme}`}>
       {/* Passcode / Face ID lock screen — shown on every browser refresh */}
       {showLockScreen && savedMobileAuth && (
         <div className="fixed inset-0 bg-white dark:bg-slate-950 z-[500] flex flex-col items-center justify-center p-6">
@@ -165,7 +191,7 @@ export default function Layout() {
           <NavItem to="/app/vault" icon={FileStack} label="Vault & Documents" />
           <NavItem to="/app/communication" icon={MessageSquare} label="Messaging & Alerts" badge={unreadMsgs} />
           <NavItem to="/app/staff" icon={Users} label="Staff & Teams" />
-          <NavItem to="/app/finance" icon={DollarSign} label="Finance & Audit" />
+          <NavItem to="/app/finance" icon={DollarSign} label="Finance & Audit" badge={pendingReqs} />
           <NavItem to="/app/reports" icon={BarChart3} label="Reports Module" />
           <NavItem to="/app/agro-ai" icon={Bot} label="NexaAI Assistant" />
           <NavItem to="/app/clients" icon={Briefcase} label="Clients" />
@@ -201,28 +227,37 @@ export default function Layout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <header className="bg-[#0d1c30] py-3 md:py-4 flex items-center z-40 border-b border-white/[0.06] shrink-0">
-          <div className="flex items-center px-4 md:px-10 flex-1 min-w-0">
-            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 mr-3 shrink-0 active:scale-95 transition-all">
+          <div className="flex items-center px-4 md:px-6 flex-1 min-w-0 gap-3">
+            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 shrink-0 active:scale-95 transition-all">
               <Menu size={20} />
             </button>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-base md:text-xl font-bold text-white tracking-tight leading-tight truncate">
-                Hello, {user?.name?.split(' ')[0]}!
-              </h2>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-widest truncate">
-                  {user?.companyName || 'Your Business'}
-                </p>
-                <ChevronRight size={9} className="text-slate-600 shrink-0" />
-                <span className="text-[#4da6ff] text-[10px] font-bold uppercase tracking-widest shrink-0">{user?.sector}</span>
+            {/* Search bar */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.08] rounded-xl px-3 py-2 transition-all min-w-0 max-w-xs w-full"
+            >
+              <Search size={14} className="text-slate-500 shrink-0" />
+              <span className="text-[12px] text-slate-500 flex-1 text-left">Search...</span>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <Command size={10} className="text-slate-600" />
+                <span className="text-[10px] text-slate-600 font-bold">K</span>
               </div>
-            </div>
+            </button>
           </div>
 
-          <div className="flex items-center pr-4 md:pr-10 space-x-2 shrink-0">
-            <div className="hidden lg:flex flex-col items-end mr-4">
+          <div className="flex items-center pr-4 md:pr-6 gap-2 shrink-0">
+            {/* Online / Offline */}
+            <div className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold transition-all ${
+              isOnline
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}>
+              {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
+              <span>{isOnline ? 'Online' : 'Offline'}</span>
+            </div>
+            <div className="hidden lg:flex flex-col items-end">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Balance</span>
-                <span className="text-lg font-bold text-white">{formatCurrency(balance)}</span>
+                <span className="text-sm font-bold text-white">{formatCurrency(balance)}</span>
             </div>
 
             <div className="relative">
@@ -230,9 +265,11 @@ export default function Layout() {
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:bg-white/[0.07] hover:text-white transition-colors"
               >
-                <Bell size={20} />
+                <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0d1c30]" />
+                  <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 bg-red-500 rounded-full border-2 border-[#0d1c30] text-white text-[9px] font-black flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
               </button>
               
@@ -265,6 +302,10 @@ export default function Layout() {
             <Link to="/app/profile" className="hidden md:flex w-10 h-10 rounded-xl border border-white/10 items-center justify-center text-slate-400 hover:bg-white/[0.07] hover:text-white transition-all">
                 <UserIcon size={20} />
             </Link>
+            {/* Mobile search button */}
+            <button onClick={() => setSearchOpen(true)} className="md:hidden w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+              <Search size={18} />
+            </button>
           </div>
         </header>
 
@@ -274,6 +315,61 @@ export default function Layout() {
           </div>
         </main>
       </div>
+
+      {/* Global search modal */}
+      {searchOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[300] flex items-start justify-center pt-20 px-4" onClick={() => setSearchOpen(false)}>
+          <div className="w-full max-w-lg" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#0d1c30] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06]">
+                <Search size={16} className="text-slate-400 shrink-0" />
+                <input
+                  ref={searchRef}
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search pages, features..."
+                  className="flex-1 bg-transparent text-white text-[14px] outline-none placeholder:text-slate-500"
+                />
+                <button onClick={() => setSearchOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="p-3 space-y-0.5">
+                {[
+                  { label: 'Dashboard', to: '/app' },
+                  { label: 'Finance & Audit', to: '/app/finance' },
+                  { label: 'Inventory Module', to: '/app/inventory' },
+                  { label: 'Staff & Teams', to: '/app/staff' },
+                  { label: 'Mission Control', to: '/app/exports' },
+                  { label: 'Crops & Farms', to: '/app/farms' },
+                  { label: 'Livestock & Animals', to: '/app/animals' },
+                  { label: 'Clients', to: '/app/clients' },
+                  { label: 'Reports Module', to: '/app/reports' },
+                  { label: 'NexaAI Assistant', to: '/app/agro-ai' },
+                  { label: 'Vault & Documents', to: '/app/vault' },
+                  { label: 'Settings', to: '/app/settings' },
+                ]
+                  .filter(item => !searchQuery || item.label.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map(item => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-white/[0.07] hover:text-white transition-all text-[13px] font-semibold"
+                    >
+                      <Search size={12} className="text-slate-600" />
+                      {item.label}
+                    </Link>
+                  ))
+                }
+              </div>
+              <div className="px-4 py-2.5 border-t border-white/[0.06]">
+                <p className="text-[10px] text-slate-600">Press <kbd className="bg-white/10 px-1 py-0.5 rounded text-[9px]">Esc</kbd> to close</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
